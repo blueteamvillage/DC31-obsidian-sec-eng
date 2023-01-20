@@ -1,4 +1,4 @@
-name: Test PR by running pre-commit
+name: Test PR
 
 on: [push, pull_request]
 

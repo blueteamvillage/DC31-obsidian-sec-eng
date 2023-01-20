@@ -1,4 +1,5 @@
 terraform/ssh_keys/*
+!terraform/ssh_keys/.gitkeep
 .terraform
 terraform.tfstate
 terraform.tfstate.backup

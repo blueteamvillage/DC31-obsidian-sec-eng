@@ -81,9 +81,9 @@ jobs:
       - name: Write SSH public key to disk
         run: echo ${{ secrets.SSH_PUB_KEY }} > terraform/ssh_keys/id_ed25519.pub
 
-      - name: Terraform Init
-        id: init
-        run: cd terraform/ && terraform init
+      # - name: Terraform Init
+      #   id: init
+      #   run: cd terraform/ && terraform init
 
       ########################### pre-commit ###########################
       - name: pre-commit modules

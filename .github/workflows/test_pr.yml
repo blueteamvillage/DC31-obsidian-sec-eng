@@ -65,6 +65,9 @@ jobs:
           python-version: "${{ env.PYTHON_VERSION }}"
           cache: 'pip'
 
+      - name: Install Python deps
+        run: pip install -r ci/requirements.txt
+
       ########################### pre-commit ###########################
       - name: pre-commit modules
         run: pre-commit run --all-files

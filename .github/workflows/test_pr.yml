@@ -34,6 +34,9 @@ jobs:
         with:
           terraform_version: "${{ env.TERRAFORM_VERSION }}"
 
+      - name: Write SSH public key to disk
+        run: echo ${{ secrets.SSH_PUB_KEY }} > terraform/ssh_keys/id_ed25519.pub
+
       - name: Terraform fmt
         id: fmt
         run: cd terraform/ && terraform fmt -check

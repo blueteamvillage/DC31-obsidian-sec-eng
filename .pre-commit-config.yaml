@@ -50,3 +50,5 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
+        args:
+          - --tf-init-args=-lockfile=readonly

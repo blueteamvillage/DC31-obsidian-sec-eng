@@ -71,20 +71,6 @@ jobs:
       - name: Install Python deps
         run: pip install -r ci/requirements.txt
 
-      ########################### Terraform ###########################
-      # https://github.com/marketplace/actions/hashicorp-setup-terraform
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: "${{ env.TERRAFORM_VERSION }}"
-
-      - name: Write SSH public key to disk
-        run: echo ${{ secrets.SSH_PUB_KEY }} > terraform/ssh_keys/id_ed25519.pub
-
-      - name: Terraform Init
-        id: init
-        run: cd terraform/ && terraform init && cd s3_state_bucket/ && terraform init
-
       ########################### pre-commit ###########################
       - name: pre-commit modules
         run: pre-commit run --all-files

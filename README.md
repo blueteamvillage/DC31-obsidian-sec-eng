@@ -6,6 +6,12 @@
 ## Network diagram
 <TODO>
 
+## pre-commit
+1. To install Git hook run `pre-commit install`
+1. To install pre-commit modules run `pre-commit install-hooks`
+1. To update pre-commit modules run `pre-commit autoupdate`
+1. Install tfsec run `go install github.com/aquasecurity/tfsec/cmd/tfsec@latest`
+
 ## AWS resource limit increase requests
 ### Elastic IPs
 By default you get 5 Elastic IPs per region for an account but this project needs 11 Elatic IPs. Breakdown:
@@ -23,6 +29,8 @@ By default you get 5 Elastic IPs per region for an account but this project need
 ## Supported versions
 * `Terraform v1.3.71`
 * `Ansible v2.14.1`
+* `pre_commit v2.21.0`
+
 
 
 ## References

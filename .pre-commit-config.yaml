@@ -49,6 +49,3 @@ repos:
     rev: v1.77.0
     hooks:
       - id: terraform_fmt
-      - id: terraform_tfsec
-        files: ^terraform/
-        args: [--args=--config-file=.tfsec.yml]

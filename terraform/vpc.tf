@@ -9,9 +9,10 @@ module "vpc" {
   private_subnets = [var.private_cidr_block]
   public_subnets  = [var.public_cidr_block]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
-  enable_vpn_gateway = false
+  enable_nat_gateway      = true
+  single_nat_gateway      = true
+  enable_vpn_gateway      = false
+  map_public_ip_on_launch = false
 
   tags = {
     Project = var.PROJECT_PREFIX

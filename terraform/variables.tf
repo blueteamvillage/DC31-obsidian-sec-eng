@@ -105,7 +105,7 @@ variable "ubunut-ami" {
   # https://cloud-images.ubuntu.com/locator/ec2/
   description = "Ubuntu 22.04 LTS AMI"
   type        = string
-  default     = "ami-0d09654d0a20d3ae2"
+  default     = "ami-0ab0629dba5ae551d"
 }
 
 variable "windows-ami" {

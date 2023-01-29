@@ -1,6 +1,6 @@
 galaxy_info:
-  author: Ben Bornholm
-  description: SecInfra
+  author: CptOfEvilMinions
+  description: Install/Setup Vulnerable Log4j webserver
   company: BTV - Project Obsidian
   license: MIT
   min_ansible_version: 2.14.1
@@ -16,11 +16,11 @@ galaxy_info:
       version:
         - jammy
 
-
   galaxy_tags:
     - ubuntu
     - log4j
     - btv
+    - dc31
 
 dependencies: []
   # List your role dependencies here, one per line. Be sure to remove the '[]' above,

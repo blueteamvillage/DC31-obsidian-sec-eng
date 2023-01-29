@@ -70,6 +70,13 @@ variable "prod_cidr_block" {
   default     = "172.16.40.0/24"
 }
 
+variable "prod_subnet_map" {
+  type = map(string)
+  default = {
+    "webserver" = "172.16.40.100",
+  }
+}
+
 ######################## Corp subnet ########################
 variable "corp_cidr_block" {
   description = "CIDR block for corp subnet"

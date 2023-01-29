@@ -19,7 +19,7 @@ This Ansible playbook will deploy [Github - ChoiSG/log4shell-dockerlab](https://
 * [ansible.builtin.file module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html)
 * [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html)
 * [8 steps to developing an Ansible role in Linux](https://www.redhat.com/sysadmin/developing-ansible-role)
-* []()
+* [How To Run Java Jar Application with Systemd on Linux](https://computingforgeeks.com/how-to-run-java-jar-application-with-systemd-on-linux/)
 * []()
 * []()
 * []()

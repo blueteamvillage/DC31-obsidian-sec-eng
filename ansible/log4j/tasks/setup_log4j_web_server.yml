@@ -1,0 +1,95 @@
+####################################################################
+# Install/Setup log4j vuln server
+####################################################################
+- name: Log4j app check
+  ansible.builtin.stat:
+    path: /usr/local/app/log4shell_vulnerable_app/build/libs/log4shell-vulnerable-app-0.0.1-SNAPSHOT.jar
+  register: log4j_app
+
+- name: Log4j source code check
+  ansible.builtin.stat:
+    path: /tmp/log4shell-vulnerable-app/build
+  register: log4j_source_code
+
+- name: Copy vulnerable log4j code
+  ansible.builtin.copy:
+    src: files/log4shell-vulnerable-app
+    dest: /tmp/
+    owner: root
+    group: root
+    mode: 0600
+  when: not log4j_source_code.stat.exists
+
+####################################################################
+# Build java app
+####################################################################
+- name: Log4j gradlew check
+  ansible.builtin.stat:
+    path: /tmp/log4shell-vulnerable-app/build
+  register: log4j_gradle
+
+- name: Set gradlew to executable
+  ansible.builtin.file:
+    path: /tmp/log4shell-vulnerable-app/gradlew
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Prepare Gradlew
+  ansible.builtin.command: "./gradlew bootJar"
+  args:
+    chdir: "/tmp/log4shell-vulnerable-app"
+  when: not log4j_gradle.stat.exists and not log4j_app.stat.exists
+
+####################################################################
+# Setup java app
+####################################################################
+- name: Create app directory
+  ansible.builtin.file:
+    path: "/usr/local/app/webserver"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Copy log4j app
+  ansible.builtin.copy:
+    src: "/tmp/log4shell-vulnerable-app/build/libs/log4shell-vulnerable-app-0.0.1-SNAPSHOT.jar"
+    dest: "/usr/local/app/webserver/spring-boot-application.jar"
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+  when: not log4j_app.stat.exists
+
+####################################################################
+# Setup systemd
+####################################################################
+- name: Copy systemd service config
+  ansible.builtin.copy:
+    src: "templates/gradle-app.service.j2"
+    dest: "/etc/systemd/system/gradle-app.service"
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Start gradle server
+  ansible.builtin.service:
+    name: "gradle-app"
+    state: restarted
+    enabled: true
+
+####################################################################
+# Healthcheck java app
+####################################################################
+- name: Webserver Healthcheck
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8080"
+    follow_redirects: none
+    method: GET
+    remote_src: true
+    status_code: 400
+  register: _result
+  until: _result.status == 400
+  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5 # Every 5 seconds

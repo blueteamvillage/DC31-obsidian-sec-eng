@@ -1,0 +1,6 @@
+---
+- name: Install/Setup Vulnerable Log4j webserver
+  become: true
+  hosts: all
+  roles:
+    - role: log4j

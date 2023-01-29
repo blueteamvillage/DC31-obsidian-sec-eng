@@ -1,0 +1,45 @@
+####################################################################
+# Install and configure nginx
+####################################################################
+- name: Install NGINX
+  ansible.builtin.apt:
+    name: ["nginx"]
+
+####################################################################
+# Configure nginx
+####################################################################
+- name: Copy nginx.conf
+  ansible.builtin.template:
+    src: "templates/nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Copy gradle-app.conf
+  ansible.builtin.template:
+    src: "templates/gradle-app.conf.j2"
+    dest: "/etc/nginx/conf.d/gradle-app.conf"
+    owner: root
+    group: root
+    mode: 0640
+
+####################################################################
+# Healthcheck nginx
+####################################################################
+- name: Restart nginx.service and set it to start on boot
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: restarted
+
+- name: Nginx health check
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:80"
+    follow_redirects: false
+    method: GET
+    status_code: 400
+  register: nginx_result
+  until: nginx_result.status == 400
+  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5 # Every 5 seconds

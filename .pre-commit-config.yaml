@@ -43,9 +43,16 @@ repos:
     rev: v6.11.0
     hooks:
       - id: ansible-lint
-
+        files: ^ansible/
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.77.0
     hooks:
       - id: terraform_fmt
+
+  - repo: local
+    hooks:
+      - id: ansible_doc_check
+        name: Ansible doc check
+        entry: python ci/ansible_doc_check.py
+        language: python

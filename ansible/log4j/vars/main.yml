@@ -1,0 +1,5 @@
+---
+# vars file for ansible/log4j
+
+java_version: "8.0.181"
+java_dl_url: "https://cdn.azul.com/zulu/bin/zulu8.31.0.1-jdk{{ java_version }}-linux_amd64.deb"

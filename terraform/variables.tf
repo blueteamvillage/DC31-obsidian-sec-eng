@@ -70,6 +70,13 @@ variable "prod_cidr_block" {
   default     = "172.16.40.0/24"
 }
 
+variable "prod_subnet_map" {
+  type = map(string)
+  default = {
+    "webserver" = "172.16.40.100",
+  }
+}
+
 ######################## Corp subnet ########################
 variable "corp_cidr_block" {
   description = "CIDR block for corp subnet"
@@ -105,7 +112,7 @@ variable "ubunut-ami" {
   # https://cloud-images.ubuntu.com/locator/ec2/
   description = "Ubuntu 22.04 LTS AMI"
   type        = string
-  default     = "ami-0d09654d0a20d3ae2"
+  default     = "ami-0ab0629dba5ae551d"
 }
 
 variable "windows-ami" {

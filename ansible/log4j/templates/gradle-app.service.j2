@@ -1,0 +1,13 @@
+[Unit]
+Description=gradle-app for log4j
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/local/app/webserver
+ExecStart=/bin/java -jar spring-boot-application.jar
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

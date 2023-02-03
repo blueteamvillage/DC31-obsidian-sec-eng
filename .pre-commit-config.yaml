@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.4.0
     hooks:
       - id: check-ast
       - id: check-json
@@ -11,6 +11,7 @@ repos:
       - id: check-toml
       - id: check-xml
       - id: detect-aws-credentials
+        args: ['--allow-missing-credentials']
       - id: detect-private-key
       - id: check-yaml
       - id: end-of-file-fixer
@@ -21,31 +22,37 @@ repos:
 
 
   - repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 22.12.0
     hooks:
       - id: black
 
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 5.0.4
+    rev: 6.0.0
     hooks:
       - id: flake8
 
 
   - repo: https://github.com/PyCQA/pylint
-    rev: v2.15.4
+    rev: v2.16.0b0
     hooks:
       - id: pylint
 
 
   - repo: https://github.com/ansible/ansible-lint
-    rev: v6.8.1
+    rev: v6.11.0
     hooks:
       - id: ansible-lint
-
+        files: ^ansible/
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.76.0
+    rev: v1.77.0
     hooks:
       - id: terraform_fmt
-      - id: terraform_validate
+
+  - repo: local
+    hooks:
+      - id: ansible_doc_check
+        name: Ansible doc check
+        entry: python ci/ansible_doc_check.py
+        language: python

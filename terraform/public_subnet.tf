@@ -46,7 +46,7 @@ resource "aws_instance" "cribl_server" {
   }
 
   root_block_device {
-    volume_size           = 100
+    volume_size           = 150
     volume_type           = "gp2"
     delete_on_termination = true
     encrypted             = true

@@ -149,7 +149,7 @@ resource "aws_instance" "windows_domain_controller" {
     ]
   }
   ############# IGNORE instance type ###############
-  ################## DO NOT TOUCH ################## 
+  ################## DO NOT TOUCH ##################
 
   tags = {
     Name    = "${var.PROJECT_PREFIX}_WINDOWS_DOMAIN_CONTROLLER"
@@ -181,7 +181,7 @@ resource "aws_instance" "windows_domain_controller_vuln" {
     ]
   }
   ############# IGNORE instance type ###############
-  ################## DO NOT TOUCH ################## 
+  ################## DO NOT TOUCH ##################
 
   tags = {
     Name    = "${var.PROJECT_PREFIX}_VULN_WINDOWS_DOMAIN_CONTROLLER"

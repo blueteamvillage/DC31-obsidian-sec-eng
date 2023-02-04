@@ -1,6 +1,6 @@
 ############################################ Logging/Cribl Server ############################################
 resource "aws_security_group" "cribl_server_sg2" {
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module_vpc.vpc.vpc_id
   description = "Cribl security group"
   tags = {
     Name    = "${var.PROJECT_PREFIX}_cribl_server_sg2"

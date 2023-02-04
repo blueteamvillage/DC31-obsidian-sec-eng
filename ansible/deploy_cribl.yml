@@ -1,0 +1,13 @@
+---
+
+- name: Setup cribl server
+  hosts: cribl_server
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - juju4.cribl
+  tasks:
+    - include_vars: 'group_vars/metrics.yml'
+    - import_tasks: 'roles/linux/init_linux.yml'
+    - import_tasks: 'roles/linux/setup_node_exporter.yml'

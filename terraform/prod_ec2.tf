@@ -162,7 +162,7 @@ resource "aws_instance" "windows_domain_controller_vuln" {
   subnet_id               = aws_subnet.corp.id
   vpc_security_group_ids  = [aws_security_group.win_dc_sg.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip              = var.corp_subnet_map["win_dc02"]
+  private_ip              = var.corp_subnet_map["win_dc"]
   disable_api_termination = true
   user_data               = data.template_file.password_change.rendered
 

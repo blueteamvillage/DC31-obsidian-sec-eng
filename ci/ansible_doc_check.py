@@ -43,9 +43,14 @@ def check_ansible_doc() -> None:
     playbooks = get_ansible_playbooks()
     playbook_docs = get_playbook_docs()
     for playbook in playbooks:
-        playbook_base_name = playbook.strip("deploy_").strip(".yml")
+        playbook_base_name = playbook.replace("deploy_", "").replace(".yml", "")
         if f"ansible_{playbook_base_name}.md" not in playbook_docs:
-            print(f"The following playbook {playbook} doesn't have document")
+            print(
+                (
+                    f"The following playbook {playbook} doesn't have document"
+                    f" ansible_{playbook_base_name}.md"
+                )
+            )
             sys.exit(1)
 
 

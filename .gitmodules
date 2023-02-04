@@ -1,0 +1,3 @@
+[submodule "ansible/roles/juju4.cribl"]
+	path = ansible/roles/juju4.cribl
+	url = https://github.com/juju4/ansible-cribl.git

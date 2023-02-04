@@ -15,9 +15,6 @@ resource "aws_security_group_rule" "cribl_allow_http" {
   to_port     = 9000
   protocol    = "tcp"
   cidr_blocks = [
-    "${aws_eip.VULNERABLE_DMZ_WEB_SERVER_eip.public_ip}/32",
-    "${aws_eip.DMZ_RDP_SERVER_eip.public_ip}/32",
-    "${aws_eip.nat_gw_eip.public_ip}/32",
     # cribl needs to call itself
     "${aws_eip.cribl_server_eip.public_ip}/32",
     var.corp_cidr_block,
@@ -78,12 +75,4 @@ resource "aws_eip" "cribl_server_eip" {
     Name    = "${var.PROJECT_PREFIX}_cribl_server_eip"
     Project = var.PROJECT_PREFIX
   }
-}
-
-resource "aws_route53_record" "cribl" {
-  zone_id = var.public_domain_zone_id
-  name    = "cribl.magnumtempusfinancial.com"
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.cribl_server_eip.public_ip]
 }

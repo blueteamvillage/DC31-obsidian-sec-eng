@@ -41,11 +41,15 @@ resource "aws_instance" "cribl_server" {
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = var.logging_subnet_map["cribl"]
   disable_api_termination = true
+  metadata_options {
+    http_tokens = "required"
+  }
 
   root_block_device {
     volume_size           = 100
     volume_type           = "gp2"
     delete_on_termination = true
+    encrypted             = true
   }
 
   ################## DO NOT TOUCH ##################

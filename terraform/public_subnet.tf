@@ -10,7 +10,7 @@ resource "aws_security_group" "cribl_server_sg2" {
 
 resource "aws_security_group_rule" "cribl_allow_http" {
   type        = "ingress"
-  description = "Allow HTTP/9000 from corp + dmz subnets, web server, and corp subnet NAT gateway for cribl networking - Cribl Web UI"
+  description = "Allow HTTP/9000 from corp subnets, web server, and corp subnet NAT gateway for cribl networking - Cribl Web UI"
   from_port   = 9000
   to_port     = 9000
   protocol    = "tcp"
@@ -18,7 +18,6 @@ resource "aws_security_group_rule" "cribl_allow_http" {
     # cribl needs to call itself
     "${aws_eip.cribl_server_eip.public_ip}/32",
     var.corp_cidr_block,
-    var.dmz_cidr_block,
     # "0.0.0.0/0"
   ]
   security_group_id = aws_security_group.cribl_server_sg2.id

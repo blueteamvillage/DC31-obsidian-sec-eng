@@ -84,6 +84,13 @@ variable "corp_cidr_block" {
   default     = "172.16.50.0/24"
 }
 
+variable "corp_subnet_map" {
+  type = map(string)
+  default = {
+    "win_dc"            = "172.16.50.100"
+  }
+}
+
 ######################## IoT subnet ########################
 variable "iot_cidr_block" {
   description = "CIDR block for IoT subnet"

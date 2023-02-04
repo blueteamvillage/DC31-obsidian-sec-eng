@@ -138,6 +138,7 @@ resource "aws_instance" "windows_domain_controller" {
     volume_size           = 60
     volume_type           = "gp2"
     delete_on_termination = true
+    encrypted             = true
   }
 
   ################## DO NOT TOUCH ##################

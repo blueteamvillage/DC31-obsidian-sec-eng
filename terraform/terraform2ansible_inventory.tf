@@ -2,22 +2,6 @@
 resource "local_file" "inventory" {
   filename = "../ansible/hosts.ini"
   content  = <<-EOF
-    [frontend]
-    ${module.frontend[0].private_ip}
-    ${module.frontend[1].private_ip}
-    ${module.frontend[2].private_ip}
-
-    [backend]
-    ${module.backend[0].private_ip}
-    ${module.backend[0].private_ip}
-    ${module.backend[0].private_ip}
-
-    [auth_server]
-    ${module.auth_server[0].private_ip}
-
-    [artifact_repository]
-    ${module.repository_server[0].private_ip}
-
     [cribl_server]
     ${module.cribl_server[0].private_ip}
 

@@ -10,12 +10,11 @@ resource "aws_security_group" "cribl_server_sg2" {
 
 resource "aws_security_group_rule" "cribl_allow_http" {
   type        = "ingress"
-  description = "Allow HTTP/9000 from jumpbox, corp + dmz subnets, web server, and corp subnet NAT gateway for cribl networking - Cribl Web UI"
+  description = "Allow HTTP/9000 from corp + dmz subnets, web server, and corp subnet NAT gateway for cribl networking - Cribl Web UI"
   from_port   = 9000
   to_port     = 9000
   protocol    = "tcp"
   cidr_blocks = [
-    "${aws_instance.jump_box.private_ip}/32",
     "${aws_eip.VULNERABLE_DMZ_WEB_SERVER_eip.public_ip}/32",
     "${aws_eip.DMZ_RDP_SERVER_eip.public_ip}/32",
     "${aws_eip.nat_gw_eip.public_ip}/32",
@@ -24,40 +23,6 @@ resource "aws_security_group_rule" "cribl_allow_http" {
     var.corp_cidr_block,
     var.dmz_cidr_block,
     # "0.0.0.0/0"
-  ]
-  security_group_id = aws_security_group.cribl_server_sg2.id
-}
-
-
-resource "aws_security_group_rule" "cribl_allow_ssh" {
-  type              = "ingress"
-  description       = "Allow SSH from jumpbox"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["${aws_instance.jump_box.private_ip}/32"]
-  security_group_id = aws_security_group.cribl_server_sg2.id
-}
-
-resource "aws_security_group_rule" "cribl_allow_ping" {
-  type              = "ingress"
-  description       = "Allow ICMP from jumpbox"
-  from_port         = 8
-  to_port           = 0
-  protocol          = "icmp"
-  cidr_blocks       = ["${aws_instance.jump_box.private_ip}/32"]
-  security_group_id = aws_security_group.cribl_server_sg2.id
-}
-
-resource "aws_security_group_rule" "cribl_allow_prometheus" {
-  type        = "ingress"
-  description = "Allow Prometheus to access node exporter"
-  from_port   = 9100
-  to_port     = 9100
-  protocol    = "tcp"
-  cidr_blocks = [
-    "${aws_instance.jump_box.private_ip}/32",
-    "${aws_instance.metrics_server.private_ip}/32"
   ]
   security_group_id = aws_security_group.cribl_server_sg2.id
 }

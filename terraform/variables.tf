@@ -73,7 +73,8 @@ variable "prod_cidr_block" {
 variable "prod_subnet_map" {
   type = map(string)
   default = {
-    "webserver" = "172.16.40.100",
+    "webserver"    = "172.16.40.100",
+    "dockerserver" = "172.16.40.101",
   }
 }
 

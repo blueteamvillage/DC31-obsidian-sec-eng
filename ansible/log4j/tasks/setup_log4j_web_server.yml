@@ -1,3 +1,4 @@
+---
 ####################################################################
 # Install/Setup log4j vuln server
 ####################################################################
@@ -91,5 +92,5 @@
     status_code: 400
   register: _result
   until: _result.status == 400
-  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
-  delay: 5 # Every 5 seconds
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

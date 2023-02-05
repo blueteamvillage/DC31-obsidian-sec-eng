@@ -9,6 +9,18 @@ resource "aws_security_group" "corp_docker_server" {
   }
 }
 
+resource "aws_security_group_rule" "corp_docker_allow_ingress_ssh" {
+  type        = "ingress"
+  description = "Allow inbound SSH"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = [
+    var.corp_cidr_block
+  ]
+  security_group_id = aws_security_group.corp_docker_server.id
+}
+
 resource "aws_security_group_rule" "corp_docker_allow_egress" {
   type              = "egress"
   description       = "Allow outbound"
@@ -22,10 +34,10 @@ resource "aws_security_group_rule" "corp_docker_allow_egress" {
 resource "aws_instance" "corp_docker_server" {
   ami                    = var.ubunut-ami
   instance_type          = "t3.small"
-  subnet_id              = aws_subnet.prod.id
+  subnet_id              = aws_subnet.corp.id
   vpc_security_group_ids = [aws_security_group.corp_docker_server.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip             = var.prod_subnet_map["dockerserver"]
+  private_ip             = var.corp_subnet_map["dockerserver"]
   metadata_options {
     http_tokens = "required"
   }

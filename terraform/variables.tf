@@ -79,8 +79,7 @@ variable "prod_cidr_block" {
 variable "prod_subnet_map" {
   type = map(string)
   default = {
-    "webserver"    = "172.16.40.100",
-    "dockerserver" = "172.16.40.101",
+    "webserver" = "172.16.40.100",
   }
 }
 
@@ -89,6 +88,13 @@ variable "corp_cidr_block" {
   description = "CIDR block for corp subnet"
   type        = string
   default     = "172.16.50.0/24"
+}
+
+variable "corp_subnet_map" {
+  type = map(string)
+  default = {
+    "dockerserver" = "172.16.50.101",
+  }
 }
 
 ######################## IoT subnet ########################

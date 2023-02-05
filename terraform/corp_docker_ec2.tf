@@ -54,4 +54,3 @@ resource "aws_instance" "corp_docker_server" {
     Project = var.PROJECT_PREFIX
   }
 }
-

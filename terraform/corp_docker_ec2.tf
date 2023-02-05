@@ -55,11 +55,3 @@ resource "aws_instance" "corp_docker_server" {
   }
 }
 
-resource "aws_eip" "corp_docker_server" {
-  instance = aws_instance.corp_docker_server.id
-  vpc      = true
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_CORP_DOCKER_SERVER_eip"
-    Project = var.PROJECT_PREFIX
-  }
-}

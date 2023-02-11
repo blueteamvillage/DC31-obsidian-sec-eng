@@ -3,4 +3,4 @@
 	url = https://github.com/juju4/ansible-cribl.git
 [submodule "ansible/roles/geerlingguy.docker"]
 	path = ansible/roles/geerlingguy.docker
-	url = https://github.com/geerlingguy/ansible-role-docker.git
+	url = https://github.com/juju4/ansible-role-docker-1.git

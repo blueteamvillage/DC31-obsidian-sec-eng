@@ -61,7 +61,7 @@ resource "aws_eip" "vuln_log4j_webserver" {
 ############################################ Windows Domain Controller ############################################
 # Create Security group for corporate hosts
 resource "aws_security_group" "win_dc_sg" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = module.vpc.vpc_id
 
   # Allow ICMP, RDP, & WinRM from management subnet
   ingress {
@@ -81,7 +81,7 @@ resource "aws_security_group" "win_dc_sg" {
     cidr_blocks = [
       "${var.management_subnet_map["jumpbox"]}/32",
       "${var.corp_cidr_block}",
-      var.dmz_cidr_block
+      var.prod_cidr_block
     ]
   }
 

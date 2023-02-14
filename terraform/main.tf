@@ -39,3 +39,21 @@ resource "aws_key_pair" "deployer" {
     Project = var.PROJECT_PREFIX
   }
 }
+
+module "teleport" {
+  source = "github.com/blueteamvillage/btv-sec-eng-teleport-cluster/terraform"
+
+  #### General ####
+  PROJECT_PREFIX  = var.PROJECT_PREFIX
+  primary_region  = var.primary_region
+  public_key_name = aws_key_pair.deployer.key_name
+
+  #### Route53 ####
+  route53_zone_id = "Z051379539VVT3OD13CSQ"
+  route53_domain  = "blueteamvillage.com"
+
+  #### VPC ####
+  vpc_id             = module.vpc.vpc_id
+  teleport_subnet_id = "subnet-0320675d957bf1212"
+
+}

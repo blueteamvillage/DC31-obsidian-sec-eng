@@ -70,7 +70,7 @@ resource "aws_security_group" "win_dc_sg" {
     protocol  = "icmp"
     cidr_blocks = [
       "18.218.136.118/32",
-      "172.16.10.183/32"
+      "172.16.10.183/32",
       "${var.corp_cidr_block}"
     ]
   }

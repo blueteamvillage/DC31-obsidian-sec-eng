@@ -128,7 +128,7 @@ data "template_file" "password_change" {
 resource "aws_instance" "windows_domain_controller" {
   ami                     = var.windows-ami
   instance_type           = "t3.medium"
-  subnet_id               = aws_subnet.corp_subnet.id
+  subnet_id               = aws_subnet.corp.id
   vpc_security_group_ids  = [aws_security_group.win_dc_sg.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = var.corp_subnet_map["win_dc"]
@@ -160,7 +160,7 @@ resource "aws_instance" "windows_domain_controller" {
 }
 
 resource "aws_instance" "windows_domain_controller_vuln" {
-  ami                     = var.vuln-windows-ami
+  ami                     = var.windows-ami
   instance_type           = "t3.medium"
   subnet_id               = aws_subnet.corp.id
   vpc_security_group_ids  = [aws_security_group.win_dc_sg.id]

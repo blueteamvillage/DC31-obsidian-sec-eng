@@ -69,7 +69,8 @@ resource "aws_security_group" "win_dc_sg" {
     to_port   = 0
     protocol  = "icmp"
     cidr_blocks = [
-      "${var.management_subnet_map["jumpbox"]}/32",
+      "18.218.136.118/32",
+      "172.16.10.183/32"
       "${var.corp_cidr_block}"
     ]
   }
@@ -79,7 +80,8 @@ resource "aws_security_group" "win_dc_sg" {
     to_port   = 0
     protocol  = "-1"
     cidr_blocks = [
-      "${var.management_subnet_map["jumpbox"]}/32",
+      "18.218.136.118/32",
+      "172.16.10.183/32",
       "${var.corp_cidr_block}",
       var.prod_cidr_block
     ]

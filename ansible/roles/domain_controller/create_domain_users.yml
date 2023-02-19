@@ -1,0 +1,39 @@
+####################################################################
+# Create domain user accounts using a CSV file
+####################################################################
+- name: Reading the employees CSV file containing account details
+# https://ldapwiki.com/wiki/Microsoft%20Active%20Directory%20Attributes
+  read_csv:
+    path: "{{ employees_csv }}"
+  register: user_list
+  delegate_to: localhost
+
+- name: Ensure a domain group exists for each department
+# https://docs.ansible.com/ansible/2.9/modules/win_domain_group_module.html
+  win_domain_group:
+    name: "{{ item.department }}"
+    scope: global
+  loop: "{{ user_list.list }}"
+
+- name: Creating domain user accounts
+# https://docs.ansible.com/ansible/2.9/modules/win_domain_user_module.html
+# https://docs.ansible.com/ansible/latest/user_guide/playbooks_filters.html
+  win_domain_user:
+   state: present
+   name: "{{ item.firstname | lower }}.{{ item.surname | lower }}"
+   firstname: "{{ item.firstname }}"
+   surname: "{{ item.surname }}"
+   displayName: "{{ item.firstname }} {{ item.surname }}"
+   email: "{{ item.firstname | lower }}.{{ item.surname | lower }}@{{ external_domain }}"
+   company: "{{ company_name }}"
+   password: "{{ item.password }}"
+   groups:
+     - Domain Users
+     - "{{ item.department }}"
+   city: "{{ item.city }}"
+   state_province: "{{ item.state_province }}"
+   country: "{{ item.country }}"
+   attributes:
+     title: "{{ item.title }}"
+     department: "{{ item.department }}"
+  loop: "{{ user_list.list }}"

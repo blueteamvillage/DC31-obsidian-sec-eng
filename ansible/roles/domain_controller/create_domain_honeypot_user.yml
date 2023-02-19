@@ -1,0 +1,24 @@
+- name: Creating domain honeypot user account
+  win_domain_user:
+    name: server.admin
+    firstname: server
+    surname: admin
+    company: "{{ company_name }}"
+    password: "AutoGenPassword123!"
+    state: present
+    groups:
+      - Domain Users
+    attributes:
+     description: "<Auto Generated> The password for this account is: AutoGenPassword123! #PLEASE CHANGE THIS#"
+     # logonHours: \\Attribute not supported in module yet (win_domain user v1.90)\\
+
+- name: Deny login at all hours for honeypot user
+  ansible.windows.win_powershell:
+    script: |
+      $user = Get-ADUser -Filter 'Name -like "server.admin"'
+      $new_logonhours = New-Object 'Byte[]' 21
+      Set-ADUser -Identity $user.SamAccountName -Replace @{logonhours = $new_logonhours}
+    arguments:
+      - -ExecutionPolicy
+      - ByPass
+    error_action: stop

@@ -63,6 +63,12 @@ variable "logging_cidr_block" {
   default     = "172.16.22.0/24"
 }
 
+variable "logging_subnet_map" {
+  type = map(string)
+  default = {
+    "cribl" = "172.16.22.10",
+  }
+}
 ######################## Prod subnet ########################
 variable "prod_cidr_block" {
   description = "CIDR block for public subnet"

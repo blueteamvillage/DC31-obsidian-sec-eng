@@ -119,7 +119,7 @@ variable "red_team_subnet_map" {
     "red_team_box_charlie" = "172.16.181.202"
   }
 }
-
+######################## EC2 AMIs ########################
 variable "ubunut-ami" {
   # Ubuntu 22.04
   # https://cloud-images.ubuntu.com/locator/ec2/
@@ -134,4 +134,15 @@ variable "windows-ami" {
   description = "Microsoft Windows Server 2022 Base"
   type        = string
   default     = "ami-0ae8d60635de460b2"
+}
+######################## Teleport IPs########################
+variable "teleport-ip-public" {
+  description = "public IP for teleport"
+  type        = string
+  default     = "18.218.136.118/32"
+}
+variable "teleport-ip-private" {
+  description = "public IP for teleport"
+  type        = string
+  default     = "172.16.10.183/32"
 }

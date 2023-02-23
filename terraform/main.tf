@@ -49,11 +49,10 @@ module "teleport" {
   public_key_name = aws_key_pair.deployer.key_name
 
   #### Route53 ####
-  route53_zone_id = "Z051379539VVT3OD13CSQ"
-  route53_domain  = "blueteamvillage.com"
+  route53_zone_id = var.teleport_route53_zone_id
+  route53_domain  = var.teleport_base_domain
 
   #### VPC ####
   vpc_id             = module.vpc.vpc_id
-  teleport_subnet_id = "subnet-0320675d957bf1212"
-
+  teleport_subnet_id = module.vpc.public_subnets[0]
 }

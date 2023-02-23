@@ -45,7 +45,7 @@ resource "aws_instance" "vuln_log4j_webserver" {
     volume_size           = 20
     volume_type           = "gp2"
     delete_on_termination = true
-    encrypted             = true
+    encrypted             = false
   }
 
   tags = {

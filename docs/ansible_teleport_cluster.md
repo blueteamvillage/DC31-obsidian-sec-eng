@@ -1,10 +1,11 @@
-# Ansible - Vulnerable Log4j web server
-## Description
+# Ansible - Teleport cluster
 
+## Description
+This Ansible playbook will setup a Teleport cluster on a set of EC2 instances. This playbook imports the Ansible role defined [btv-sec-eng-teleport-cluster](https://github.com/blueteamvillage/btv-sec-eng-teleport-cluster/) repo. Lastly, this role assumes you have used the Terraform module to provision all the AWS resources, please see [btv-sec-eng-teleport-cluster](https://github.com/blueteamvillage/btv-sec-eng-teleport-cluster/) for more details.
 
 ## Init Ansible playbook
-1. `ansible-galaxy collection install amazon.aws`
-1. `pip3 install -U boto3==1.26.69`
+1. Install AWS packages for Ansible: `ansible-galaxy collection install amazon.aws`
+1. Install the Python package Boto to interact with AWS: `pip3 install -U boto3==1.26.69`
 1. `group_vars/teleport_cluster.yml` and set:
     1. General
         1. `teleport_fqdn` - Set the fully qualified domain for Teleport
@@ -30,5 +31,8 @@
 ## Run Ansible playbook
 1. `ansible-playbook -i hosts.ini deploy_teleport_cluster.yml`
 
+## Supported versions
+* `btv-sec-eng-teleport-cluster v1.0.0`
+
 ## References
-* []()
+* [btv-sec-eng-teleport-cluster](https://github.com/blueteamvillage/btv-sec-eng-teleport-cluster/)

@@ -1,0 +1,22 @@
+---
+######################################## General ########################################
+teleport_fqdn: "teleport.blueteamvillage.com"
+
+######################################## AWS ########################################
+primary_region: "us-east-2"
+
+#### S3 ####
+teleport_bucket_name: "defcon-2023-obsidian-teleport-kxl6y"
+
+#### DynamoDB ####
+teleport_dynamodb_table: "DEFCON_2023_OBSIDIAN-teleport-pcq49"
+teleport_dynamodb_events_table: "DEFCON_2023_OBSIDIAN-teleport-pcq49-events"
+
+######################################## Github ########################################
+github_org_name: "blueteamvillage"
+github_client_id: "a236b1590a0c4abdc0a6"
+github_client_secret: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-teleport-github-ouath-secret') }}"
+github_redirect_url: "https://{{ teleport_fqdn }}/v1/webapi/github/callback"
+
+github_admin_team: "DC31-obsidian-sec-eng"
+github_workshop_contributors: "DC31-workshop-contributors"

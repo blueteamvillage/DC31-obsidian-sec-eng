@@ -16,7 +16,7 @@ resource "aws_security_group_rule" "corp_docker_allow_ingress_ssh" {
   to_port     = 22
   protocol    = "tcp"
   cidr_blocks = [
-    var.corp_cidr_block
+    module.teleport.private_ip_addr
   ]
   security_group_id = aws_security_group.corp_docker_server.id
 }

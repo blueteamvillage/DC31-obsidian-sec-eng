@@ -105,6 +105,13 @@ variable "iot_cidr_block" {
   default     = "172.16.60.0/24"
 }
 
+variable "iot_subnet_map" {
+  type = map(string)
+  default = {
+    "iot01" = "172.16.60.10"
+  }
+}
+
 ######################## Red team subnet ########################
 variable "red_team_cidr_block" {
   description = "CIDR block for Red Team subnet"

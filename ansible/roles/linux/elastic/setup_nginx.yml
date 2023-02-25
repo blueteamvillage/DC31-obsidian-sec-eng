@@ -1,8 +1,9 @@
+---
 ####################################################################
 # Install and configure nginx
 ####################################################################
 - name: Update the package repository and install nginx, certbot, and the certbot nginx plugin
-  apt:
+  ansible.builtin.apt:
     name:
       - nginx
       - certbot
@@ -11,7 +12,7 @@
     update_cache: yes
 
 - name: make well known challenge dir
-  file:
+  ansible.builtin.file:
     path: "{{ certbot_webroot }}"
     state: directory
     owner: root
@@ -20,15 +21,15 @@
     recurse: yes
 
 - name: Check whether we already have a certificate
-  command: certbot certificates
+  ansible.builtin.command: certbot certificates
   register: certbot_certificates
 
-- name: print
-  debug:
+- name: Print
+  ansible.builtin.debug:
     msg: "{{ certbot_certificates.stdout }}"
 
 - name: Upload letsencrypt snippet
-  template:
+  ansible.builtin.template:
     src: conf/elastic/letsencrypt-acme-challenge.conf
     dest: /etc/nginx/snippets/letsencrypt-acme-challenge.conf
     owner: root
@@ -36,12 +37,12 @@
     mode: "0644"
 
 - name: "Stat {{ elastic_fqdn }}.conf"
-  stat:
+  ansible.builtin.stat:
     path: "{{ elastic_nginx_conf }}"
   register: nginx_conf
 
 - name: Upload Nginx configuration
-  template:
+  ansible.builtin.template:
     src: conf/elastic/nginx.conf
     dest: "{{ elastic_nginx_conf }}"
     owner: root
@@ -50,62 +51,62 @@
   when: nginx_conf.stat.isreg is not defined
 
 - name: Remove default symlink
-  file:
+  ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default
     state: absent
   ignore_errors: yes
 
 - name: "Stat {{ elastic_nginx_conf_link }}"
-  stat:
+  ansible.builtin.stat:
     path: "{{ elastic_nginx_conf }}"
   register: nginx_conf_link
 
 - name: Create symlink from "{{ elastic_nginx_conf_link }}" to "{{ elastic_nginx_conf }}"
-  file:
+  ansible.builtin.file:
     src: "{{ elastic_nginx_conf }}"
     dest: "{{ elastic_nginx_conf_link }}"
     state: link
   when: (nginx_conf_link.stat is not defined) or (nginx_conf_link.stat.islink is false)
 
 - name: Nginx must be started before we can do the letsencrypr nginx dance
-  systemd:
+  ansible.builtin.systemd:
     name: nginx
     enabled: yes
     state: restarted
 
 - name: First Time - Request a new Let's Encrypt certificate for {{ elastic_fqdn }}
-  command: certbot --nginx --non-interactive --register-unsafely-without-email --agree-tos -w "{{ certbot_webroot }}" --domains {{ elastic_fqdn }}
+  ansible.builtin.command: certbot --nginx --non-interactive --register-unsafely-without-email --agree-tos -w "{{ certbot_webroot }}" --domains {{ elastic_fqdn }}
   register: first_time
   when: "'No certs found.'|string in certbot_certificates.stdout"
 
 - name: Check whether we already have a certificate
-  command: certbot certificates
+  ansible.builtin.command: certbot certificates
   register: certbot_certificates
 
-- name: print
-  debug:
+- name: Print
+  ansible.builtin.debug:
     msg: "{{ certbot_certificates.stdout }}"
 
 - name: Verify that certbot can perform auto-renewal
-  command: certbot renew --dry-run
+  ansible.builtin.command: certbot renew --dry-run
   register: dry_run_results
   failed_when: "'All renewal attempts failed.'|string in dry_run_results"
   when: (not first_time)
 
 - name: auto-renew when the cert is expired
-  command: certbot renew --nginx  -w "{{ certbot_webroot }}" --domains {{ elastic_fqdn }}
+  ansible.builtin.command: certbot renew --nginx  -w "{{ certbot_webroot }}" --domains {{ elastic_fqdn }}
   register: dry_run_results
   failed_when: "'All renewal attempts failed.'|string in dry_run_results"
-  when: (not first_time) or ("'INVALID:'|string in {{ certbot_certificates.stdout }}")
+  when: "(not first_time) or ('INVALID:'|string in {{ certbot_certificates.stdout }})"
 
 - name: Restart nginx.service and set it to start on boot
-  systemd:
+  ansible.builtin.systemd:
     name: nginx
     enabled: yes
     state: restarted
 
-- name: nginx health check
-  uri:
+- name: Nginx health check
+  ansible.builtin.uri:
     url: "https://127.0.0.1:443/login?next=%2F"
     headers:
       Host: "{{ elastic_fqdn }}"
@@ -115,5 +116,5 @@
     status_code: 200
   register: nginx_result
   until: nginx_result.status == 200
-  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
-  delay: 5 # Every 5 seconds
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

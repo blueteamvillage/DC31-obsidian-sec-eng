@@ -1,13 +1,14 @@
+---
 ####################################################################
 # Install/Setup elasticsearch exporter
 ####################################################################
 - name: Stat elasticsearch exporter
-  stat:
+  ansible.builtin.stat:
     path: "/usr/local/bin/elasticsearch_exporter"
   register: elasticsearch_exporter_install
 
 - name: Download elasticsearch exporter
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ linux_elasticsearch_exporter_dl_url }}"
     dest: "/tmp/elasticsearch_exporter-{{ linux_elasticsearch_exporter_version }}.linux-amd64.tar.gz"
 
@@ -27,7 +28,7 @@
     remote_src: yes
 
 - name: Copy elasticsearch exporter service
-  template:
+  ansible.builtin.template:
     src: "conf/elasticsearch_exporter/linux_elasticsearch_exporter.service"
     dest: "/etc/systemd/system/elasticsearch-exporter.service"
     owner: elasticsearch
@@ -35,10 +36,10 @@
     mode: 0644
 
 - name: Start elasticsearch exporter service
-  systemd:
+  ansible.builtin.systemd:
     name: "elasticsearch-exporter"
     enabled: yes
-    daemon_reload : true
+    daemon_reload: true
     state: restarted
 
 - name: Allow elasticsearch exporter TCP in
@@ -46,4 +47,3 @@
     rule: allow
     port: "{{ linux_elasticsearch_exporter_port }}"
     proto: tcp
-

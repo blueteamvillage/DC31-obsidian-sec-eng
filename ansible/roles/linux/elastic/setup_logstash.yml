@@ -1,24 +1,25 @@
+---
 ####################################################################
 # Install/Setup Logstash
 ####################################################################
 - name: Add Elastic GPG key
-  apt_key:
+  ansible.builtin.apt_key:
     url: "{{ elastic_gpg_url }}"
     state: present
 
 - name: Add Elastic repo
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "{{ elastic_repo_url }}"
     state: present
 
 # Installing logstash will create a low-privileged user and group both named "logstash"
 - name: Install Logstash
-  apt:
+  ansible.builtin.apt:
     name: 'logstash=1:{{ elastic_version }}-1'
     state: present
 
 - name: Install Logstash plugins
-  shell: '/usr/share/logstash/bin/logstash-plugin install {{ item }}'
+  ansible.builtin.shell: '/usr/share/logstash/bin/logstash-plugin install {{ item }}'
   loop:
     - 'logstash-filter-json_encode'
 
@@ -26,12 +27,12 @@
 # Generate TLS private key and cert
 ####################################################################
 - name: Check if Logstash public certificate exists
-  stat:
+  ansible.builtin.stat:
     path: /etc/logstash/tls/logstash.crt
   register: logstash_public_cert
 
 - name: Create Logstash TLS directory
-  file:
+  ansible.builtin.file:
     path: '/etc/logstash/tls'
     state: directory
     owner: logstash
@@ -73,7 +74,7 @@
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/built-in-roles.html
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-get-role.html
 - name: Get a list of all current Elasticsearch roles to see if the "logstash_writer" role exists
-  uri:
+  ansible.builtin.uri:
     url: http://localhost:9200/_security/role
     method: GET
     user: '{{ elastic.name }}'
@@ -86,7 +87,7 @@
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/security-privileges.html
 - name: Create logstash_writer role
-  uri:
+  ansible.builtin.uri:
     url: http://localhost:9200/_xpack/security/role/logstash_writer
     method: POST
     user: '{{ elastic.name }}'
@@ -96,11 +97,11 @@
       Content-Type: application/json
     body: |
       {
-        "cluster": ["manage_index_templates", "monitor", "manage_ilm"], 
+        "cluster": ["manage_index_templates", "monitor", "manage_ilm"],
         "indices": [
         {
-          "names": [ "*-*" ], 
-          "privileges": ["write","create","delete","create_index","manage","manage_ilm"]  
+          "names": [ "*-*" ],
+          "privileges": ["write","create","delete","create_index","manage","manage_ilm"]
         }
         ]
       }
@@ -109,7 +110,7 @@
   when: roles_result.json.logstash_writer is undefined
 
 - name: Check if the users exist
-  uri:
+  ansible.builtin.uri:
     url: http://localhost:9200/_security/user
     method: GET
     user: '{{ elastic.name }}'
@@ -120,8 +121,8 @@
   register: users_result
 
 - name: Create the users
-  uri:
-    url: http://127.0.0.1:9200/_security/user/'{{ item.name }}'
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:9200/_security/user/{{ item.name }}"
     method: POST
     user: '{{ elastic.name }}'
     password: '{{ elastic.password }}'
@@ -144,7 +145,7 @@
 # Copy Logstash pipeline
 ####################################################################
 - name: Copy Kafka input config
-  template:
+  ansible.builtin.template:
     src: "conf/elastic/logstash/03-input-kafka.conf"
     dest: "/etc/logstash/conf.d/03-input-kafka.conf"
     owner: logstash
@@ -152,7 +153,7 @@
     mode: 0400
 
 - name: Copy Elasticseach output config
-  template:
+  ansible.builtin.template:
     src: "conf/elastic/logstash/30-output-elasticsearch.conf"
     dest: "/etc/logstash/conf.d/30-output-elasticsearch.conf"
     owner: logstash
@@ -161,7 +162,7 @@
 
 # https://docs.ansible.com/ansible/latest/user_guide/playbooks_filters.html#other-useful-filters
 - name: Copy Logstash filters
-  template:
+  ansible.builtin.template:
     src: "{{ item }}"
     dest: "/etc/logstash/conf.d/{{ item | basename }}"
     owner: logstash
@@ -174,14 +175,14 @@
 # Restart service
 ####################################################################
 - name: Restart Logstash and set it to start on boot
-  service:
+  ansible.builtin.service:
     name: logstash
     enabled: yes
     state: restarted
 
 # Logstash takes a while to start -- it's normal to fail 2-3 of these before a success
 - name: Logstash healthcheck
-  uri:
+  ansible.builtin.uri:
     url: "http://127.0.0.1:9600"
     follow_redirects: none
     method: GET
@@ -189,5 +190,5 @@
     status_code: 200
   register: logstash_result
   until: logstash_result.status == 200
-  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
-  delay: 5 # Every 5 seconds
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

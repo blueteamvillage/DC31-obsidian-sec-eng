@@ -82,7 +82,7 @@ resource "aws_eip" "cribl_server_eip" {
 
 ############################################ Splunk SIEM ############################################
 resource "aws_security_group" "splunk_server_sg" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = module.vpc.vpc_id
 
   # Allow ICMP from jumpbox
   ingress {
@@ -142,7 +142,6 @@ resource "aws_security_group" "splunk_server_sg" {
     protocol  = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
-      "${aws_instance.metrics_server.private_ip}/32"
     ]
   }
 

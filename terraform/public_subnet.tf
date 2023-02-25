@@ -82,7 +82,7 @@ resource "aws_eip" "cribl_server_eip" {
 
 ############################################### ELK #################################################
 resource "aws_security_group" "elastic_server_sg" {
-  vpc_id = module.vpc.id
+  vpc_id = module.vpc.vpc_id
 
   ingress {
     description = "Allow ICMP from jumpbox"

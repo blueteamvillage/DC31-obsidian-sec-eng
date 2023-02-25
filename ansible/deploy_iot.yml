@@ -1,0 +1,8 @@
+---
+
+- name: Setup IoT environment
+  hosts: iot
+  become: yes
+  become_user: root
+  roles:
+    - davidmarkallison.openplc

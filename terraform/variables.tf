@@ -93,7 +93,8 @@ variable "corp_cidr_block" {
 variable "corp_subnet_map" {
   type = map(string)
   default = {
-    "win_dc" = "172.16.50.100"
+    "dockerserver" = "172.16.50.101",
+    "win_dc"       = "172.16.50.100"
   }
 }
 

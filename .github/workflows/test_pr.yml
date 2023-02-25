@@ -71,9 +71,27 @@ jobs:
       - name: Install Python deps
         run: pip install -r ci/requirements.txt
 
-      - name: Install tfsec
-        run: go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
-
       ########################### pre-commit ###########################
       - name: pre-commit modules
         run: pre-commit run --all-files
+
+      # https://github.com/marketplace/actions/setup-tflint
+      - uses: terraform-linters/setup-tflint@v3
+        name: Setup TFLint
+      - name: Show version
+        run: tflint --version
+      - name: Init TFLint
+        run: tflint --init
+      - name: Run TFLint
+        run: tflint -f compact
+
+  security:
+    runs-on: ubuntu-22.04
+    steps:
+      # https://github.com/aquasecurity/tfsec-action
+      - name: Clone repo
+        uses: actions/checkout@master
+      - name: tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          soft_fail: true

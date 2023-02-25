@@ -136,3 +136,16 @@ variable "windows-ami" {
   type        = string
   default     = "ami-0ae8d60635de460b2"
 }
+
+######################## Teleport ########################
+variable "teleport_route53_zone_id" {
+  description = "Route53 Zone ID to use for Teleport DNS records"
+  type        = string
+  default     = "Z051379539VVT3OD13CSQ"
+}
+
+variable "teleport_base_domain" {
+  description = "Define the base domain for teleport to attach DNS records too"
+  type        = string
+  default     = "blueteamvillage.com"
+}

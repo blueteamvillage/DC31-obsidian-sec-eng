@@ -52,6 +52,34 @@ resource "aws_instance" "cribl_server" {
     encrypted             = true
   }
 
+  ################## DO NOT TOUCH ##################
+  ############# IGNORE instance type ###############
+  lifecycle {
+    ignore_changes = [
+      instance_type,
+      instance_state,
+      cpu_core_count,
+      ebs_optimized,
+    ]
+  }
+  ############# IGNORE instance type ###############
+  ################## DO NOT TOUCH ##################
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_cribl_server"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_eip" "cribl_server_eip" {
+  instance = aws_instance.cribl_server.id
+  vpc      = true
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_cribl_server_eip"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
 ############################################ Splunk SIEM ############################################
 resource "aws_security_group" "splunk_server_sg" {
   vpc_id = aws_vpc.vpc.id
@@ -104,14 +132,14 @@ resource "aws_security_group" "splunk_server_sg" {
     from_port   = 8089
     to_port     = 8089
     protocol    = "tcp"
-    cidr_blocks = [""${module.teleport.private_ip_addr}/32"]
+    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
   }
 
   # Allow Prometheus to access node exporter
   ingress {
-    from_port   = 9100
-    to_port     = 9100
-    protocol    = "tcp"
+    from_port = 9100
+    to_port   = 9100
+    protocol  = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
       "${aws_instance.metrics_server.private_ip}/32"
@@ -145,32 +173,5 @@ resource "aws_instance" "splunk_server" {
     volume_size           = 100
     volume_type           = "gp2"
     delete_on_termination = true
-  }
-
-  ################## DO NOT TOUCH ##################
-  ############# IGNORE instance type ###############
-  lifecycle {
-    ignore_changes = [
-      instance_type,
-      instance_state,
-      cpu_core_count,
-      ebs_optimized,
-    ]
-  }
-  ############# IGNORE instance type ###############
-  ################## DO NOT TOUCH ##################
-
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_cribl_server"
-    Project = var.PROJECT_PREFIX
-  }
-}
-
-resource "aws_eip" "cribl_server_eip" {
-  instance = aws_instance.cribl_server.id
-  vpc      = true
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_cribl_server_eip"
-    Project = var.PROJECT_PREFIX
   }
 }

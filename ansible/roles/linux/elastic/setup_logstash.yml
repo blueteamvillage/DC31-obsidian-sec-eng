@@ -1,0 +1,193 @@
+####################################################################
+# Install/Setup Logstash
+####################################################################
+- name: Add Elastic GPG key
+  apt_key:
+    url: "{{ elastic_gpg_url }}"
+    state: present
+
+- name: Add Elastic repo
+  apt_repository:
+    repo: "{{ elastic_repo_url }}"
+    state: present
+
+# Installing logstash will create a low-privileged user and group both named "logstash"
+- name: Install Logstash
+  apt:
+    name: 'logstash=1:{{ elastic_version }}-1'
+    state: present
+
+- name: Install Logstash plugins
+  shell: '/usr/share/logstash/bin/logstash-plugin install {{ item }}'
+  loop:
+    - 'logstash-filter-json_encode'
+
+####################################################################
+# Generate TLS private key and cert
+####################################################################
+- name: Check if Logstash public certificate exists
+  stat:
+    path: /etc/logstash/tls/logstash.crt
+  register: logstash_public_cert
+
+- name: Create Logstash TLS directory
+  file:
+    path: '/etc/logstash/tls'
+    state: directory
+    owner: logstash
+    group: logstash
+  when: logstash_public_cert.stat.exists == False
+
+- name: Generate an OpenSSL private key for Logstash
+  openssl_privatekey:
+    path: /etc/logstash/tls/logstash.key
+    size: 4096
+    type: RSA
+    format: 'pkcs8'
+    owner: logstash
+    group: logstash
+  when: logstash_public_cert.stat.exists == False
+
+- name: Generate an OpenSSL Certificate Signing Request with Subject information for Logstash
+  openssl_csr:
+    path: /etc/logstash/tls/logstash.csr
+    privatekey_path: /etc/logstash/tls/logstash.key
+    country_name: "US"
+    organization_name: "{{ external_domain }}"
+    email_address: "admin@{{ external_domain }}"
+    common_name: "elastic.{{ external_domain }}"
+  when: logstash_public_cert.stat.exists == False
+
+- name: Generate a Self Signed OpenSSL certificate for Logstash
+  openssl_certificate:
+    path: /etc/logstash/tls/logstash.crt
+    privatekey_path: /etc/logstash/tls/logstash.key
+    csr_path: /etc/logstash/tls/logstash.csr
+    provider: selfsigned
+    owner: logstash
+    group: logstash
+  when: logstash_public_cert.stat.exists == False
+
+####################################################################
+# Create logstash_writer user and role
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/built-in-roles.html
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-get-role.html
+- name: Get a list of all current Elasticsearch roles to see if the "logstash_writer" role exists
+  uri:
+    url: http://localhost:9200/_security/role
+    method: GET
+    user: '{{ elastic.name }}'
+    password: '{{ elastic.password }}'
+    headers:
+      Content-Type: application/json
+    status_code: 200
+  register: roles_result
+
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/security-privileges.html
+- name: Create logstash_writer role
+  uri:
+    url: http://localhost:9200/_xpack/security/role/logstash_writer
+    method: POST
+    user: '{{ elastic.name }}'
+    password: '{{ elastic.password }}'
+    body_format: json
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "cluster": ["manage_index_templates", "monitor", "manage_ilm"], 
+        "indices": [
+        {
+          "names": [ "*-*" ], 
+          "privileges": ["write","create","delete","create_index","manage","manage_ilm"]  
+        }
+        ]
+      }
+    status_code: 200
+    no_log: True
+  when: roles_result.json.logstash_writer is undefined
+
+- name: Check if the users exist
+  uri:
+    url: http://localhost:9200/_security/user
+    method: GET
+    user: '{{ elastic.name }}'
+    password: '{{ elastic.password }}'
+    headers:
+      Content-Type: application/json
+    status_code: 200
+  register: users_result
+
+- name: Create the users
+  uri:
+    url: http://127.0.0.1:9200/_security/user/'{{ item.name }}'
+    method: POST
+    user: '{{ elastic.name }}'
+    password: '{{ elastic.password }}'
+    body_format: json
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "full_name" : "{{ item.name }}",
+        "password" : "{{ item.password }}",
+        "roles" : [ "{{ item.role}}" ],
+        "email" :  "{{ item.name }}@{{ external_domain }}"
+      }
+  # no_log: True
+  with_items:
+    - "{{ logstash_admin }}"
+    - "{{ logstash_writer }}"
+
+####################################################################
+# Copy Logstash pipeline
+####################################################################
+- name: Copy Kafka input config
+  template:
+    src: "conf/elastic/logstash/03-input-kafka.conf"
+    dest: "/etc/logstash/conf.d/03-input-kafka.conf"
+    owner: logstash
+    group: logstash
+    mode: 0400
+
+- name: Copy Elasticseach output config
+  template:
+    src: "conf/elastic/logstash/30-output-elasticsearch.conf"
+    dest: "/etc/logstash/conf.d/30-output-elasticsearch.conf"
+    owner: logstash
+    group: logstash
+    mode: 0400
+
+# https://docs.ansible.com/ansible/latest/user_guide/playbooks_filters.html#other-useful-filters
+- name: Copy Logstash filters
+  template:
+    src: "{{ item }}"
+    dest: "/etc/logstash/conf.d/{{ item | basename }}"
+    owner: logstash
+    group: logstash
+    mode: 0400
+  with_fileglob:
+    - conf/elastic/logstash/filters/*.conf
+
+####################################################################
+# Restart service
+####################################################################
+- name: Restart Logstash and set it to start on boot
+  service:
+    name: logstash
+    enabled: yes
+    state: restarted
+
+# Logstash takes a while to start -- it's normal to fail 2-3 of these before a success
+- name: Logstash healthcheck
+  uri:
+    url: "http://127.0.0.1:9600"
+    follow_redirects: none
+    method: GET
+    remote_src: yes
+    status_code: 200
+  register: logstash_result
+  until: logstash_result.status == 200
+  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5 # Every 5 seconds

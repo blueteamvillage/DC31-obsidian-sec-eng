@@ -1,0 +1,91 @@
+- name: Install Kibana
+  apt:
+    name: 'kibana={{ elastic_version }}'
+
+- name: list Elasticsearch roles to see if the "{{kibana.role}}" role exists
+  uri:
+    url: http://localhost:9200/_security/role
+    method: GET
+    user: '{{ elastic.name }}'
+    password: '{{ elastic.password }}'
+    headers:
+      Content-Type: application/json
+    status_code: 200
+  register: roles_result
+
+- name: Create "{{kibana.role}}" role
+  uri:
+    url: http://localhost:9200/_xpack/security/role/"{{kibana.role}}"
+    method: POST
+    user: '{{ elastic.name }}'
+    password: '{{ elastic.password }}'
+    body_format: json
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "cluster": ["manage_index_templates", "monitor", "manage_ilm"],
+        "indices": [
+        {
+          "names": [ "*-*" ],
+          "privileges": ["write","create","delete","create_index","manage","manage_ilm"]
+        }
+        ]
+      }
+    status_code: 200
+    no_log: True
+  when: roles_result.json.kibana_system is undefined
+
+- name: add kibana user, password, and role to elasticsearch
+  uri:
+    url: http://127.0.0.1:9200/_security/user/{{item.name}}/_password
+    method: POST
+    body_format: json
+    user: "{{ elastic.name }}"
+    password: "{{ elastic.password }}"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "password" : "{{ item.password }}",
+      }
+  # no_log: True
+  with_items:
+    - "{{ kibana}}"
+
+- name: Set Kibana username for Elasticsearch
+  lineinfile:
+    path: /etc/kibana/kibana.yml
+    regexp: '^#elasticsearch.username:.*'
+    line: "elasticsearch.username: {{ kibana.name }}"
+
+- name: Set Kibana password for Elasticsearch
+  lineinfile:
+    path: /etc/kibana/kibana.yml
+    regexp: '^(#)?elasticsearch.password:.*'
+    line: "elasticsearch.password: {{ kibana.password }}"
+
+- name: Set Kibana baseURL
+  lineinfile:
+    path: /etc/kibana/kibana.yml
+    regexp: '^(#)?server.publicBaseUrl:.*$'
+    line: "server.publicBaseUrl: https://{{ elastic_fqdn }}"
+
+- name: Restart Kibana and set it to start on boot
+  service:
+    name: 'kibana'
+    state: 'restarted'
+    enabled: yes
+
+# Kibana takes a while to start -- it's normal to fail 2-3 of these before a success
+- name: Kibana healthcheck
+  uri:
+    url: "http://127.0.0.1:5601/login?next=%2Fstatus"
+    follow_redirects: none
+    method: GET
+    remote_src: yes
+    status_code: 200
+  register: _result
+  until: _result.status == 200
+  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5 # Every 5 seconds

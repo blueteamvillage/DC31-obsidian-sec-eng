@@ -39,6 +39,7 @@ variable "public_subnet_map" {
   type = map(string)
   default = {
     "teleport" = "172.16.10.100",
+    "splunk"   = "172.16.10.200",
   }
 }
 

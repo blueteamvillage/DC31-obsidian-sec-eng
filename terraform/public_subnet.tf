@@ -89,7 +89,7 @@ resource "aws_security_group" "elastic_server_sg" {
     from_port   = 8
     to_port     = 0
     protocol    = "icmp"
-    cidr_blocks = ["${aws_instance.jump_box.private_ip}/32"]
+    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
   }
 
   ingress {
@@ -97,7 +97,7 @@ resource "aws_security_group" "elastic_server_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${aws_instance.jump_box.private_ip}/32"]
+    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
   }
 
   ingress {
@@ -106,8 +106,7 @@ resource "aws_security_group" "elastic_server_sg" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_instance.jump_box.private_ip}/32",
-      "${aws_eip.jump_box_eip.public_ip}/32",
+      "${module.teleport.private_ip_addr}/32",
       #"0.0.0.0/0"
     ]
   }
@@ -118,19 +117,11 @@ resource "aws_security_group" "elastic_server_sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_instance.jump_box.private_ip}/32",
-      "${aws_eip.jump_box_eip.public_ip}/32",
+      "${module.teleport.private_ip_addr}/32",
       #"0.0.0.0/0"
     ]
   }
 
-  ingress {
-    description = "Allow traffic to Logstash from ingestor"
-    from_port   = 5044
-    to_port     = 5044
-    protocol    = "tcp"
-    cidr_blocks = ["${var.corp_subnet_map["logstash_ingestor"]}/32"]
-  }
 
   # Allow Prometheus to access node exporter
   ingress {
@@ -138,8 +129,7 @@ resource "aws_security_group" "elastic_server_sg" {
     to_port   = 9100
     protocol  = "tcp"
     cidr_blocks = [
-      "${aws_instance.jump_box.private_ip}/32",
-      "${aws_instance.metrics_server.private_ip}/32"
+      "${module.teleport.private_ip_addr}/32",
     ]
   }
 

@@ -151,10 +151,10 @@ resource "aws_security_group" "elastic_server_sg" {
 resource "aws_instance" "elastic_server" {
   ami                     = var.ubunut-ami
   instance_type           = "r5.xlarge"
-  subnet_id               = aws_subnet.public_subnet.id
+  subnet_id               = aws_subnet.logging_subnet.id
   vpc_security_group_ids  = [aws_security_group.elastic_server_sg.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip              = var.public_subnet_map["elastic"]
+  private_ip              = var.logging_subnet_map["elastic"]
   disable_api_termination = true
 
   root_block_device {

@@ -39,7 +39,6 @@ variable "public_subnet_map" {
   type = map(string)
   default = {
     "teleport" = "172.16.10.100",
-    "splunk"   = "172.16.10.200",
   }
 }
 
@@ -67,7 +66,8 @@ variable "logging_cidr_block" {
 variable "logging_subnet_map" {
   type = map(string)
   default = {
-    "cribl" = "172.16.22.10",
+    "cribl"  = "172.16.22.10",
+    "splunk" = "172.16.22.20",
   }
 }
 ######################## Prod subnet ########################

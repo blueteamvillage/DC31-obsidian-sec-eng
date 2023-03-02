@@ -162,10 +162,10 @@ resource "aws_security_group" "splunk_server_sg" {
 resource "aws_instance" "splunk_server" {
   ami                     = var.ubunut-ami
   instance_type           = "r5.xlarge"
-  subnet_id               = aws_subnet.public_subnet.id
+  subnet_id               = aws_subnet.logging.id
   vpc_security_group_ids  = [aws_security_group.splunk_server_sg.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip              = var.public_subnet_map["splunk"]
+  private_ip              = var.logging_subnet_map["splunk"]
   disable_api_termination = true
 
   root_block_device {

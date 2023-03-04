@@ -1,3 +1,4 @@
+---
 ####################################################################
 # Create DNS zone for resolving internal company domain names
 ####################################################################
@@ -30,11 +31,11 @@
     value: "{{ item.value }}"
     zone: "{{ internal_domain }}"
   with_items:
-    - { name: "mail", type: "A", value: "{{ hostvars.files.ansible_host }}"}
-    - { name: "smtp", type: "CNAME", value: "mail.{{ internal_domain }}"}
-    - { name: "imap", type: "CNAME", value: "mail.{{ internal_domain }}"}
-    - { name: "files", type: "A", value: "{{ hostvars.files.ansible_host }}"}
-    - { name: "webserver", type: "A", value: "{{ groups.web_server[0] }}"}
+    - {name: "mail", type: "A", value: "{{hostvars.files.ansible_host}}"}
+    - {name: "smtp", type: "CNAME", value: "mail.{{internal_domain}}"}
+    - {name: "imap", type: "CNAME", value: "mail.{{internal_domain}}"}
+    - {name: "files", type: "A", value: "{{hostvars.files.ansible_host}}"}
+    - {name: "webserver", type: "A", value: "{{groups.web_server[0]}}"}
 
 
 - name: Get MX record count

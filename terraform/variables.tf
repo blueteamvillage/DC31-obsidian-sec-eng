@@ -70,6 +70,16 @@ variable "logging_subnet_map" {
     "splunk" = "172.16.22.20",
   }
 }
+
+variable "logging_ec2_size" {
+  description = "Logging servers EC2 size"
+  type        = string
+  # testing
+  default = "t3.medium"
+  # prod
+  # default     = "r5.xlarge"
+}
+
 ######################## Prod subnet ########################
 variable "prod_cidr_block" {
   description = "CIDR block for public subnet"

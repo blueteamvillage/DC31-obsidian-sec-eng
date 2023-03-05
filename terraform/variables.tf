@@ -168,3 +168,12 @@ variable "teleport_base_domain" {
   type        = string
   default     = "blueteamvillage.com"
 }
+
+######################## public domain ########################
+variable "public_domain" {
+  default = "magnumtempusfinancial.com"
+}
+
+variable "public_domain_zone_id" {
+  default = "Z0222419PAP0957YFABU"
+}

@@ -195,3 +195,79 @@ resource "aws_instance" "windows_domain_controller_vuln" {
     Project = var.PROJECT_PREFIX
   }
 }
+############################################ Windows client - A ############################################
+resource "aws_security_group" "win_clients_sg" {
+  vpc_id = aws_vpc.vpc.id
+
+  # Allow all traffic inbound from jumpbox and corp subnet
+  ingress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = [
+      "${var.management_subnet_map["jumpbox"]}/32",
+      "${var.corp_cidr_block}",
+      var.dmz_cidr_block
+    ]
+  }
+
+  # Allow Prometheus to access node exporter
+  ingress {
+    from_port = 9100
+    to_port   = 9100
+    protocol  = "tcp"
+    cidr_blocks = [
+      "${aws_instance.jump_box.private_ip}/32",
+      "${aws_instance.metrics_server.private_ip}/32"
+    ]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_WIN_CLIENTS_SG"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_instance" "windows_clients" {
+  for_each = {
+    for k, v in var.corp_subnet_map : k => v
+    if length(regexall("win_client\\d+", k)) > 0
+  }
+
+  ami                    = var.windows-ami
+  instance_type          = "t3.medium"
+  subnet_id              = aws_subnet.corp_subnet.id
+  vpc_security_group_ids = [aws_security_group.win_clients_sg.id]
+  key_name               = "${var.PROJECT_PREFIX}-ssh-key"
+  private_ip             = each.value
+  get_password_data      = true
+  user_data              = data.template_file.password_change.rendered
+
+  root_block_device {
+    volume_size           = 60
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+
+  ################## DO NOT TOUCH ##################
+  ############# IGNORE instance type ###############
+  lifecycle {
+    ignore_changes = [
+      instance_state,
+    ]
+  }
+  ############# IGNORE instance type ###############
+  ################## DO NOT TOUCH ##################
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_${upper(each.key)}"
+    Project = var.PROJECT_PREFIX
+  }
+}

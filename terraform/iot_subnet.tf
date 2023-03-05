@@ -53,6 +53,6 @@ resource "aws_instance" "iot01_server" {
   tags = {
     Name        = "${var.PROJECT_PREFIX}_IOT01_SERVER"
     Project     = var.PROJECT_PREFIX
-    Environment = IOT
+    Environment = "IOT"
   }
 }

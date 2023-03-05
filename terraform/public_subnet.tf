@@ -35,7 +35,7 @@ resource "aws_security_group_rule" "cribl_allow_egress" {
 
 resource "aws_instance" "cribl_server" {
   ami                     = var.ubunut-ami
-  instance_type           = "r5.xlarge"
+  instance_type           = var.logging_ec2_size
   subnet_id               = aws_subnet.logging.id
   vpc_security_group_ids  = [aws_security_group.cribl_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"

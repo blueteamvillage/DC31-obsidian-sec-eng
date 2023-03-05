@@ -197,36 +197,28 @@ resource "aws_instance" "windows_domain_controller_vuln" {
 }
 ############################################ Windows client - A ############################################
 resource "aws_security_group" "win_clients_sg" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = module.vpc.vpc_id
 
-  # Allow all traffic inbound from jumpbox and corp subnet
+  # Allow ICMP, RDP, & WinRM from management subnet
+  ingress {
+    from_port = 8
+    to_port   = 0
+    protocol  = "icmp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      "${var.corp_cidr_block}"
+    ]
+  }
+
   ingress {
     from_port = 0
     to_port   = 0
     protocol  = "-1"
     cidr_blocks = [
-      "${var.management_subnet_map["jumpbox"]}/32",
+      #teleport internal and external IP.
+      "${module.teleport.private_ip_addr}/32",
       "${var.corp_cidr_block}",
-      var.dmz_cidr_block
     ]
-  }
-
-  # Allow Prometheus to access node exporter
-  ingress {
-    from_port = 9100
-    to_port   = 9100
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${aws_instance.jump_box.private_ip}/32",
-      "${aws_instance.metrics_server.private_ip}/32"
-    ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {

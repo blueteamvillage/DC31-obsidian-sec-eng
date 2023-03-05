@@ -1,0 +1,8 @@
+---
+
+- name: Setup Corp Docker server
+  hosts: docker_server
+  become: yes
+  become_user: root
+  roles:
+    - geerlingguy.docker

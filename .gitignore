@@ -4,3 +4,4 @@ terraform/ssh_keys/*
 terraform.tfstate
 terraform.tfstate.backup
 venv/
+.DS_Store

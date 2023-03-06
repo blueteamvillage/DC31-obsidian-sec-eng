@@ -148,13 +148,6 @@ variable "windows-ami" {
   default     = "ami-0ae8d60635de460b2"
 }
 
-variable "securityonion-ami" {
-  # https://aws.amazon.com/marketplace/pp/prodview-4gpqv3qlxq4ww?ref=_ptnr_soc_docs_210505
-  description = "Security Onion 2"
-  type        = string
-  default     = ""
-}
-
 ######################## Teleport ########################
 variable "teleport_route53_zone_id" {
   description = "Route53 Zone ID to use for Teleport DNS records"

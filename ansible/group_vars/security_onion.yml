@@ -1,0 +1,17 @@
+---
+
+# Security Onion variables - Installation Script
+securityonion_adminuser: "onionroot"
+securityonion_adminuser_password: "xUW$BmEXUyfg%Lx_49GYolyXpDQtj"
+securityonion_hostname: 'securityonion'
+securityonion_soremote_password: "xUW$BmEXUyfg%Lx_49GYolyXpDQtj"
+securityonion_webuser_email: "so-superuser@{{ external_domain }}"
+securityonion_webuser_password: "h_5jWW0t_KeeoBpp1WgVmvA"
+
+# Security Onion interfaces - select first two options
+securityonion_management_nic: '{{ (ansible_interfaces | sort)[0] }}'
+securityonion_bonding_nic: '{{ (ansible_interfaces | sort)[1] }}'
+
+# Security Onion - pinned version
+# Hotfix for v2.3.100: https://github.com/Security-Onion-Solutions/securityonion/releases/tag/2.3.100-20220202
+securityonion_version: c39047666b94a9c9f8b9393374099d7c88226060

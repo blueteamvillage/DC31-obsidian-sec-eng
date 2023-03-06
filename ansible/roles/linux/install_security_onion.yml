@@ -1,0 +1,49 @@
+---
+
+####################################################################
+# Initial steps
+####################################################################
+- name: Install software for Security Onion
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - curl
+    - git
+
+- name: Change hostname to securityonion
+  hostname:
+    name: securityonion
+    use: systemd
+  register: seconion_hostname
+
+- name: Reboot if hostname was changed
+  reboot:
+    msg: '[*] Hostname changed, rebooting now!'
+  when: seconion_hostname.changed
+
+####################################################################
+# Download & run setup script for Security Onion
+####################################################################
+- name: Clone the Security Onion repository
+  # Only do v2.3.100 and onwards; TheHive won't be needed during workshops
+  git:
+    repo: 'https://github.com/Security-Onion-Solutions/securityonion'
+    dest: /opt/securityonion
+    force: yes
+    version: "{{ securityonion_version }}"
+
+- name: Copy our custom configuration file over to remote host
+  template:
+    src: conf/security_onion/standalone_net_ubuntu.j2
+    dest: /opt/securityonion/setup/automation/standalone-net-ubuntu
+
+- name: Copy our slightly tweaked setup script to force automated setup
+  copy:
+    src: conf/security_onion/so-setup
+    dest: /opt/securityonion/setup/so-setup
+
+- name: Run the Security Onion automated setup script
+  shell: bash so-setup "network" "standalone-net-ubuntu"
+  args:
+    chdir: /opt/securityonion/setup/

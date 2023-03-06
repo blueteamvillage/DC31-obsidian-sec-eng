@@ -1,0 +1,40 @@
+---
+
+####################################################################
+# Setup Timedatectl
+####################################################################
+- name: Set time to {{ timezone }}
+  community.general.timezone:
+    name: '{{ timezone }}'
+
+####################################################################
+# Apt update
+####################################################################
+- name: Run the equivalent of "apt-get update" as a separate step
+  apt:
+    update_cache: yes
+
+- name: Update all packages to the latest version
+  apt:
+    upgrade: dist
+
+####################################################################
+# Reboot
+####################################################################
+- name: Reboot a slow machine that might have lots of updates to apply
+  reboot:
+    reboot_timeout: 3600
+
+####################################################################
+# Install software
+####################################################################
+- name: Install software
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - apt-transport-https
+    - htop
+    - tcpdump
+    - net-tools
+    - wget

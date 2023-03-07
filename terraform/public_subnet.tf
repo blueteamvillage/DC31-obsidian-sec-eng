@@ -220,7 +220,7 @@ resource "aws_security_group_rule" "allow_ssh_from_teleport" {
 
 resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
   type        = "ingress"
-  description = "Allow SSH"
+  description = "Allow all traffic from NAT gateway"
   from_port   = 0
   to_port     = 0
   protocol    = -1
@@ -232,7 +232,7 @@ resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
 
 resource "aws_security_group_rule" "allow_inbound_from_log4j" {
   type        = "ingress"
-  description = "Allow SSH"
+  description = "Allow all traffic from log4j"
   from_port   = 0
   to_port     = 0
   protocol    = -1

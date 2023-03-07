@@ -1,0 +1,59 @@
+---
+######################################################
+# Install/Setup Grafana
+######################################################
+- name: Install software
+  ansible.builtin.apt:
+    name: ['adduser', 'libfontconfig1']
+    state: present
+
+- name: Download Grafana
+  ansible.builtin.get_url:
+    url: "{{ grafana_dl_url }}"
+    dest: "/tmp/grafana_{{ grafana_version }}_amd64.deb"
+    mode: 0644
+
+- name: Install Grafana
+  ansible.builtin.apt:
+    deb: "/tmp/grafana_{{ grafana_version }}_amd64.deb"
+
+# - name: Copy Grafana config
+#   template:
+#     src: "templates/grafana.ini.j2"
+#     dest: "/etc/grafana/grafana.ini"
+#     owner: root
+#     group: grafana
+#     mode: 0640
+
+- name: Copy Node exporter dashboard
+  ansible.builtin.copy:
+    src: 'templates/node-exporter-full_rev25.json.j2'
+    dest: '/etc/grafana/provisioning/dashboards'
+    owner: root
+    group: grafana
+    mode: 0640
+
+- name: Copy Windows Node exporter dashboard
+  ansible.builtin.copy:
+    src: 'templates/windows-node_rev1.json.j2'
+    dest: '/etc/grafana/provisioning/dashboards'
+    owner: root
+    group: grafana
+    mode: 0640
+
+- name: Start Grafana
+  ansible.builtin.service:
+    name: "grafana-server"
+    enabled: yes
+    state: restarted
+
+- name: Grafana Health Check
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:3000/login"
+    follow_redirects: none
+    method: GET
+  register: grafana_result
+  until: grafana_result.status == 200
+  retries: 720
+  delay: 5
+  no_log: true

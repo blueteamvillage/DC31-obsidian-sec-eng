@@ -1,0 +1,44 @@
+# this is required to proxy Grafana Live WebSocket connections.
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  '' close;
+}
+
+upstream grafana {
+  server localhost:3000;
+}
+
+# Force any HTTP traffic to use HTTPS instead
+server {
+    listen 80 default_server;
+    server_name _;
+    return 301 https://$host$request_uri;
+}
+
+
+server {
+    listen 443 ssl http2 default_server;
+    server_name _;
+
+    # TLS
+    ssl_certificate /etc/ssl/certs/grafana.crt;
+    ssl_certificate_key /etc/ssl/private/grafana.key;
+    ssl_session_timeout  10m;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_pass http://localhost:3000/;
+    }
+
+     # Proxy Grafana Live WebSocket connections.
+    location /api/live/ {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $http_host;
+        proxy_pass http://grafana;
+    }
+}

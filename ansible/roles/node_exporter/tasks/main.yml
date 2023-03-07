@@ -1,0 +1,4 @@
+---
+# tasks file for roles/node_exporter
+- name: Install/Setup Node exporter
+  ansible.builtin.import_tasks: setup_node_exporter.yml

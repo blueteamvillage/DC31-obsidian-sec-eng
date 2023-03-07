@@ -266,8 +266,9 @@ resource "aws_instance" "red_team_servers" {
   }
 
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_${each.key}_server"
-    Project = var.PROJECT_PREFIX
+    Name        = "${var.PROJECT_PREFIX}_${each.key}_server"
+    Project     = var.PROJECT_PREFIX
+    Environment = "red_team"
   }
 }
 

@@ -2,11 +2,11 @@
 
 # Security Onion variables - Installation Script
 securityonion_adminuser: "onionroot"
-securityonion_adminuser_password: "xUW$BmEXUyfg%Lx_49GYolyXpDQtj"
+securityonion_adminuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-admin-pass') }}"
 securityonion_hostname: 'securityonion'
-securityonion_soremote_password: "xUW$BmEXUyfg%Lx_49GYolyXpDQtj"
+securityonion_soremote_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-soremote-pass') }}"
 securityonion_webuser_email: "so-superuser@{{ external_domain }}"
-securityonion_webuser_password: "h_5jWW0t_KeeoBpp1WgVmvA"
+securityonion_webuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-webuser-pass') }}"
 
 # Security Onion interfaces - select first two options
 securityonion_management_nic: '{{ (ansible_interfaces | sort)[0] }}'

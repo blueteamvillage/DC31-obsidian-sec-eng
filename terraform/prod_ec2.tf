@@ -16,7 +16,7 @@ resource "aws_security_group_rule" "log4j_allow_ssh" {
   to_port     = 22
   protocol    = "tcp"
   cidr_blocks = [
-    module.teleport.private_ip_addr,
+    "${module.teleport.private_ip_addr}/32",
     var.corp_cidr_block
   ]
   security_group_id = aws_security_group.vuln_log4j_webserver.id
@@ -29,7 +29,7 @@ resource "aws_security_group_rule" "log4j_allow_http_from_corp" {
   to_port     = 80
   protocol    = "tcp"
   cidr_blocks = [
-    module.teleport.private_ip_addr,
+    "${module.teleport.private_ip_addr}/32",
     var.corp_cidr_block
   ]
   security_group_id = aws_security_group.vuln_log4j_webserver.id

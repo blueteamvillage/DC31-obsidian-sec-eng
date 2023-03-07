@@ -23,12 +23,12 @@
     path: "{{ item }}"
     state: directory
     mode: 0644
-  loop:
-    - /var/lib/prometheus
-    - /etc/prometheus
-    - /etc/prometheus/rules
-    - /etc/prometheus/rules.d
-    - /etc/prometheus/files_sd
+  with_items:
+    - "/var/lib/prometheus"
+    - "/etc/prometheus"
+    - "/etc/prometheus/rules"
+    - "/etc/prometheus/rules.d"
+    - "/etc/prometheus/files_sd"
   when: not prometheus_install.stat.exists
 
 - name: Download Prometheus

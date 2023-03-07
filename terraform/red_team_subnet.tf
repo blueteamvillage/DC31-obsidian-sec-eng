@@ -45,6 +45,16 @@ resource "aws_security_group_rule" "allow_inbound_from_log4j" {
   security_group_id = aws_security_group.red_team_servers.id
 }
 
+resource "aws_security_group_rule" "red_team_servers_allow_egress" {
+  type              = "egress"
+  description       = "Allow all outbound traffic"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.red_team_servers.id
+}
+
 resource "aws_instance" "red_team_servers" {
   for_each = var.red_team_subnet_map
 

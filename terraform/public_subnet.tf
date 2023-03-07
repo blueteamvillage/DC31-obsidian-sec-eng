@@ -194,3 +194,46 @@ resource "aws_eip" "securityonion_server_eip" {
     Project = var.PROJECT_PREFIX
   }
 }
+
+############################################ Red team boxes ############################################
+resource "aws_instance" "red_team_servers" {
+  for_each = var.red_team_subnet_map
+
+  ami                     = var.ubunut-ami
+  instance_type           = "t3.small"
+  subnet_id               = aws_subnet.public.id
+  vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
+  key_name                = "${var.PROJECT_PREFIX}-ssh-key"
+  private_ip              = var.red_team_subnet_map["${each.value}"]
+  disable_api_termination = true
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  root_block_device {
+    volume_size           = 20
+    volume_type           = "gp2"
+    delete_on_termination = true
+    encrypted             = true
+  }
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_${each.key}_server"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_eip" "red_team_servers_eips" {
+  depends_on = [aws_instance.red_team_servers]
+
+  for_each = var.red_team_subnet_map
+
+  instance = aws_instance.red_team_servers[]
+  vpc      = true
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_${each.key}_server_eip"
+    Project = var.PROJECT_PREFIX
+  }
+}

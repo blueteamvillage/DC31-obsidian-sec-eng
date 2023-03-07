@@ -9,13 +9,29 @@ resource "aws_security_group" "vuln_log4j_webserver" {
   }
 }
 
+resource "aws_security_group_rule" "log4j_allow_ssh" {
+  type        = "ingress"
+  description = "Allow SSH traffic from teleport"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = [
+    module.teleport.private_ip_addr,
+    var.corp_cidr_block
+  ]
+  security_group_id = aws_security_group.vuln_log4j_webserver.id
+}
+
 resource "aws_security_group_rule" "log4j_allow_http_from_corp" {
-  type              = "ingress"
-  description       = "Allow HTTP traffic from corp"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = [var.corp_cidr_block]
+  type        = "ingress"
+  description = "Allow HTTP traffic from corp"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = [
+    module.teleport.private_ip_addr,
+    var.corp_cidr_block
+  ]
   security_group_id = aws_security_group.vuln_log4j_webserver.id
 }
 

@@ -8,6 +8,18 @@ resource "aws_security_group" "cribl_server_sg2" {
   }
 }
 
+resource "aws_security_group_rule" "cribl_allow_ssh" {
+  type        = "ingress"
+  description = "Allow SSH"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32"
+  ]
+  security_group_id = aws_security_group.cribl_server_sg2.id
+}
+
 resource "aws_security_group_rule" "cribl_allow_http" {
   type        = "ingress"
   description = "Allow HTTP/9000 from corp subnets, web server, and corp subnet NAT gateway for cribl networking - Cribl Web UI"
@@ -35,14 +47,15 @@ resource "aws_security_group_rule" "cribl_allow_egress" {
 
 resource "aws_instance" "cribl_server" {
   ami                     = var.ubunut-ami
-  instance_type           = "r5.xlarge"
+  instance_type           = var.logging_ec2_size
   subnet_id               = aws_subnet.logging.id
   vpc_security_group_ids  = [aws_security_group.cribl_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = var.logging_subnet_map["cribl"]
   disable_api_termination = true
   metadata_options {
-    http_tokens = "required"
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   root_block_device {
@@ -57,7 +70,6 @@ resource "aws_instance" "cribl_server" {
   lifecycle {
     ignore_changes = [
       instance_type,
-      instance_state,
       cpu_core_count,
       ebs_optimized,
     ]
@@ -135,17 +147,18 @@ resource "aws_security_group" "securityonion_server_sg2" {
 }
 
 resource "aws_instance" "securityonion_server" {
-  ami           = var.securityonion-ami
+  ami           = var.ubunut-ami
   instance_type = "t3.medium"
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
   # instance_type           = "t3a.xlarge"
   subnet_id               = aws_subnet.logging.id
   vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip              = var.logging_subnet_map["cribl"]
+  private_ip              = var.logging_subnet_map["securityonion"]
   disable_api_termination = true
   metadata_options {
-    http_tokens = "required"
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   root_block_device {
@@ -160,7 +173,6 @@ resource "aws_instance" "securityonion_server" {
   lifecycle {
     ignore_changes = [
       instance_type,
-      instance_state,
       cpu_core_count,
       ebs_optimized,
     ]

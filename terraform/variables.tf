@@ -56,6 +56,13 @@ variable "intranet_cidr_block" {
   default     = "172.16.21.0/24"
 }
 
+variable "intranet_subnet_map" {
+  type = map(string)
+  default = {
+    "metrics" = "172.16.21.10",
+  }
+}
+
 ######################## Logging subnet ########################
 variable "logging_cidr_block" {
   description = "CIDR block for Red Team subnet"
@@ -70,6 +77,16 @@ variable "logging_subnet_map" {
     "securityonion" = "172.16.22.23",
   }
 }
+
+variable "logging_ec2_size" {
+  description = "Logging servers EC2 size"
+  type        = string
+  # testing
+  default = "t3.medium"
+  # prod
+  # default     = "r5.xlarge"
+}
+
 ######################## Prod subnet ########################
 variable "prod_cidr_block" {
   description = "CIDR block for public subnet"

@@ -10,6 +10,7 @@
 - name: Create Prometheus User
   ansible.builtin.user:
     name: prometheus
+    groups: prometheus
     shell: /usr/sbin/nologin
     state: present
 
@@ -22,7 +23,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: 0644
+    mode: 0755
   with_items:
     - "/var/lib/prometheus"
     - "/etc/prometheus"
@@ -78,9 +79,9 @@
   ansible.builtin.template:
     src: "templates/prometheus.yml.j2"
     dest: "/etc/prometheus/prometheus.yml"
-    owner: "prometheus"
+    owner: "root"
     group: "prometheus"
-    mode: "0600"
+    mode: "0640"
 
 - name: Copy Prometheus service
   ansible.builtin.template:

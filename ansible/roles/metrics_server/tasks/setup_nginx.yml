@@ -36,7 +36,7 @@
   when: not grafana_public_cert.stat.exists
 
 - name: Generate a Self Signed OpenSSL certificate for grafana
-  community.crypto.openssl_certificate:
+  community.crypto.x509_certificate:
     path: /etc/ssl/certs/grafana.crt
     privatekey_path: /etc/ssl/private/grafana.key
     csr_path: /etc/ssl/certs/grafana.csr

@@ -228,13 +228,14 @@ resource "aws_security_group" "win_clients_sg" {
 }
 
 resource "aws_instance" "windows_clients" {
+  #this magically loops through and creates... 3 boxes.
   for_each = {
     for k, v in var.corp_subnet_map : k => v
     if length(regexall("win_client\\d+", k)) > 0
   }
 
   ami                    = var.windows-ami
-  instance_type          = "t3.medium"
+  instance_type          = var.windows_boxes_ec2_size
   subnet_id              = aws_subnet.corp_subnet.id
   vpc_security_group_ids = [aws_security_group.win_clients_sg.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"

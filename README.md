@@ -31,7 +31,25 @@ By default you get 5 Elastic IPs per region for an account but this project need
 * `Ansible v2.14.1`
 * `pre_commit v2.21.0`
 
+## Setup your environment
 
+For ssh or ansible, login with teleport and list available targets
+```
+tsh login --proxy=teleport.blueteamvillage.com:443
+tsh ls
+tsh ssh <user>@<host>
+tsh config >> ~/.ssh/config
+ssh <user>@<host>.teleport.blueteamvillage.com
+```
+
+For ansible
+```
+python3 -mvenv ../venv-btv
+. ../venv-btv/bin/enable
+pip install -r requirements.txt
+ansible-galaxy install -r requirements.yml
+ansible-playbook -v <playbook.yml>
+```
 
 ## References
 ### Terraform

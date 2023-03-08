@@ -1,0 +1,10 @@
+---
+
+- name: Install Security Onion
+  hosts: security_onion
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - import_tasks: 'roles/linux/init_linux.yml'
+    - import_tasks: 'roles/linux/install_security_onion.yml'

@@ -21,6 +21,8 @@ Once you login into AWS it should automatically select the nearest datacenter ba
   1. Save your generated access key ID and secret access key in a safe location
 
 ### Install/Setup AWS CLI with AWS access keys
+This is not required if you setup environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+
 1. Open terminal
 1. `curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o /tmp/AWSCLIV2.pkg`
   1. Download AWS CLI v2

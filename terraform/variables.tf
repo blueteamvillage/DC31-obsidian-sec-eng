@@ -56,6 +56,13 @@ variable "intranet_cidr_block" {
   default     = "172.16.21.0/24"
 }
 
+variable "intranet_subnet_map" {
+  type = map(string)
+  default = {
+    "metrics" = "172.16.21.10",
+  }
+}
+
 ######################## Logging subnet ########################
 variable "logging_cidr_block" {
   description = "CIDR block for Red Team subnet"
@@ -147,13 +154,6 @@ variable "windows-ami" {
   description = "Microsoft Windows Server 2022 Base"
   type        = string
   default     = "ami-0ae8d60635de460b2"
-}
-
-variable "securityonion-ami" {
-  # https://aws.amazon.com/marketplace/pp/prodview-4gpqv3qlxq4ww?ref=_ptnr_soc_docs_210505
-  description = "Security Onion 2"
-  type        = string
-  default     = ""
 }
 
 ######################## Teleport ########################

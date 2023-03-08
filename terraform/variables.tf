@@ -147,6 +147,12 @@ variable "securityonion-ami" {
   type        = string
   default     = ""
 }
+variable "windows_boxes_ec2_size" {
+  description = "CIDR block for Red Team subnet"
+  type        = string
+  default     = "t3.medium"
+}
+
 
 ######################## Teleport ########################
 variable "teleport_route53_zone_id" {

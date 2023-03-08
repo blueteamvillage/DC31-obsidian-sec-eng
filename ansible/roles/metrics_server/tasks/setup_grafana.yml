@@ -7,15 +7,28 @@
     name: ['adduser', 'libfontconfig1']
     state: present
 
+- name: Stat Prometheus install
+  ansible.builtin.stat:
+    path: "/usr/share/grafana/bin/grafana"
+  register: grafana_install
+
 - name: Download Grafana
   ansible.builtin.get_url:
     url: "{{ grafana_dl_url }}"
     dest: "/tmp/grafana_{{ grafana_version }}_amd64.deb"
     mode: 0644
+  when: not grafana_install.stat.exists
 
 - name: Install Grafana
   ansible.builtin.apt:
     deb: "/tmp/grafana_{{ grafana_version }}_amd64.deb"
+  when: not grafana_install.stat.exists
+
+- name: Set domain
+  ansible.builtin.lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: '^;domain ='
+    line: domain = grafana.{{ teleport_fqdn }}
 
 # - name: Copy Grafana config
 #   template:

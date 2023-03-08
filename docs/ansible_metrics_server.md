@@ -34,13 +34,23 @@ scrape_configs:
 ## Run Ansible playbook
 1. `ansible-playbook -i hosts.ini deploy_metrics_server.yml`
 
+## Add Grafana to teleport
+1. `tsh login --proxy=teleport.blueteamvillage.com`
+1. `tctl create -f ../conf/teleport/grafana.yaml`
 
 ## Login and change password
-1. Open web browser to `https://172.16.10.100/login`
+1. Open web browser to `https://grafana.teleport.blueteamvillage.com/login`
 1. Login
     1. Enter `admin` for username
     1. Enter `admin` for password
 1. Enter new password
+
+## Add Prometheus as a data source
+1. Settings > Data sources
+1. Select "Add data source"
+1. Select "Prometheus"
+1. Enter `http://localhost:9090` into  URL
+1. Select "Save and test"
 
 ## Add dashboard
 1. Log into Grafana
@@ -93,4 +103,11 @@ scrape_configs:
 * [ansible.windows.win_get_url – Downloads file from HTTP, HTTPS, or FTP to node](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html)
 * [prometheus-community/windows_exporter](https://github.com/prometheus-community/windows_exporter)
 * [Windows Server Monitoring using Prometheus and WMI Exporter](https://devconnected.com/windows-server-monitoring-using-prometheus-and-wmi-exporter/#IV_Installing_the_WMI_Exporter)
+* [Run Grafana behind a reverse proxy](https://grafana.com/tutorials/run-grafana-behind-a-proxy/)
+* [Node Exporter Full](https://grafana.com/grafana/dashboards/1860-node-exporter-full/)
+* [Application Access Reference Documentation](https://goteleport.com/docs/application-access/reference/)
+* [Grafana 9 via Teleport Application #15375](https://github.com/gravitational/teleport/discussions/15375)
+* []()
+* []()
+* []()
 * []()

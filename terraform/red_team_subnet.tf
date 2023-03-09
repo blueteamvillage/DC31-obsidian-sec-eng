@@ -1,9 +1,9 @@
 ############################################ Red team boxes ############################################
 resource "aws_security_group" "red_team_servers" {
   vpc_id      = module.vpc.vpc_id
-  description = "Cribl security group"
+  description = "Red team servers security group"
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_cribl_server_sg2"
+    Name    = "${var.PROJECT_PREFIX}_red_team_servers_sg2"
     Project = var.PROJECT_PREFIX
   }
 }

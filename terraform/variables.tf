@@ -123,6 +123,16 @@ variable "iot_cidr_block" {
   default     = "172.16.60.0/24"
 }
 
+variable "iot_subnet_map" {
+  type = map(string)
+  default = {
+    "iot_hmi_alpha"   = "172.16.60.200",
+    "iot_hmi_beta"    = "172.16.60.201",
+    "iot_hmi_charlie" = "172.16.60.202"
+    "iot_hmi_delta"   = "172.16.60.202"
+  }
+}
+
 ######################## Red team subnet ########################
 variable "red_team_cidr_block" {
   description = "CIDR block for Red Team subnet"
@@ -166,4 +176,12 @@ variable "teleport_base_domain" {
   description = "Define the base domain for teleport to attach DNS records too"
   type        = string
   default     = "blueteamvillage.com"
+}
+
+######################## IoT - HMI ########################
+variable "iot_hmi_ami" {
+  # https://aws.amazon.com/marketplace/pp/prodview-u7kuv2lhucy6g?qid=1538086463719&sr=0-3&ref_=srh_res_product_title
+  description = "AMI ID to use to use for base VM"
+  type        = string
+  default     = "ami-0b6a93e8289549df0"
 }

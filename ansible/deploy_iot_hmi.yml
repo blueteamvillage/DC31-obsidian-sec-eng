@@ -1,0 +1,5 @@
+---
+- name: Install/Setup HMI controllers
+  hosts: iot_hmi
+  roles:
+    - iot_hmi

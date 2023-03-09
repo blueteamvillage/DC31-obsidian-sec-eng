@@ -1,0 +1,42 @@
+---
+###################################################################
+# Install/Setup Tomcat
+###################################################################
+- name: Stat Tomcat
+  ansible.windows.win_stat:
+    path: 'C:\Program Files\Apache Software Foundation\Tomcat {{ tomcat_major_version }}.0\bin\Tomcat{{ tomcat_major_version }}.exe'
+  register: win_tomcat
+
+- name: Download Tomcat
+  ansible.windows.win_get_url:
+    url: "{{ tomcat_dl_url }}"
+    dest: '%USERPROFILE%\AppData\Local\Temp\apache-tomcat-{{ tomcat_version }}.exe'
+  when: not win_tomcat.stat.exists
+
+- name: Install Tomcat
+  ansible.windows.win_package:
+    path: 'C:\Users\{{ ansible_user }}\AppData\Local\Temp\apache-tomcat-{{ tomcat_version }}.exe'
+    state: present
+  when: not win_tomcat.stat.exists
+
+# - name: Create Tomcat service
+
+
+- name: Start Tomcat
+  ansible.windows.win_service:
+    name: 'Tomcat9'
+    state: restarted
+
+####################################################################
+# Healthcheck Tomcat
+####################################################################
+- name: Tomcat health check
+  ansible.windows.win_uri:
+    url: "http://127.0.0.1:{{ tomcat_port }}/ScadaBR/login.htm"
+    follow_redirects: false
+    method: GET
+    status_code: 200
+  register: nginx_result
+  until: nginx_result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

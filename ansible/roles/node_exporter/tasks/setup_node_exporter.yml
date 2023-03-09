@@ -61,3 +61,17 @@
     rule: allow
     port: "{{ node_exporter_port }}"
     proto: tcp
+
+####################################################################
+# Healthcheck Node Exporter
+####################################################################
+- name: Win Node Exporter health check
+  ansible.windows.win_uri:
+    url: "http://127.0.0.1:{{ node_exporter_port }}/metrics"
+    follow_redirects: none
+    method: GET
+    status_code: 200
+  register: nginx_result
+  until: nginx_result.status_code == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

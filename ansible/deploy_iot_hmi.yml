@@ -2,4 +2,5 @@
 - name: Install/Setup HMI controllers
   hosts: iot_hmi
   roles:
+    - win_node_exporter
     - iot_hmi

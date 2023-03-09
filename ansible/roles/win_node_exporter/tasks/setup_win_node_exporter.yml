@@ -1,0 +1,58 @@
+---
+####################################################################
+# Install/Setup Windows node exporter
+####################################################################
+- name: Stat node exporter install
+  ansible.windows.win_stat:
+    path: C:\Program Files\windows_exporter\windows_exporter.exe
+  register: node_exporter
+
+- name: Download node exporter
+  ansible.windows.win_get_url:
+    url: "{{ node_exporter_dl_url }}"
+    dest: '%USERPROFILE%\AppData\Local\Temp\windows_exporter-{{ node_exporter_version }}-amd64.msi'
+  when: not node_exporter.stat.exists
+
+- name: Install node exporter
+  ansible.windows.win_package:
+    path: 'C:\Users\{{ ansible_user }}\AppData\Local\Temp\windows_exporter-{{ node_exporter_version }}-amd64.msi'
+    state: present
+  when: not node_exporter.stat.exists
+
+- name: Copy node exporter config
+  ansible.windows.win_template:
+    src: 'node_exporter.yml'
+    dest: 'C:\Program Files\windows_exporter\config.yml'
+
+
+# "C:\Program Files\windows_exporter\windows_exporter.exe" --log.format logger:eventlog?name=windows_exporter
+- name: Start node exporter service
+  ansible.windows.win_service:
+    name: 'windows_exporter'
+    path: '"C:\Program Files\windows_exporter\windows_exporter.exe" --config.file="C:\Program Files\windows_exporter\config.yml"'
+    state: restarted
+
+- name: Expose node exporter via port 9100
+  community.windows.win_firewall_rule:
+    name: Allow Prometheus to access node exporter
+    group: application
+    localport: "{{ node_exporter_port }}"
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+    enabled: yes
+
+####################################################################
+# Healthcheck Win Node Exporter
+####################################################################
+- name: Win Node Exporter health check
+  ansible.windows.win_uri:
+    url: "http://127.0.0.1:{{ node_exporter_port }}/metrics"
+    follow_redirects: none
+    method: GET
+    status_code: 200
+  register: nginx_result
+  until: nginx_result.status_code == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

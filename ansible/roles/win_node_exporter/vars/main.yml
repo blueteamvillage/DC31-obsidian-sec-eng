@@ -1,0 +1,5 @@
+---
+# vars file for ansible/roles/win_exporter
+node_exporter_version: '0.20.0'
+node_exporter_dl_url: 'https://github.com/prometheus-community/windows_exporter/releases/download/v{{ node_exporter_version }}/windows_exporter-{{ node_exporter_version }}-amd64.msi'
+node_exporter_port: 9100

@@ -146,9 +146,14 @@ variable "ubunut-ami" {
   type        = string
   default     = "ami-0ab0629dba5ae551d"
 }
-
+variable "ubuntu-so-ami" {
+  # Ubuntu 20.04 as SO does not support 22.04 for now
+  description = "Ubuntu 20.04 LTS AMI"
+  type        = string
+  default     = "ami-0568936c8d2b91c4e"
+}
 variable "windows-ami" {
-  # Windows Sever 2022
+  # Windows Server 2022
   # https://aws.amazon.com/marketplace/pp/prodview-bd6o47htpbnoe
   description = "Microsoft Windows Server 2022 Base"
   type        = string

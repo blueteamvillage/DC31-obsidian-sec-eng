@@ -56,6 +56,13 @@ variable "intranet_cidr_block" {
   default     = "172.16.21.0/24"
 }
 
+variable "intranet_subnet_map" {
+  type = map(string)
+  default = {
+    "metrics" = "172.16.21.10",
+  }
+}
+
 ######################## Logging subnet ########################
 variable "logging_cidr_block" {
   description = "CIDR block for Red Team subnet"

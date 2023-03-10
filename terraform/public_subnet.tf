@@ -148,7 +148,7 @@ resource "aws_security_group" "securityonion_server_sg2" {
 
 resource "aws_instance" "securityonion_server" {
   ami           = var.ubuntu-so-ami
-  instance_type = "t3.medium"
+  instance_type = var.logging_ec2_size
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
   # instance_type           = "t3a.xlarge"
   subnet_id               = aws_subnet.logging.id

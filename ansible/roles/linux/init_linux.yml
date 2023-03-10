@@ -1,5 +1,13 @@
 ---
 
+- name: Add breakglass user for emergency/serial console
+  ansible.builtin.user:
+    name: "{{ breakglass_serialuser_user }}"
+    password: "{{ breakglass_serialuser_password }}"
+    home: /var/_breakglass
+    system: true
+    groups: admin
+
 ####################################################################
 # Setup Timedatectl
 ####################################################################

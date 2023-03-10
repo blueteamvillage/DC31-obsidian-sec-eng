@@ -10,31 +10,38 @@
 ####################################################################
 # Apt update
 ####################################################################
-- name: Run the equivalent of "apt-get update" as a separate step
-  apt:
+- name: Debian | Update apt cache
+  ansible.builtin.apt:
     update_cache: yes
+    cache_valid_time: 3600
 
 - name: Update all packages to the latest version
-  apt:
+  ansible.builtin.apt:
     upgrade: dist
 
 ####################################################################
 # Reboot
 ####################################################################
+- name: Debian | Check if a reboot is required
+  register: file
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_md5: no
+
 - name: Reboot a slow machine that might have lots of updates to apply
-  reboot:
+  ansible.builtin.reboot:
     reboot_timeout: 3600
+  when: file.stat.exists is defined and file.stat.exists
 
 ####################################################################
 # Install software
 ####################################################################
-- name: Install software
-  package:
-    name: '{{ item }}'
+- name: Install softwares
+  ansible.builtin.package:
+    name:
+      - apt-transport-https
+      - htop
+      - tcpdump
+      - net-tools
+      - wget
     state: latest
-  with_items:
-    - apt-transport-https
-    - htop
-    - tcpdump
-    - net-tools
-    - wget

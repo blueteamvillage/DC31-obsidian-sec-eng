@@ -15,11 +15,12 @@
     state: present
     filename: salt
 
-- name: Install software for Security Onion
+- name: Install softwares for Security Onion
   ansible.builtin.package:
     name:
       - curl
       - git
+      - python3-pip
       - salt-master
     state: latest
     update_cache: yes
@@ -72,22 +73,32 @@
     src: conf/security_onion/standalone_net_ubuntu.j2
     dest: /opt/securityonion/setup/automation/standalone-net-ubuntu
     mode: 0644
+    backup: yes
 
 - name: Copy our slightly tweaked setup script to force automated setup
   ansible.builtin.copy:
     src: conf/security_onion/so-setup
     dest: /opt/securityonion/setup/so-setup
     mode: 0755
+    backup: yes
 
-- name: Run the Security Onion automated setup script
+- name: Run the Security Onion automated setup script - async
   ansible.builtin.shell: bash so-setup "network" "standalone-net-ubuntu"
   args:
     chdir: /opt/securityonion/setup/
     # comment this line or (re)move file if want to force task run
     creates: /root/sosetup.log
-  # poll every 5 min for two hours
   async: 7200
-  poll: 300
+  poll: 0
+  register: sosetup
+
+- name: Check on sosetup async task
+  ansible.builtin.async_status:
+    jid: "{{ sosetup.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 120
+  delay: 30
 
 - name: Post check
   block:

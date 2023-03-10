@@ -147,7 +147,7 @@ resource "aws_security_group" "securityonion_server_sg2" {
 }
 
 resource "aws_instance" "securityonion_server" {
-  ami           = var.ubunut-ami
+  ami           = var.ubuntu-so-ami
   instance_type = "t3.medium"
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
   # instance_type           = "t3a.xlarge"

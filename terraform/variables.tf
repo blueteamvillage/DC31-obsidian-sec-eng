@@ -82,7 +82,8 @@ variable "logging_ec2_size" {
   description = "Logging servers EC2 size"
   type        = string
   # testing
-  default = "t3.medium"
+  # avoid going below t3.large or be wary of oom-killer
+  default = "t3.large"
   # prod
   # default     = "r5.xlarge"
 }

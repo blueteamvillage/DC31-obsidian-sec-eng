@@ -1,0 +1,131 @@
+####################################################################
+# Install and configure Velociraptor
+####################################################################
+- name: Check if the Velociraptor service exists
+  stat:
+    name: /lib/systemd/system/velociraptor.service
+  register: velociraptor
+
+- name: Create Velociraptor install, configuration, and log directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ velociraptor_server_install_path }}"
+    - "{{ velociraptor_server_config_path }}"
+    - "{{ velociraptor_server_log_path }}"
+  when: not velociraptor.stat.exists
+
+- name: Download the Velociraptor binary and make it executable
+  get_url:
+    url: "{{ velociraptor_server_url }}"
+    dest: "{{ velociraptor_server_binary }}"
+    mode: "0700"
+  when: not velociraptor.stat.exists
+
+# https://kifarunix.com/install-and-setup-velociraptor-on-ubuntu-20-04/
+# Velociraptor uses a pair of configuration files to control server and client behavior.
+# To generate the server configuration file, use `velociraptor config generate > server.config.yaml`
+# To generate the client configuration file, use `velociraptor --config server.config.yaml config client > client.config.yaml`
+- name: Generate Velociraptor server config
+  command: "bash -c '{{ velociraptor_server_binary }} config generate > {{ velociraptor_server_config }}'"
+
+# Depending on your network configuration, there are several potential options for `Client.server_urls`.
+#
+# 1) Private IP of the Velociraptor server - good when the clients and server are in the same LAN or subnet
+# Example: https://192.168.1.100:8000/
+#
+# 2) Public IP of the Velociraptor server - good when the Velociraptor server is remote with a static IP address
+# Example: https://1.2.3.4:8000/
+#
+# 3) FQDN of the Velociraptor server - good when the Velociraptor server is remote and has a fluctuating IP address
+# Example: https://velociraptor.magnumtempusfinancial.com:8000/
+# 
+# 4) Port other than Velociraptor's default of 8000 - good when you want to put a reverse proxy in front of Velociraptor
+# Example: https://velociraptor.magnumtempusfinancial.com (this will use HTTP's default port of 443)
+#
+# 5) A URI path other than "/" - good when you want to use one port for both GUI and frontend communications
+# Example: https://velociraptor.magnumtempusfinancial.com/frontend (this configuration is what we use)
+#
+# `Clients.server_urls` values MUST specify the HTTPS protocol and end with "/".
+# To set a URI path for the Frontend and/or GUI, use the `base_path` option (which Velociraptor does not list in configurations by default.)
+- name: Instruct clients to communicate with the Velociraptor server using it's private IP address
+  replace:
+    path: "{{ velociraptor_server_config }}"
+    regexp: "  - https://localhost:8000/"
+    replace: https://{{ groups.velociraptor[0] }}/{{ velociraptor_frontend_base_path }}/"
+
+- name: Instruct clients NOT to use Velociraptor's self-signed certificates
+  replace:
+    path: "{{ velociraptor_server_config }}"
+    regexp: "  pinned_server_name: VelociraptorServer"
+    replace: "  use_self_signed_ssl: false\n  pinned_server_name: VelociraptorServer"
+
+# https://velociraptor.velocidex.com/velociraptor-network-communications-30568624043a
+- name: Use plain HTTP between the Velociraptor GUI and nginx
+  replace:
+    path: "{{ velociraptor_server_config }}"
+    regexp: "  bind_port: 8889"
+    replace: "  bind_port: 8889\n  use_plain_http: true"
+    after: "GUI:"
+    before: "  gw_certificate:"
+
+# Because the GUI and the Frontend will both be sending HTTPS traffic to nginx over port 443,
+# we need a way to differentiate each traffic stream so nginx can proxy them to separate ports.
+# We achieve this by configuring Velociraptor to serve the Frontend from URI paths starting with "/frontend". The GUI will continue to use "/".
+# https://github.com/Velocidex/velociraptor/blob/master/server/comms.go#L129
+#
+# Consequently, we MUST set the URI path in `Clients.server_urls` to "/frontend" as well.
+# For example, if we are serving Velociraptor from 192.168.1.100, `Clients.server_urls` should be `https://192.168.1.100/frontend/`.
+- name: Serve the Frontend using plain HTTP from the "/frontend" URI path
+  replace:
+    path: "{{ velociraptor_server_config }}"
+    regexp: "  bind_port: 8000"
+    replace: "  bind_port: 8000\n  base_path: /{{ velociraptor_frontend_base_path }}\n  use_plain_http: true"
+    after: "Frontend:"
+    before: "  certificate:"
+
+- name: Store files and data in {{ velociraptor_server_log_path }}
+  replace:
+    path: "{{ velociraptor_server_config}}"
+    regexp: "/var/tmp/velociraptor"
+    replace: "{{ velociraptor_server_log_path }}"
+    after: "Datastore:"
+    before: "Writeback: {}"
+
+- name: Generate Velociraptor client config
+  command: "bash -c '{{ velociraptor_server_binary }} --config {{ velociraptor_server_config}} config client > {{ velociraptor_server_client_config }}'"
+
+- name: Generate Velociraptor package
+  command: "{{ velociraptor_server_binary }} --config {{ velociraptor_server_config}} debian server --binary {{ velociraptor_server_binary }}"
+
+# Installing the Velociraptor package will also write, start, and enable the velociraptor_server systemd service, which will launch Velociraptor itself under velociraptor:velociraptor
+- name: Install Velociraptor package
+  command: dpkg -i velociraptor_{{ velociraptor_server_version }}-{{ velociraptor_server_patch }}_server.deb
+
+# During testing, there were several instances where the "velociraptor" user did NOT own all of the files in the datastore/filestore locations,
+# which blocked us from running the service and creating GUI users. As a precaution, we recursively own both directories.
+- name: Ensure that the "velociraptor" user owns the datastore and filestore locations
+  command: chown -R velociraptor:velociraptor {{ velociraptor_server_log_path }}
+
+# https://docs.velociraptor.app/docs/deployment/rbac/
+- name: Create a user for Velociraptor administration
+  become: yes
+  become_user: velociraptor  # Velociraptor requires package commands to be run as the "velociraptor" user
+  expect:
+    command: "velociraptor --config {{ velociraptor_server_config}} user add {{ velociraptor_admin_user }} --role administrator"
+    responses:
+      (?i)Enter user's password: "{{ velociraptor_admin_password }}"
+
+- name: Velociraptor health check
+  uri:
+    url: "http://127.0.0.1:8889/app/index.html"
+    follow_redirects: none
+    method: GET
+    validate_certs: 'no'
+    status_code: 401
+  register: vhc_result
+  until: vhc_result.status == 200
+  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5 # Every 5 seconds
+  no_log: True

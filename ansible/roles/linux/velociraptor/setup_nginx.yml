@@ -1,0 +1,66 @@
+####################################################################
+# Install and configure nginx
+####################################################################
+- name: Update the package repository and install nginx, certbot, and the certbot nginx plugin
+  apt:
+    name:
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+    state: latest
+    update_cache: yes
+
+- name: Check whether we have a certificate installed
+  command: certbot certificates
+  register: certbot_certificates
+
+- name: Upload Nginx configuration
+  template:
+    src: conf/velociraptor/nginx.conf
+    dest: /etc/nginx/sites-available/{{ velociraptor_fqdn }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create symlink from /etc/nginx/sites-enabled/{{ velociraptor_fqdn }} to /etc/nginx/sites-available/{{ velociraptor_fqdn }}.conf
+  file:
+    src: /etc/nginx/sites-available/{{ velociraptor_fqdn }}.conf
+    dest: /etc/nginx/sites-enabled/{{ velociraptor_fqdn }}
+    state: link
+  when: certbot_certificates.stdout.find("Found the following certs") == -1
+
+- name: Remove default symlink
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  when: certbot_certificates.stdout.find("Found the following certs") == -1
+
+- name: Restart nginx.service and set it to start on boot
+  systemd:
+    name: nginx
+    enabled: yes
+    state: restarted
+
+- name: Request a new Let's Encrypt certificate
+  command: certbot --nginx --non-interactive --register-unsafely-without-email --agree-tos --domains {{ velociraptor_fqdn }}
+  when: certbot_certificates.stdout.find("Found the following certs") == -1
+
+- name: Verify that certbot can perform auto-renewal
+  command: sudo certbot renew --dry-run
+  register: dry_run_results
+  failed_when: "'All renewal attempts failed.' in dry_run_results"
+  ignore_errors: True
+  when: certbot_certificates.stdout.find("Found the following certs") == -1
+
+- name: nginx health check
+  uri:
+    url: "https://127.0.0.1:443/app/index.html"
+    follow_redirects: none
+    method: GET
+    validate_certs: 'yes'
+    status_code: 401
+  register: vhc_result
+  until: vhc_result.status == 200
+  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5 # Every 5 seconds
+  no_log: True

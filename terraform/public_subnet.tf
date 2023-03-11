@@ -1,6 +1,6 @@
 ############################################ Velociraptor Server ############################################
 resource "aws_security_group" "velociraptor_server_sg2" {
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
   description = "Velociraptor security group"
   tags = {
     Name    = "${var.PROJECT_PREFIX}_velociraptor_server_sg2"
@@ -15,14 +15,17 @@ resource "aws_security_group_rule" "velociraptor_allow_http" {
   to_port     = 80
   protocol    = "tcp"
   cidr_blocks = [
-    "${aws_instance.jump_box.private_ip}/32",
-    "${aws_eip.VULNERABLE_DMZ_WEB_SERVER_eip.public_ip}/32",
-    "${aws_eip.DMZ_RDP_SERVER_eip.public_ip}/32",
-    "${aws_eip.nat_gw_eip.public_ip}/32",
     # velociraptor needs to call itself
     "${aws_eip.velociraptor_server_eip.public_ip}/32",
+    "${module.teleport.private_ip_addr}/32",
     var.corp_cidr_block,
-    var.dmz_cidr_block,
+    var.public_cidr_block,
+    var.private_cidr_block,
+    var.intranet_cidr_block,
+    var.logging_cidr_block,
+    var.prod_cidr_block,
+    var.iot_cidr_block,
+    var.red_team_cidr_block,
     #"0.0.0.0/0"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
@@ -35,36 +38,43 @@ resource "aws_security_group_rule" "velociraptor_allow_https" {
   to_port     = 443
   protocol    = "tcp"
   cidr_blocks = [
-    "${aws_instance.jump_box.private_ip}/32",
-    "${aws_eip.VULNERABLE_DMZ_WEB_SERVER_eip.public_ip}/32",
-    "${aws_eip.DMZ_RDP_SERVER_eip.public_ip}/32",
-    "${aws_eip.nat_gw_eip.public_ip}/32",
     # velociraptor needs to call itself
     "${aws_eip.velociraptor_server_eip.public_ip}/32",
+    "${module.teleport.private_ip_addr}/32",
     var.corp_cidr_block,
-    var.dmz_cidr_block,
+    var.public_cidr_block,
+    var.private_cidr_block,
+    var.intranet_cidr_block,
+    var.logging_cidr_block,
+    var.prod_cidr_block,
+    var.iot_cidr_block,
+    var.red_team_cidr_block,
     #"0.0.0.0/0"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
 
 resource "aws_security_group_rule" "velociraptor_allow_ssh" {
-  type              = "ingress"
-  description       = "Allow SSH from jumpbox"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["${aws_instance.jump_box.private_ip}/32"]
+  type        = "ingress"
+  description = "Allow SSH from jumpbox"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+  ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
 
 resource "aws_security_group_rule" "velociraptor_allow_ping" {
-  type              = "ingress"
-  description       = "Allow ICMP from jumpbox"
-  from_port         = 8
-  to_port           = 0
-  protocol          = "icmp"
-  cidr_blocks       = ["${aws_instance.jump_box.private_ip}/32"]
+  type        = "ingress"
+  description = "Allow ICMP from jumpbox"
+  from_port   = 8
+  to_port     = 0
+  protocol    = "icmp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+  ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
 
@@ -75,8 +85,8 @@ resource "aws_security_group_rule" "velociraptor_allow_prometheus" {
   to_port     = 9100
   protocol    = "tcp"
   cidr_blocks = [
-    "${aws_instance.jump_box.private_ip}/32",
-    "${aws_instance.metrics_server.private_ip}/32"
+    "${module.teleport.private_ip_addr}/32",
+    # "${aws_instance.metrics_server.private_ip}/32"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
@@ -94,16 +104,21 @@ resource "aws_security_group_rule" "velociraptor_allow_egress" {
 resource "aws_instance" "velociraptor_server" {
   ami                     = var.ubunut-ami
   instance_type           = "r5.xlarge"
-  subnet_id               = aws_subnet.public_subnet.id
+  subnet_id               = aws_subnet.logging.id
   vpc_security_group_ids  = [aws_security_group.velociraptor_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip              = var.public_subnet_map["velociraptor"]
+  private_ip              = var.logging_subnet_map["velociraptor"]
   disable_api_termination = true
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
 
   root_block_device {
     volume_size           = 100
     volume_type           = "gp2"
     delete_on_termination = true
+    encrypted             = true
   }
 
   ################## DO NOT TOUCH ##################
@@ -134,13 +149,13 @@ resource "aws_eip" "velociraptor_server_eip" {
   }
 }
 
-resource "aws_route53_record" "velociraptor" {
-  zone_id = var.public_domain_zone_id
-  name    = "velociraptor.magnumtempusfinancial.com"
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.velociraptor_server_eip.public_ip]
-}
+# resource "aws_route53_record" "velociraptor" {
+#   zone_id = var.public_domain_zone_id
+#   name    = "velociraptor.magnumtempusfinancial.com"
+#   type    = "A"
+#   ttl     = "300"
+#   records = [aws_eip.velociraptor_server_eip.public_ip]
+# }
 
 ############################################ Logging/Cribl Server ############################################
 resource "aws_security_group" "cribl_server_sg2" {

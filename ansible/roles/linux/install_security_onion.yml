@@ -82,6 +82,10 @@
     mode: 0755
     backup: yes
 
+- name: Pause/ready?
+  ansible.builtin.pause:
+    seconds: 30
+
 - name: Run the Security Onion automated setup script - async
   ansible.builtin.shell: bash so-setup "network" "standalone-net-ubuntu"
   args:

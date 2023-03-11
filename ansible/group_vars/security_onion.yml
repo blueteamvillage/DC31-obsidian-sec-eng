@@ -54,3 +54,10 @@ securityonion_docker_images:
   - ghcr.io/security-onion-solutions/so-acng
   - ghcr.io/security-onion-solutions/so-redis
   # - ghcr.io/security-onion-solutions/registry
+
+# geerlingguy.docker with version aligned to securityonion
+docker_packages:
+  - docker-ce=5:20.10.8~3-0~ubuntu-focal
+  - docker-ce-cli=5:20.10.8~3-0~ubuntu-focal
+  - docker-ce-rootless-extras=5:20.10.8~3-0~ubuntu-focal
+  - "containerd.io"

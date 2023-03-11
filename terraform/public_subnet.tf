@@ -49,7 +49,9 @@ resource "aws_security_group_rule" "velociraptor_allow_https" {
     var.prod_cidr_block,
     var.iot_cidr_block,
     var.red_team_cidr_block,
-    #"0.0.0.0/0"
+    # during initial setup, need to temporarily open to get public certificate with certbot
+    # else line should be commented
+    # "0.0.0.0/0"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }

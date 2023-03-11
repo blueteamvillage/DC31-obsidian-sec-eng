@@ -30,6 +30,8 @@
 # To generate the client configuration file, use `velociraptor --config server.config.yaml config client > client.config.yaml`
 - name: Generate Velociraptor server config
   command: "bash -c '{{ velociraptor_server_binary }} config generate > {{ velociraptor_server_config }}'"
+  args:
+    creates: "{{ velociraptor_server_config }}"
 
 # Depending on your network configuration, there are several potential options for `Client.server_urls`.
 #
@@ -54,7 +56,8 @@
   replace:
     path: "{{ velociraptor_server_config }}"
     regexp: "  - https://localhost:8000/"
-    replace: https://{{ groups.velociraptor[0] }}/{{ velociraptor_frontend_base_path }}/"
+    # replace: "  - https://{{ groups.velociraptor_server[0] }}/{{ velociraptor_frontend_base_path }}/"  # NOK with teleport
+    replace: "  - https://{{ ansible_default_ipv4.address }}/{{ velociraptor_frontend_base_path }}/"
 
 - name: Instruct clients NOT to use Velociraptor's self-signed certificates
   replace:
@@ -88,17 +91,21 @@
 
 - name: Store files and data in {{ velociraptor_server_log_path }}
   replace:
-    path: "{{ velociraptor_server_config}}"
+    path: "{{ velociraptor_server_config }}"
     regexp: "/var/tmp/velociraptor"
     replace: "{{ velociraptor_server_log_path }}"
     after: "Datastore:"
     before: "Writeback: {}"
 
 - name: Generate Velociraptor client config
-  command: "bash -c '{{ velociraptor_server_binary }} --config {{ velociraptor_server_config}} config client > {{ velociraptor_server_client_config }}'"
+  command: "bash -c '{{ velociraptor_server_binary }} --config {{ velociraptor_server_config }} config client > {{ velociraptor_server_client_config }}'"
+  args:
+    creates: "{{ velociraptor_server_client_config }}"
 
 - name: Generate Velociraptor package
-  command: "{{ velociraptor_server_binary }} --config {{ velociraptor_server_config}} debian server --binary {{ velociraptor_server_binary }}"
+  command: "{{ velociraptor_server_binary }} --config {{ velociraptor_server_config }} debian server --binary {{ velociraptor_server_binary }}"
+  args:
+    creates: "{{ velociraptor_server_binary }}"
 
 # Installing the Velociraptor package will also write, start, and enable the velociraptor_server systemd service, which will launch Velociraptor itself under velociraptor:velociraptor
 - name: Install Velociraptor package

@@ -3,9 +3,9 @@
   become_user: root
   become_method: sudo
   tasks:
-    - include_vars: 'group_vars/metrics.yml'
+    # - include_vars: 'group_vars/metrics.yml'
     - import_tasks: 'roles/linux/init_linux.yml'
     - import_tasks: 'roles/linux/velociraptor/setup_velociraptor_server.yml'
     - import_tasks: 'roles/linux/velociraptor/setup_nginx.yml'
     - import_tasks: 'roles/linux/velociraptor/setup_ufw.yml'
-    - import_tasks: 'roles/linux/setup_node_exporter.yml'
+    # - import_tasks: 'roles/linux/setup_node_exporter.yml'

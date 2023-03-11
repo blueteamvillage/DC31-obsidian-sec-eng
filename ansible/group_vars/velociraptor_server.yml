@@ -1,3 +1,5 @@
+---
+
 # Version
 velociraptor_server_version: "0.6.7"
 velociraptor_server_patch: "5"
@@ -32,6 +34,7 @@ velociraptor_linux_client_binary: "{{ velociraptor_linux_client_install_path }}/
 
 # Windows Client
 velociraptor_win_client_install_path: "C:\\Program Files\\Velociraptor"
-velociraptor_win_client_config: "{{ velociraptor_win_client_install_path }}\\Velociraptor.config.yaml" # https://github.com/Velocidex/velociraptor/blob/352fec8b9c285b57bb2cc12cb11dc1900f308921/docs/wix/README.md#standard-msi
+# https://github.com/Velocidex/velociraptor/blob/352fec8b9c285b57bb2cc12cb11dc1900f308921/docs/wix/README.md#standard-msi
+velociraptor_win_client_config: "{{ velociraptor_win_client_install_path }}\\Velociraptor.config.yaml"
 velociraptor_win_client_url: "https://github.com/Velocidex/velociraptor/releases/download/v{{ velociraptor_version }}/velociraptor-v{{ velociraptor_version }}-{{ velociraptor_patch }}-windows-amd64.msi"
 velociraptor_win_client_msi: "{{ velociraptor_win_client_install_path }}\\velociraptor.msi"

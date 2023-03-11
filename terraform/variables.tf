@@ -75,6 +75,7 @@ variable "logging_subnet_map" {
   default = {
     "cribl"         = "172.16.22.10",
     "securityonion" = "172.16.22.23",
+    "velociraptor"  = "172.16.22.130",
   }
 }
 

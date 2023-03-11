@@ -5,3 +5,13 @@ external_domain: magnumtempusfinancial.com
 company_name: 'Magnum Tempus Financial'
 timezone: 'Etc/UTC'
 aws_region: us-east-2
+
+filebeat_version: 7.x
+filebeat_inputs:
+  - type: log
+    paths:
+      - "/var/log/*.log"
+filebeat_output_elasticsearch_enabled: true
+filebeat_output_elasticsearch_hosts:
+  - "172.16.22.10:9200"
+filebeat_output_logstash_enabled: false

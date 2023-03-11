@@ -1,3 +1,4 @@
+---
 ####################################################################
 # Install and configure Velociraptor
 ####################################################################
@@ -40,7 +41,7 @@
 #
 # 3) FQDN of the Velociraptor server - good when the Velociraptor server is remote and has a fluctuating IP address
 # Example: https://velociraptor.magnumtempusfinancial.com:8000/
-# 
+#
 # 4) Port other than Velociraptor's default of 8000 - good when you want to put a reverse proxy in front of Velociraptor
 # Example: https://velociraptor.magnumtempusfinancial.com (this will use HTTP's default port of 443)
 #
@@ -126,6 +127,6 @@
     status_code: 401
   register: vhc_result
   until: vhc_result.status == 200
-  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
-  delay: 5 # Every 5 seconds
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds
   no_log: True

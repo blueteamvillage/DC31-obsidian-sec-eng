@@ -1,3 +1,4 @@
+---
 ####################################################################
 # Install and configure Uncomplicated Firewall (ufw)
 ####################################################################
@@ -29,6 +30,6 @@
     status_code: 200
   register: ufw_result
   until: ufw_result.status == 200
-  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
-  delay: 5 # Every 5 seconds
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds
   no_log: True

@@ -4,3 +4,6 @@
 [submodule "ansible/roles/geerlingguy.docker"]
 	path = ansible/roles/geerlingguy.docker
 	url = https://github.com/juju4/ansible-role-docker-1.git
+[submodule "ansible/roles/geerlingguy.filebeat"]
+	path = ansible/roles/geerlingguy.filebeat
+	url = https://github.com/geerlingguy/ansible-role-filebeat.git

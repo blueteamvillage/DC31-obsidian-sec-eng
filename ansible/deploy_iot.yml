@@ -1,7 +1,7 @@
 ---
 
 - name: Setup IoT environment
-  hosts: iot
+  hosts: iot_plc
   become: yes
   become_user: root
   roles:

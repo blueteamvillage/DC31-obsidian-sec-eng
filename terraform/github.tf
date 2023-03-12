@@ -5,6 +5,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 }
 
 data "aws_iam_policy_document" "github_actions_assume_role" {
+  version = "2012-10-17"
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
@@ -25,6 +26,24 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
   }
 }
 
+data "aws_iam_policy_document" "github_actions" {
+  version = "2012-10-17"
+  # Allow Github action to read secret to verify value
+  statement {
+    sid       = "AllowGHAtoReadWinDCPassword"
+    effect    = "Allow"
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [aws_secretsmanager_secret.win_domain_admin_passwd.id]
+  }
+}
+
+resource "aws_iam_policy" "github_actions" {
+  name        = "${var.PROJECT_PREFIX}-policy"
+  description = "${var.PROJECT_PREFIX} policy"
+  policy      = data.aws_iam_policy_document.github_actions.json
+}
+
+
 resource "aws_iam_role" "github_actions" {
   name               = "github-actions"
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
@@ -35,4 +54,9 @@ resource "aws_iam_role_policy_attachment" "github_actions" {
   # AWS managed READ-ONLY policy
   # https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html
   policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_perms" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions.arn
 }

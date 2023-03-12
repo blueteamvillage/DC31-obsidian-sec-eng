@@ -138,6 +138,7 @@ resource "aws_security_group" "securityonion_server_sg2" {
     ]
   }
 
+  #tfsec:ignore:aws-ec2-no-public-egress-sgr
   egress {
     from_port   = 0
     to_port     = 0

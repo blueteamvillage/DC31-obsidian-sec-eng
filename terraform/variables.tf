@@ -56,6 +56,13 @@ variable "intranet_cidr_block" {
   default     = "172.16.21.0/24"
 }
 
+variable "intranet_subnet_map" {
+  type = map(string)
+  default = {
+    "metrics" = "172.16.21.10",
+  }
+}
+
 ######################## Logging subnet ########################
 variable "logging_cidr_block" {
   description = "CIDR block for Red Team subnet"
@@ -66,9 +73,20 @@ variable "logging_cidr_block" {
 variable "logging_subnet_map" {
   type = map(string)
   default = {
-    "cribl" = "172.16.22.10",
+    "cribl"         = "172.16.22.10",
+    "securityonion" = "172.16.22.23",
   }
 }
+
+variable "logging_ec2_size" {
+  description = "Logging servers EC2 size"
+  type        = string
+  # testing
+  default = "t3.medium"
+  # prod
+  # default     = "r5.xlarge"
+}
+
 ######################## Prod subnet ########################
 variable "prod_cidr_block" {
   description = "CIDR block for public subnet"
@@ -88,6 +106,17 @@ variable "corp_cidr_block" {
   description = "CIDR block for corp subnet"
   type        = string
   default     = "172.16.50.0/24"
+}
+
+variable "corp_subnet_map" {
+  type = map(string)
+  default = {
+    "win_client1"  = "172.16.50.130",
+    "win_client2"  = "172.16.50.131",
+    "win_client3"  = "172.16.50.132",
+    "dockerserver" = "172.16.50.101",
+    "win_dc"       = "172.16.50.100"
+  }
 }
 
 ######################## IoT subnet ########################
@@ -120,11 +149,42 @@ variable "ubunut-ami" {
   type        = string
   default     = "ami-0ab0629dba5ae551d"
 }
-
+variable "ubuntu-so-ami" {
+  # Ubuntu 20.04 as SO does not support 22.04 for now
+  description = "Ubuntu 20.04 LTS AMI"
+  type        = string
+  default     = "ami-0568936c8d2b91c4e"
+}
 variable "windows-ami" {
-  # Windows Sever 2022
+  # Windows Server 2022
   # https://aws.amazon.com/marketplace/pp/prodview-bd6o47htpbnoe
   description = "Microsoft Windows Server 2022 Base"
   type        = string
   default     = "ami-0ae8d60635de460b2"
+}
+
+variable "securityonion-ami" {
+  # https://aws.amazon.com/marketplace/pp/prodview-4gpqv3qlxq4ww?ref=_ptnr_soc_docs_210505
+  description = "Security Onion 2"
+  type        = string
+  default     = ""
+}
+variable "windows_boxes_ec2_size" {
+  description = "CIDR block for Red Team subnet"
+  type        = string
+  default     = "t3.medium"
+}
+
+
+######################## Teleport ########################
+variable "teleport_route53_zone_id" {
+  description = "Route53 Zone ID to use for Teleport DNS records"
+  type        = string
+  default     = "Z051379539VVT3OD13CSQ"
+}
+
+variable "teleport_base_domain" {
+  description = "Define the base domain for teleport to attach DNS records too"
+  type        = string
+  default     = "blueteamvillage.com"
 }

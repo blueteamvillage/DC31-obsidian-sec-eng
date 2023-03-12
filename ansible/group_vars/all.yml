@@ -4,3 +4,4 @@ internal_domain: magnumtempus.financial
 external_domain: magnumtempusfinancial.com
 company_name: 'Magnum Tempus Financial'
 timezone: 'Etc/UTC'
+aws_region: us-east-2

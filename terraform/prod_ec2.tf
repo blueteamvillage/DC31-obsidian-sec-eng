@@ -1,6 +1,6 @@
 ############################################ VULNERABLE WEB SERVER ############################################
 resource "aws_security_group" "vuln_log4j_webserver" {
-  vpc_id      = module.vpc.vgw_id
+  vpc_id      = module.vpc.vpc_id
   description = "Vulnerable log4j webserver security group"
 
   tags = {
@@ -9,13 +9,29 @@ resource "aws_security_group" "vuln_log4j_webserver" {
   }
 }
 
+resource "aws_security_group_rule" "log4j_allow_ssh" {
+  type        = "ingress"
+  description = "Allow SSH traffic from teleport"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    var.corp_cidr_block
+  ]
+  security_group_id = aws_security_group.vuln_log4j_webserver.id
+}
+
 resource "aws_security_group_rule" "log4j_allow_http_from_corp" {
-  type              = "ingress"
-  description       = "Allow HTTP traffic from corp"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = [var.corp_cidr_block]
+  type        = "ingress"
+  description = "Allow HTTP traffic from corp"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    var.corp_cidr_block
+  ]
   security_group_id = aws_security_group.vuln_log4j_webserver.id
 }
 
@@ -37,11 +53,16 @@ resource "aws_instance" "vuln_log4j_webserver" {
   vpc_security_group_ids = [aws_security_group.vuln_log4j_webserver.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = var.prod_subnet_map["webserver"]
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
 
   root_block_device {
     volume_size           = 20
     volume_type           = "gp2"
     delete_on_termination = true
+    encrypted             = false
   }
 
   tags = {

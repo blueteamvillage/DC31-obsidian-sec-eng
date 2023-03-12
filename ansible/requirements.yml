@@ -1,0 +1,9 @@
+---
+
+collections:
+  - name: amazon.aws
+
+roles:
+  - name: blueteamvillage.btv-sec-eng-teleport-cluster
+    src: https://github.com/blueteamvillage/btv-sec-eng-teleport-cluster
+    version: "1.0.0"

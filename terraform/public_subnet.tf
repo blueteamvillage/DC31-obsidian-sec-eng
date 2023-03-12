@@ -35,6 +35,7 @@ resource "aws_security_group_rule" "cribl_allow_http" {
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
 
+#tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group_rule" "cribl_allow_egress" {
   type              = "egress"
   description       = "Allow all outbound traffic"

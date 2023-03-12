@@ -111,6 +111,9 @@ variable "corp_cidr_block" {
 variable "corp_subnet_map" {
   type = map(string)
   default = {
+    "win_client1"  = "172.16.50.130",
+    "win_client2"  = "172.16.50.131",
+    "win_client3"  = "172.16.50.132",
     "dockerserver" = "172.16.50.101",
     "win_dc"       = "172.16.50.100"
   }
@@ -159,6 +162,19 @@ variable "windows-ami" {
   type        = string
   default     = "ami-0ae8d60635de460b2"
 }
+
+variable "securityonion-ami" {
+  # https://aws.amazon.com/marketplace/pp/prodview-4gpqv3qlxq4ww?ref=_ptnr_soc_docs_210505
+  description = "Security Onion 2"
+  type        = string
+  default     = ""
+}
+variable "windows_boxes_ec2_size" {
+  description = "CIDR block for Red Team subnet"
+  type        = string
+  default     = "t3.medium"
+}
+
 
 ######################## Teleport ########################
 variable "teleport_route53_zone_id" {

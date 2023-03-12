@@ -93,6 +93,7 @@ resource "aws_security_group_rule" "velociraptor_allow_prometheus" {
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
 
+#tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group_rule" "velociraptor_allow_egress" {
   type              = "egress"
   description       = "Allow all outbound traffic"

@@ -103,7 +103,7 @@ resource "aws_security_group" "securityonion_server_sg2" {
 
   # Allow ICMP from jumpbox
   ingress {
-    description = "Allow ICMP from management subnet"
+    description = "Allow ICMP from jumphost/teleport"
     from_port   = 8
     to_port     = 0
     protocol    = "icmp"
@@ -112,6 +112,7 @@ resource "aws_security_group" "securityonion_server_sg2" {
 
   # Allow SSH from jumpbox
   ingress {
+    description = "Allow SSH from jumphost/teleport"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -120,9 +121,10 @@ resource "aws_security_group" "securityonion_server_sg2" {
 
   # HTTP port for Web UI
   ingress {
-    from_port = 80
-    to_port   = 80
-    protocol  = "tcp"
+    description = "Allow HTTP from jumphost/teleport"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
     ]
@@ -130,9 +132,10 @@ resource "aws_security_group" "securityonion_server_sg2" {
 
   # HTTPS port for Web UI
   ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
+    description = "Allow HTTPS from jumphost/teleport"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
     ]
@@ -140,6 +143,7 @@ resource "aws_security_group" "securityonion_server_sg2" {
 
   #tfsec:ignore:aws-ec2-no-public-egress-sgr
   egress {
+    description = "Allow Outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

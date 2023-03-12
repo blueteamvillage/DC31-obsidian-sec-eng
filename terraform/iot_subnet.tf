@@ -1,6 +1,6 @@
 ################################ IOT01 SERVER ##################################
 resource "aws_security_group" "iot01_server" {
-  vpc_id      = module.vpc.vgw_id
+  vpc_id      = module.vpc.vpc_id
   description = "IoT01 server security group"
 
   tags = {
@@ -35,12 +35,14 @@ resource "aws_security_group_rule" "iot01_allow_egress" {
 resource "aws_instance" "iot01_server" {
   ami                    = var.ubunut-ami
   instance_type          = "t3.nano"
-  subnet_id              = aws_subnet.corp.id
+  subnet_id              = aws_subnet.iot.id
   vpc_security_group_ids = [aws_security_group.iot01_server.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = var.iot_subnet_map["iot01"]
   metadata_options {
-    http_tokens = "required"
+    # https://github.com/hashicorp/terraform-provider-aws/issues/12564
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   root_block_device {

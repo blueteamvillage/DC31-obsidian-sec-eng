@@ -1,0 +1,33 @@
+---
+
+- name: Setup splunk server
+  hosts: splunk
+  become: yes
+  become_user: root
+  become_method: sudo
+  pre_tasks:
+    - name: Create splunk group
+      ansible.builtin.group:
+        name: "{{ splunk.group }}"
+    - name: Create splunk user
+      ansible.builtin.user:
+        name: "{{ splunk.user }}"
+        home: "{{ splunk.home }}"
+        group: "{{ splunk.group }}"
+        groups:
+          # to allow splunk to read journald
+          - systemd-journal
+        append: yes
+        system: yes
+        comment: splunk user
+    - name: Push installer archive from orchestrator
+      ansible.builtin.copy:
+        src: "{{ splunk_installer_orchestrator_path }}"
+        dest: "{{ splunk.build_location }}"
+        mode: 0644
+  roles:
+    - splunk_standalone
+  tasks:
+    - include_vars: 'group_vars/metrics.yml'
+    - import_tasks: 'roles/linux/init_linux.yml'
+    - import_tasks: 'roles/linux/setup_node_exporter.yml'

@@ -1,0 +1,112 @@
+---
+# ansible-vault?
+
+# https://splunk.github.io/splunk-ansible/advanced/default.yml.spec.html#sample
+# alternative: https://github.com/splunk/ansible-role-for-splunk
+
+# downloads
+# https://www.splunk.com/en_us/download/splunk-enterprise.html
+# https://download.splunk.com/products/splunk/releases/9.0.4/linux/splunk-9.0.4-de405f4a7979-linux-2.6-x86_64.rpm
+# https://download.splunk.com/products/splunk/releases/9.0.4/linux/splunk-9.0.4-de405f4a7979-linux-2.6-amd64.deb
+splunk_installer_orchestrator_path: /path/to/splunk-9.0.4-de405f4a7979-linux-2.6-amd64.deb
+
+# Web UI on http://<IP>:8000/
+ansible_post_tasks: null
+ansible_pre_tasks: null
+hide_password: false
+retry_delay: 3
+retry_num: 60
+wait_for_splunk_retry_num: 60
+shc_sync_retry_num: 60
+splunk_home_ownership_enforcement: true
+
+config:
+  baked: default.yml
+  defaults_dir: /tmp/defaults
+  env:
+    headers: null
+    var: SPLUNK_DEFAULTS_URL
+    verify: true
+  host:
+    headers: null
+    url: null
+    verify: true
+  max_delay: 60
+  max_retries: 3
+  max_timeout: 1200
+
+splunk:
+  # Role to assume when setting up Splunk. Accepted values include: splunk_standalone, splunk_search_head, splunk_search_head_captain, splunk_indexer, splunk_deployer, splunk_cluster_master, splunk_deployment_server, splunk_heavy_forwarder, splunk_license_master, splunk_universal_forwarder, and splunk_monitor.
+  role: splunk_standalone
+  upgrade: false
+  # filextension as tgz, msi, rpm or deb
+  # build_location: /tmp/splunk.tgz
+  build_location: /tmp/splunk.deb
+  apps_location: null
+  license_uri: null
+  ignore_license: true
+  admin_user: splunk_admin
+  password: splunk_admin
+  user: splunk
+  group: splunk
+  enable_service: true
+  opt: /opt
+  home: /opt/splunk
+  exec: /opt/splunk/bin/splunk
+  secret: null
+  app_paths:
+    default: /opt/splunk/etc/apps
+    deployment: /opt/splunk/etc/deployment-apps
+    httpinput: /opt/splunk/etc/apps/splunk_httpinput
+    idxc: /opt/splunk/etc/master-apps
+    shc: /opt/splunk/etc/shcluster/apps
+  hec:
+    # seems applied even if enable False...
+    enable: True
+    ssl: True
+    port: 8088
+    token: 4a8a737d-5452-426c-a6f7-106dca4e813f
+  http_enableSSL: 0
+  http_enableSSL_cert: null
+  http_enableSSL_privKey: null
+  http_enableSSL_privKey_password: null
+  http_port: 8000
+  idxc:
+    enable: false
+    label: idxc_label
+    replication_factor: 3
+    replication_port: 9887
+    search_factor: 3
+    secret: dmwHG97SpM+GzeGPUELwr7xXowSAVmLW
+  license_download_dest: /tmp/splunk.lic
+  pid: /opt/splunk/var/run/splunk/splunkd.pid
+  # /opt/splunk/etc/system/local/inputs.conf: does not seem applied to enable data receiving...
+  # https://splunk.github.io/splunk-ansible/advanced/default.yml.spec.html#sample
+  s2s_enable: true
+  s2s_port: 9997
+  # change of syntax? https://github.com/splunk/splunk-ansible/blob/develop/roles/splunk_common/tasks/s2s/configure_splunktcp.yml#L2
+  # https://github.com/splunk/splunk-ansible/blob/develop/inventory/splunk_defaults_linux.yml#L49
+  s2s:
+    enable: true
+    ssl: False
+  search_head_captain_url: null
+  shc:
+    enable: false
+    label: shc_label
+    replication_factor: 3
+    replication_port: 9887
+    secret: EpcUlTUHMSOhdjRZb3QqPYf9Lf7L991c
+  smartstore: null
+  svc_port: 8089
+  tar_dir: splunk
+  wildcard_license: false
+  connection_timeout: 0
+  app_paths_install:
+    default:
+      # local path on target splunk server
+      # Splunk Common Information Model (CIM) https://splunkbase.splunk.com/app/1621
+      - /var/tmp/splunk-common-information-model-cim_510.tgz
+      # InfoSec App for Splunk https://splunkbase.splunk.com/app/4240
+      - /var/tmp/infosec-app-for-splunk_170.tgz
+      # Splunk Security Essentials https://splunkbase.splunk.com/app/3435
+      - /var/tmp/splunk-security-essentials_370.spl

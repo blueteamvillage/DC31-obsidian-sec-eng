@@ -1,0 +1,79 @@
+---
+####################################################################
+# Install Nginx
+####################################################################
+- name: Install/Setup Nginx
+  ansible.builtin.apt:
+    name: ['nginx']
+    state: latest
+
+####################################################################
+# Generate TLS private key and cert
+####################################################################
+- name: Check if grafana public certificate exists
+  ansible.builtin.stat:
+    path: /etc/ssl/certs/grafana.crt
+  register: grafana_public_cert
+
+- name: Generate an OpenSSL private key for grafana
+  community.crypto.openssl_privatekey:
+    path: /etc/ssl/private/grafana.key
+    size: 4096
+    type: RSA
+    format: 'pkcs8'
+    owner: root
+    group: root
+  when: not grafana_public_cert.stat.exists
+
+- name: Generate an OpenSSL Certificate Signing Request with Subject information for grafana
+  community.crypto.openssl_csr:
+    path: /etc/ssl/certs/grafana.csr
+    privatekey_path: /etc/ssl/private/grafana.key
+    country_name: "US"
+    organization_name: "{{ teleport_fqdn }}"
+    email_address: "admin@{{ teleport_fqdn }}"
+    common_name: "grafana.{{ teleport_fqdn }}"
+  when: not grafana_public_cert.stat.exists
+
+- name: Generate a Self Signed OpenSSL certificate for grafana
+  community.crypto.x509_certificate:
+    path: /etc/ssl/certs/grafana.crt
+    privatekey_path: /etc/ssl/private/grafana.key
+    csr_path: /etc/ssl/certs/grafana.csr
+    provider: selfsigned
+    owner: root
+    group: root
+  when: not grafana_public_cert.stat.exists
+
+####################################################################
+# Setup Nginx
+####################################################################
+- name: Delete default config
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Copy NGINX config
+  ansible.builtin.template:
+    src: 'templates/nginx.conf.j2'
+    dest: '/etc/nginx/conf.d/grafana.conf'
+    owner: 'root'
+    group: 'root'
+    mode: 0644
+
+- name: Start Nginx service
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    enabled: yes
+
+- name: NGINX loopback healthcheck
+  ansible.builtin.uri:
+    url: "https://127.0.0.1:443/login"
+    follow_redirects: none
+    method: GET
+    validate_certs: 'no'
+  register: _result
+  until: _result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

@@ -1,0 +1,11 @@
+---
+app_service:
+  enabled: "yes"
+  apps:
+    # Name of the application.
+    - name: "grafana"
+      uri: "https://172.16.21.10:443"
+      rewrite:
+        headers:
+          - "Host: grafana.teleport.blueteamvillage.com"
+          - "Origin: https://grafana.teleport.blueteamvillage.com"

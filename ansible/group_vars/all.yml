@@ -5,3 +5,7 @@ external_domain: magnumtempusfinancial.com
 company_name: 'Magnum Tempus Financial'
 timezone: 'Etc/UTC'
 aws_region: us-east-2
+
+# for Linux systems and serial console usage
+breakglass_serialuser_user: _breakglass
+breakglass_serialuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-breakglass-pass', region=aws_region) }}"

@@ -4,3 +4,6 @@
 [submodule "ansible/roles/geerlingguy.docker"]
 	path = ansible/roles/geerlingguy.docker
 	url = https://github.com/juju4/ansible-role-docker-1.git
+[submodule "ansible/roles/prymalinstynct.velociraptor"]
+	path = ansible/roles/prymalinstynct.velociraptor
+	url = https://github.com/juju4/ansible_velociraptor.git

@@ -74,7 +74,9 @@ variable "logging_subnet_map" {
   type = map(string)
   default = {
     "cribl"         = "172.16.22.10",
+    "splunk"        = "172.16.22.20",
     "securityonion" = "172.16.22.23",
+    "velociraptor"  = "172.16.22.130",
   }
 }
 
@@ -82,7 +84,8 @@ variable "logging_ec2_size" {
   description = "Logging servers EC2 size"
   type        = string
   # testing
-  default = "t3.medium"
+  # avoid going below t3.large or be wary of oom-killer
+  default = "t3.large"
   # prod
   # default     = "r5.xlarge"
 }
@@ -129,7 +132,11 @@ variable "iot_cidr_block" {
 variable "iot_subnet_map" {
   type = map(string)
   default = {
-    "iot01" = "172.16.60.10"
+    "iot01"           = "172.16.60.10",
+    "iot_hmi_alpha"   = "172.16.60.200",
+    "iot_hmi_beta"    = "172.16.60.201",
+    "iot_hmi_charlie" = "172.16.60.202"
+    "iot_hmi_delta"   = "172.16.60.202"
   }
 }
 
@@ -194,4 +201,12 @@ variable "teleport_base_domain" {
   description = "Define the base domain for teleport to attach DNS records too"
   type        = string
   default     = "blueteamvillage.com"
+}
+
+######################## IoT - HMI ########################
+variable "iot_hmi_ami" {
+  # https://aws.amazon.com/marketplace/pp/prodview-u7kuv2lhucy6g?qid=1538086463719&sr=0-3&ref_=srh_res_product_title
+  description = "AMI ID to use to use for base VM"
+  type        = string
+  default     = "ami-0b6a93e8289549df0"
 }

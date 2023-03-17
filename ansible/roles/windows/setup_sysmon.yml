@@ -1,0 +1,45 @@
+---
+# https://github.com/j91321/ansible-role-sysmon
+
+- name: Check if sysmon64 is installed (Sysmon 64-bit version)
+  win_service:
+    name: sysmon64
+  register: sysmon64
+
+- name: Create installation directory
+  win_file:
+    path: "{{ sysmon_install_path }}"
+    state: directory
+  when: not sysmon64.exists
+
+- name: Download Sysmon
+  win_get_url:
+    url: "{{ sysmon_url }}"
+    dest: "{{ sysmon_install_path }}\\sysmon.zip"
+  when: not sysmon64.exists
+
+- name: Unzip Sysmon
+  win_unzip:
+    src: "{{ sysmon_install_path }}\\sysmon.zip"
+    dest: "{{ sysmon_install_path }}\\"
+    delete_archive: yes
+  when: not sysmon64.exists
+
+- name: Upload Sysmon config
+  template:
+    src: conf/windows/sysmon/sysmonconfig.xml
+    dest: "{{ sysmon_install_path }}\\config.xml"
+  register: sysmon_config
+
+- name: Install sysmon64 and load config
+  win_command: sysmon64 -accepteula -i config.xml
+  args:
+    chdir: "{{ sysmon_install_path }}"
+  when: not sysmon64.exists
+
+- name: Restart and enable sysmon64 service
+  win_service:
+    name: sysmon64
+    state: restarted
+    start_mode: auto
+  when: not sysmon64.exists or sysmon_config.changed

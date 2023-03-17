@@ -1,0 +1,100 @@
+---
+####################################################################
+# Create DNS zone for resolving internal company domain names
+####################################################################
+- name: Set internal DNS server to itself
+  win_dns_client:
+    adapter_names: '*'
+    ipv4_addresses:
+      - '127.0.0.1'
+
+# https://github.com/ansible/ansible/issues/18738
+# https://titanwolf.org/Network/Articles/Article?AID=a9de7f4a-d083-4916-a1a4-5c555fa3279a#gsc.tab=0
+- name: Create reverse DNS zone
+  community.windows.win_dns_zone:
+    name: "{{ inventory_hostname | ipaddr('revdns') | regex_replace('^[0-9]+\\.', '') }}"
+    type: primary
+    replication: 'forest'
+    dynamic_update: 'secure'
+    state: present
+
+- name: Wait 600 seconds for dns.exe to start, waiting 5 seconds between each check
+  community.windows.win_wait_for_process:
+    process_name_exact: 'dns'
+    state: present
+    timeout: 500
+
+- name: Create DNS records
+  community.windows.win_dns_record:
+    name: "{{ item.name }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    zone: "{{ internal_domain }}"
+  with_items:
+    - {name: "mail", type: "A", value: "{{hostvars.files.ansible_host}}"}
+    - {name: "smtp", type: "CNAME", value: "mail.{{internal_domain}}"}
+    - {name: "imap", type: "CNAME", value: "mail.{{internal_domain}}"}
+    - {name: "files", type: "A", value: "{{hostvars.files.ansible_host}}"}
+    - {name: "webserver", type: "A", value: "{{groups.web_server[0]}}"}
+
+
+- name: Get MX record count
+  win_shell: 'Get-DnsServerResourceRecord -ZoneName "{{ internal_domain }}" -RRType "Mx" -Node | Measure | % { $_.Count }'
+  register: mx_record_count
+
+- name: Create MX record for mail
+  win_shell: 'Add-DnsServerResourceRecordMX -Preference 10  -Name "." -TimeToLive 01:00:00 -MailExchange "mail.{{ internal_domain }}" -ZoneName "{{ internal_domain }}"'
+  when: mx_record_count.stdout_lines[0] | int == 0
+
+
+####################################################################
+# Create DNS zone for resolving external company domain names
+####################################################################
+- name: Create DNS zone for company's external domain name
+  community.windows.win_dns_zone:
+    name: "{{ external_domain }}"
+    type: primary
+    replication: 'forest'
+    dynamic_update: 'secure'
+    state: present
+
+- name: Create DNS records for external domain names
+  community.windows.win_dns_record:
+    name: "{{ item.name }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    zone: "{{ external_domain }}"
+  with_items:
+    - { name: "mail", type: "A", value: "{{ hostvars.files.ansible_host }}"}
+    - { name: "files", type: "A", value: "{{ hostvars.files.ansible_host }}"}
+    - { name: "webserver", type: "A", value: "{{ groups.web_server[0] }}"}
+    - { name: "imap", type: "CNAME", value: "mail.{{ external_domain }}"}
+    - { name: "smtp", type: "CNAME", value: "mail.{{ external_domain }}"}
+
+- name: Get MX record counts within external domain DNS zone
+  win_shell: 'Get-DnsServerResourceRecord -ZoneName "{{ external_domain }}" -RRType "Mx" -Node | Measure | % { $_.Count }'
+  register: mx_record_count
+
+- name: Create MX records for mail.externaldomain.tld
+  win_shell: 'Add-DnsServerResourceRecordMX -Preference 10  -Name "." -TimeToLive 01:00:00 -MailExchange "mail.{{ external_domain }}" -ZoneName "{{ external_domain }}"'
+  when: mx_record_count.stdout_lines[0] | int == 0
+
+###################################################################
+# Create DNS A record for Velociraptor
+# Why? The Velociraptor server is using a Let's Encrypt certificate,
+# which requires a domain and does not support IPs or SANs.
+# In our environment, in order to join clients to the domain,
+# we set the DNS resolver to the domain controller. That way, the DC
+# will be able to supply the domain-->DC_IP resolution. By creating
+# a zone for magnumtempusfinancial.com, we are implicitly asking
+# the DC (which we have set as the DNS resolver) to be the source of
+# truth for its subdomains. So, in order to talk to the Velociraptor
+# server, which requires an FQDN in the external zone, we need to
+# create a corresponding A record.
+###################################################################
+- name: Create an A record for {{ velociraptor_fqdn }}
+  community.windows.win_dns_record:
+    name: velociraptor
+    type: A
+    value: "{{ lookup('community.general.dig', '{{ velociraptor_fqdn }}.') }}"
+    zone: "{{ external_domain }}"

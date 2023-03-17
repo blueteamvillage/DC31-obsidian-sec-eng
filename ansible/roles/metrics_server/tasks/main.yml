@@ -1,0 +1,11 @@
+---
+# tasks file for ansible/roles/metrics_server
+
+- name: Import Teleport vars
+  ansible.builtin.include_vars: group_vars/teleport_cluster.yml
+- name: Install/Setup Prometheus
+  ansible.builtin.import_tasks: setup_prometheus.yml
+- name: Install/Setup Grafana
+  ansible.builtin.import_tasks: setup_grafana.yml
+- name: Install NGINX
+  ansible.builtin.import_tasks: setup_nginx.yml

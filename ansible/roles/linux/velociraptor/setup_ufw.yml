@@ -1,0 +1,35 @@
+---
+####################################################################
+# Install and configure Uncomplicated Firewall (ufw)
+####################################################################
+- name: Allow SSH (22/TCP)
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Allow HTTP (80/TCP)
+  ufw:
+    rule: allow
+    name: "NGINX http"
+
+- name: Allow HTTPS (443/TCP)
+  ufw:
+    rule: allow
+    name: "NGINX https"
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+
+- name: UFW health check
+  uri:
+    url: "https://{{ velociraptor_fqdn }}:443/app/index.html"
+    follow_redirects: none
+    method: GET
+    validate_certs: 'no'
+    status_code: 200
+  register: ufw_result
+  until: ufw_result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds
+  no_log: True

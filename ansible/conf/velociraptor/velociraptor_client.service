@@ -1,0 +1,16 @@
+[Unit]
+Description=Velociraptor linux amd64
+After=syslog.target network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=120
+LimitNOFILE=20000
+Environment=LANG=en_US.UTF-8
+ExecStart={{ velociraptor_linux_client_binary }} --config {{ velociraptor_linux_client_config }} client
+CapabilityBoundingSet=CAP_SYS_RESOURCE CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_SYS_RESOURCE CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

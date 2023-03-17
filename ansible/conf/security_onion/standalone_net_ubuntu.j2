@@ -18,9 +18,9 @@
 TESTING=true
 
 # address_type=DHCP
-ADMINUSER={{ securityonion_adminuser }}
-ADMINPASS1={{ securityonion_adminuser_password }}
-ADMINPASS2={{ securityonion_adminuser_password }}
+ADMINUSER="{{ securityonion_adminuser }}"
+ADMINPASS1="{{ securityonion_adminuser_password }}"
+ADMINPASS2="{{ securityonion_adminuser_password }}"
 ALLOW_CIDR=0.0.0.0/0
 ALLOW_ROLE=a
 BASICZEEK=2
@@ -66,11 +66,12 @@ REDIRECTINFO=OTHER
 RULESETUP=ETOPEN
 # SHARDCOUNT=
 SKIP_REBOOT=0
-SOREMOTEPASS1={{ securityonion_soremote_password }}
-SOREMOTEPASS2={{ securityonion_soremote_password }}
+# Not easy way if password contains special characters to escape... going without
+SOREMOTEPASS1="{{ securityonion_soremote_password }}"
+SOREMOTEPASS2="{{ securityonion_soremote_password }}"
 STRELKA=1
 THEHIVE=0
 WAZUH=0
-WEBUSER={{ securityonion_webuser_email }} #onionuser@somewhere.invalid
-WEBPASSWD1={{ securityonion_webuser_password }}
-WEBPASSWD2={{ securityonion_webuser_password }}
+WEBUSER="{{ securityonion_webuser_email }}" #onionuser@somewhere.invalid
+WEBPASSWD1="{{ securityonion_webuser_password }}"
+WEBPASSWD2="{{ securityonion_webuser_password }}"

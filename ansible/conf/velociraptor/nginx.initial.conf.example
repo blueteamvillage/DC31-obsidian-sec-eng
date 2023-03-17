@@ -1,0 +1,27 @@
+# This is an example nginx configuration file that will be modified by certbot to add SSL/TLS information later.
+server {
+    listen 80 default_server;
+    server_name _;
+    server_tokens off;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    server_name velociraptor.magnumtempusfinancial.com;
+    server_tokens off;
+
+    location / {
+        proxy_pass http://127.0.0.1:8889/gui;
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_request_buffering off;
+    }
+
+    location /frontend {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_request_buffering off;
+    }
+}

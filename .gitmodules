@@ -7,3 +7,6 @@
 [submodule "ansible/roles/geerlingguy.filebeat"]
 	path = ansible/roles/geerlingguy.filebeat
 	url = https://github.com/geerlingguy/ansible-role-filebeat.git
+[submodule "ansible/roles/prymalinstynct.velociraptor"]
+	path = ansible/roles/prymalinstynct.velociraptor
+	url = https://github.com/juju4/ansible_velociraptor.git

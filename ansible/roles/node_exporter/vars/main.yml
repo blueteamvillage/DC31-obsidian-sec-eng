@@ -1,0 +1,5 @@
+---
+# vars file for roles/node_exporter
+node_exporter_version: '1.5.0'
+node_exporter_dl_url: 'https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz'
+node_exporter_port: 9100

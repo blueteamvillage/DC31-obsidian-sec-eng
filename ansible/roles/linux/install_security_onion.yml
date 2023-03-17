@@ -52,7 +52,6 @@
 # Download & run setup script for Security Onion
 ####################################################################
 - name: Clone the Security Onion repository
-  # Only do v2.3.100 and onwards; TheHive won't be needed during workshops
   ansible.builtin.git:
     repo: 'https://github.com/Security-Onion-Solutions/securityonion'
     dest: /opt/securityonion
@@ -125,4 +124,4 @@
       ansible.builtin.command:
         cmd: "so-{{ item }}-restart"
       become: yes
-      loop: "{{ sostatus2.stdout }}"
+      loop: "{{ sostatus2.stdout_lines }}"

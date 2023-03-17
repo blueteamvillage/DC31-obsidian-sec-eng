@@ -9,3 +9,13 @@ aws_region: us-east-2
 # for Linux systems and serial console usage
 breakglass_serialuser_user: _breakglass
 breakglass_serialuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-breakglass-pass', region=aws_region) }}"
+
+filebeat_version: 7.x
+filebeat_inputs:
+  - type: log
+    paths:
+      - "/var/log/*.log"
+filebeat_output_elasticsearch_enabled: true
+filebeat_output_elasticsearch_hosts:
+  - "172.16.22.10:9200"
+filebeat_output_logstash_enabled: false

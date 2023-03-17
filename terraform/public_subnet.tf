@@ -451,10 +451,10 @@ resource "aws_security_group" "securityonion_server_sg2" {
 ############################################ Create Security Onion EC2 instance ############################################
 
 resource "aws_instance" "securityonion_server" {
-  ami           = var.ubuntu-so-ami
-  instance_type = var.logging_ec2_size
+  ami = var.ubuntu-so-ami
+  # instance_type = var.logging_ec2_size
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
-  # instance_type           = "t3a.xlarge"
+  instance_type           = "t3a.xlarge"
   subnet_id               = aws_subnet.logging.id
   vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"

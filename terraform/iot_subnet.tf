@@ -32,7 +32,9 @@ resource "aws_security_group_rule" "iot01_allow_egress" {
   security_group_id = aws_security_group.iot01_server.id
 }
 
-resource "aws_instance" "iot01_server" {
+resource "aws_instance" "iotplc_servers" {
+  for_each = var.iotplc_subnet_map
+
   ami                    = var.ubunut-ami
   instance_type          = "t3.nano"
   subnet_id              = aws_subnet.iot.id

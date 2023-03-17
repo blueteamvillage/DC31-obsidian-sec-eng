@@ -447,6 +447,9 @@ resource "aws_security_group" "securityonion_server_sg2" {
   }
 }
 
+
+############################################ Create Security Onion EC2 instance ############################################
+
 resource "aws_instance" "securityonion_server" {
   ami           = var.ubuntu-so-ami
   instance_type = var.logging_ec2_size
@@ -492,6 +495,206 @@ resource "aws_eip" "securityonion_server_eip" {
   vpc      = true
   tags = {
     Name    = "${var.PROJECT_PREFIX}_securityonion_server_eip"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+# resource "aws_route53_record" "security_onion_route53" {
+#  zone_id = var.public_domain_zone_id
+#  name    = "securityonion.magnumtempusfinancial.com"
+#  type    = "A"
+#  ttl     = "300"
+#  records = [aws_eip.securityonion_server_eip.public_ip]
+# }
+
+############################################ Create SecOnion network tap ############################################
+resource "aws_security_group" "seconion_traffic_mirror_sg" {
+  name   = "AWS Traffic Mirroring"
+  vpc_id = module.vpc.vpc_id
+
+  # Allow all inbound
+  ingress {
+    description      = "Allow ALL inbound traffic on network TAP"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  # Allow all outbound
+  egress {
+    description      = "Allow ALL outbound traffic on network TAP"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_SECONION_TRAFFIC_MIRROR_SG"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_network_interface" "seconion_tap_interface" {
+  # DC30 was using public_subnet. Does not exist in DC31, corp subnet?
+  subnet_id         = aws_subnet.corp.id
+  security_groups   = [aws_security_group.seconion_traffic_mirror_sg.id]
+  private_ips_count = 0
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE"
+    Project = var.PROJECT_PREFIX
+  }
+
+  attachment {
+    instance     = aws_instance.securityonion_server.id
+    device_index = 1
+  }
+}
+
+resource "aws_ec2_traffic_mirror_target" "seconion_traffic_mirror_target" {
+  description          = "${var.PROJECT_PREFIX}_seconion ENI target"
+  network_interface_id = aws_network_interface.seconion_tap_interface.id
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_target"
+    Project = var.PROJECT_PREFIX
+  }
+
+}
+
+resource "aws_ec2_traffic_mirror_filter" "seconion_traffic_mirror_filter" {
+  description = "${var.PROJECT_PREFIX}_seconion traffic mirror filter - Allow All"
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_filter"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_ec2_traffic_mirror_filter_rule" "seconion_traffic_mirror_ipv4_filter_rule_ingress" {
+  description              = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_ipv4_filter_rule_ingress"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  destination_cidr_block   = "0.0.0.0/0"
+  source_cidr_block        = "0.0.0.0/0"
+  rule_number              = 100
+  rule_action              = "accept"
+  traffic_direction        = "ingress"
+
+}
+
+resource "aws_ec2_traffic_mirror_filter_rule" "seconion_traffic_mirror_ipv6_filter_rule_ingress" {
+  description              = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_ipv6_filter_rule_ingress"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  destination_cidr_block   = "::/0"
+  source_cidr_block        = "::/0"
+  rule_number              = 101
+  rule_action              = "accept"
+  traffic_direction        = "ingress"
+
+}
+
+resource "aws_ec2_traffic_mirror_filter_rule" "seconion_traffic_mirror_ipv4_filter_rule_egress" {
+  description              = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_ipv4_filter_rule_egress"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  destination_cidr_block   = "0.0.0.0/0"
+  source_cidr_block        = "0.0.0.0/0"
+  rule_number              = 200
+  rule_action              = "accept"
+  traffic_direction        = "egress"
+}
+
+resource "aws_ec2_traffic_mirror_filter_rule" "seconion_traffic_mirror_ipv6_filter_rule_egress" {
+  description              = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_ipv6_filter_rule_egress"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  destination_cidr_block   = "::/0"
+  source_cidr_block        = "::/0"
+  rule_number              = 201
+  rule_action              = "accept"
+  traffic_direction        = "egress"
+}
+
+########################################### Create network traffic mirror sessions  - DMZ ###########################################
+
+# Traffic Mirroring for DMZ Web Server
+resource "aws_ec2_traffic_mirror_session" "vuln_log4j_webserver_subnet_traffic_mirror_session" {
+
+  description              = "${var.PROJECT_PREFIX}_vuln_log4j_webserver_traffic_mirror_session"
+  network_interface_id     = aws_instance.vuln_log4j_webserver.primary_network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+  session_number           = 1
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_VULN_LOG4J_WEB_SERVER_traffic_mirror_session"
+    Project = var.PROJECT_PREFIX
+  }
+
+}
+
+# Traffic Mirroring for DMZ RDP Host = IOT JUMPHOST?
+# resource "aws_ec2_traffic_mirror_session" "dmz_rdp_host_subnet_traffic_mirror_session" {
+#
+#   description              = "${var.PROJECT_PREFIX}_WINDOWS_DMZ_RDP_SERVER_traffic_mirror_session"
+#   network_interface_id     = aws_instance.WINDOWS_DMZ_RDP_SERVER.primary_network_interface_id
+#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+#   session_number           = 1
+#
+#   tags = {
+#     Name    = "${var.PROJECT_PREFIX}_WINDOWS_DMZ_RDP_SERVER_traffic_mirror_session"
+#     Project = var.PROJECT_PREFIX
+#   }
+# }
+
+########################################### Create network traffic mirror sessions  - CORP ###########################################
+# Note: security onion server instance must be running to create below
+#	else you will get InvalidTrafficMirrorTarget error
+
+# Domain Controller
+resource "aws_ec2_traffic_mirror_session" "domain_controller_traffic_mirror_session" {
+  description              = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
+  network_interface_id     = aws_instance.windows_domain_controller.primary_network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+  session_number           = 1
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+
+# Corp Docker Server
+resource "aws_ec2_traffic_mirror_session" "corp_docker_server_traffic_mirror_session" {
+  description              = "${var.PROJECT_PREFIX}_FILE_SERVER_traffic_mirror_session"
+  network_interface_id     = aws_instance.corp_docker_server.primary_network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+  session_number           = 1
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_CORP_DOCKER_SERVER_traffic_mirror_session"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+
+# Windows Clients
+resource "aws_ec2_traffic_mirror_session" "windows_clients_traffic_mirror_session" {
+
+  for_each = {
+    for k, v in var.corp_subnet_map : k => v
+    if length(regexall("win_client\\d+", k)) > 0
+  }
+
+  description              = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
+  network_interface_id     = aws_instance.windows_clients[each.key].primary_network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+  session_number           = 1
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
     Project = var.PROJECT_PREFIX
   }
 }

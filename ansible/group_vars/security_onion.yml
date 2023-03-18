@@ -62,3 +62,6 @@ docker_packages:
   - docker-ce-cli=5:20.10.8~3-0~ubuntu-focal
   - docker-ce-rootless-extras=5:20.10.8~3-0~ubuntu-focal
   - "containerd.io"
+
+# mdsketch.teleport
+teleport_config_template: teleport-securityonion.yaml.j2

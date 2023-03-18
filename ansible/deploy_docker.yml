@@ -10,5 +10,6 @@
     - juju4.osquery
     - juju4.sysmon
     - node_exporter
+    - prymalinstynct.velociraptor
   tasks:
     - import_tasks: 'roles/linux/init_linux.yml'

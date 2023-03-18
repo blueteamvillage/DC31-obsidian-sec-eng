@@ -36,7 +36,7 @@
     path: /var/run/reboot-required
     get_md5: no
 
-- name: Reboot a slow machine that might have lots of updates to apply
+- name: Reboot
   ansible.builtin.reboot:
     reboot_timeout: 3600
   when: file.stat.exists is defined and file.stat.exists

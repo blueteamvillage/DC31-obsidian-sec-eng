@@ -10,3 +10,6 @@
 [submodule "ansible/roles/prymalinstynct.velociraptor"]
 	path = ansible/roles/prymalinstynct.velociraptor
 	url = https://github.com/juju4/ansible_velociraptor.git
+[submodule "ansible/roles/juju4.sysmon"]
+	path = ansible/roles/juju4.sysmon
+	url = https://github.com/juju4/ansible-sysmon.git

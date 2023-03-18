@@ -1,0 +1,35 @@
+---
+# WinRM
+ansible_port: 5986
+ansible_connection: winrm
+ansible_winrm_scheme: https
+ansible_winrm_server_cert_validation: ignore
+ansible_user: Administrator
+ansible_password: "{{ lookup('amazon.aws.aws_secret', 'win_domain_admin_passwd') }}"
+
+# Sysmon
+sysmon_version: "14.14"
+sysmon_url: "https://download.sysinternals.com/files/Sysmon.zip"
+sysmon_install_path: "C:\\Program Files\\Sysmon"
+
+# Winlogbeat
+winlogbeat_version: "8.6.2"
+winlogbeat_url: "https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-{{ winlogbeat_version }}-windows-x86_64.zip"
+winlogbeat_install_path: "C:\\Program Files\\Winlogbeat"
+
+# Filebeat
+filebeat_version: "8.6.2"
+filebeat_url: "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{{ filebeat_version }}-windows-x86_64.zip"
+filebeat_install_path: "C:\\Program Files\\Filebeat"
+
+# Domain Configuration
+safe_mode_password: "{{ lookup('amazon.aws.aws_secret', 'win_domain_admin_passwd') }}"
+employees_csv: "conf/windows/domaincontroller/employees.csv"
+
+# hMail Server Configuration
+hmail_admin_password: "{{ lookup('amazon.aws.aws_secret', 'win_domain_admin_passwd') }}"
+
+# Kill Chain Users
+killchain03_fileserver_spn: "brent.socium"
+killchain03_dmzrdp_spn: "reggie.habeo"
+killchain03_local_admin: "pat.risus"

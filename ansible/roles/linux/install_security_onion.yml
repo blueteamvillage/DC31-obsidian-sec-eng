@@ -125,6 +125,18 @@
       become: yes
       loop: "{{ sostatus2.stdout_lines }}"
 
+- name: Disable web redirections in so-nginx
+  ansible.builtin.lineinfile:
+    # so-nginx-restart/salt will auto restore its default
+    # path: /opt/so/conf/nginx/nginx.conf
+    # regexp: "^[\\s]*return 307 https://securityonion.magnumtempusfinancial.com\\$request_uri;$"
+    path: /opt/so/saltstack/default/salt/nginx/etc/nginx.conf
+    regexp: "^[\\s]*return 307 https://{{ '{{' }} url_base {{ '}}' }}\\$request_uri;$"
+    state: absent
+    backup: yes
+  notify:
+    - Restart so-nginx
+
 - name: Debian | Check if a reboot is required
   register: file
   ansible.builtin.stat:

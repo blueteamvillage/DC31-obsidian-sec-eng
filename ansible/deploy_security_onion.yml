@@ -8,6 +8,9 @@
   roles:
     # - geerlingguy.docker
     - mdsketch.teleport
+  handlers:
+    - name: Restart so-nginx
+      ansible.builtin.command: so-nginx-restart
   tasks:
     - import_tasks: 'roles/linux/init_linux.yml'
     - import_tasks: 'roles/linux/install_security_onion.yml'

@@ -10,11 +10,12 @@ securityonion_soremote_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_202
 securityonion_webuser_email: "so-superuser@{{ external_domain }}"
 securityonion_webuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-webuser-pass', region=aws_region) }}"
 
-# Security Onion interfaces - select first two options
+# Security Onion interfaces
+# use `ansible -m setup <server>` to ensure you pick the right ones
 # securityonion_management_nic: '{{ (ansible_interfaces | sort)[0] }}'
 securityonion_management_nic: "{{ ansible_default_ipv4.interface }}"
 # securityonion_bonding_nic: '{{ (ansible_interfaces | sort)[1] }}'
-securityonion_bonding_nic: '{{ (ansible_interfaces | sort)[0] }}'
+securityonion_bonding_nic: 'ens6'
 
 # Security Onion - pinned version
 # Security Onion 2.3.220-20230224

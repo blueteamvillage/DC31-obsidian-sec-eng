@@ -447,6 +447,20 @@ resource "aws_security_group" "securityonion_server_sg2" {
   }
 }
 
+resource "aws_network_interface" "seconion_mgmt_nic" {
+  subnet_id = aws_subnet.logging.id
+  #  private_ips     = ["var.public_subnet_map['security_onion']"]
+  # TO-DO: find adequate solution to use variables with private_ips instead
+  private_ips     = ["172.16.22.23"]
+  security_groups = [aws_security_group.securityonion_server_sg2.id]
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_SECURITYONION_MGMT_NIC"
+    Project = var.PROJECT_PREFIX
+  }
+
+}
+
 
 ############################################ Create Security Onion EC2 instance ############################################
 
@@ -454,15 +468,21 @@ resource "aws_instance" "securityonion_server" {
   ami = var.ubuntu-so-ami
   # instance_type = var.logging_ec2_size
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
-  instance_type           = "t3a.xlarge"
-  subnet_id               = aws_subnet.logging.id
-  vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
+  instance_type = "t3a.xlarge"
+  # no subnet_id/private_ip/vpc_security_group_ids if network_interface is set explicitely
+  # subnet_id               = aws_subnet.logging.id
+  # private_ip              = var.logging_subnet_map["securityonion"]
+  # vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip              = var.logging_subnet_map["securityonion"]
   disable_api_termination = true
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"
+  }
+
+  network_interface {
+    network_interface_id = aws_network_interface.seconion_mgmt_nic.id
+    device_index         = 0
   }
 
   root_block_device {
@@ -491,8 +511,10 @@ resource "aws_instance" "securityonion_server" {
 }
 
 resource "aws_eip" "securityonion_server_eip" {
-  instance = aws_instance.securityonion_server.id
-  vpc      = true
+  instance                  = aws_instance.securityonion_server.id
+  network_interface         = aws_network_interface.seconion_mgmt_nic.id
+  associate_with_private_ip = var.logging_subnet_map["securityonion"]
+  vpc                       = true
   tags = {
     Name    = "${var.PROJECT_PREFIX}_securityonion_server_eip"
     Project = var.PROJECT_PREFIX

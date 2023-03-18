@@ -4,10 +4,9 @@
 # Initial steps
 ####################################################################
 - name: Install salt gpg key
-  ansible.builtin.get_url:
-    url: https://repo.saltproject.io/py3/ubuntu/20.04/amd64/3004/salt-archive-keyring.gpg
-    dest: /usr/share/keyrings/salt-archive-keyring.gpg
-    mode: 0644
+  ansible.builtin.apt_key:
+    url: https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/salt-archive-keyring.gpg
+    state: present
 
 - name: Add salt repository
   ansible.builtin.apt_repository:
@@ -125,3 +124,14 @@
         cmd: "so-{{ item }}-restart"
       become: yes
       loop: "{{ sostatus2.stdout_lines }}"
+
+- name: Debian | Check if a reboot is required
+  register: file
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_md5: no
+
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 3600
+  when: file.stat.exists is defined and file.stat.exists

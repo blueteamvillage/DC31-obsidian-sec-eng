@@ -21,6 +21,19 @@ resource "aws_security_group_rule" "iot01_allow_ingress_ssh" {
   security_group_id = aws_security_group.iot01_server.id
 }
 
+resource "aws_security_group_rule" "iot01_allow_prometheus" {
+  type        = "ingress"
+  description = "Allow Prometheus to access node exporter"
+  from_port   = 9100
+  to_port     = 9100
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    "${aws_instance.metrics_server.private_ip}/32"
+  ]
+  security_group_id = aws_security_group.iot01_server.id
+}
+
 # is it needed?
 resource "aws_security_group_rule" "iot01_allow_egress" {
   type              = "egress"

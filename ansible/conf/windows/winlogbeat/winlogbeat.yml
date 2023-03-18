@@ -1,0 +1,88 @@
+# ========================  Winlogbeat Configuration ========================
+
+# You can find the full configuration reference here:
+# https://www.elastic.co/guide/en/beats/winlogbeat/index.html
+# https://www.elastic.co/guide/en/beats/winlogbeat/current/winlogbeat-reference-yml.html
+
+# ======================== Winlogbeat specific options =========================
+
+# event_logs specifies a list of event logs to monitor as well as any
+# accompanying options. The YAML data type of event_logs is a list of
+# dictionaries.
+#
+# The supported keys are name (required), tags, fields, fields_under_root,
+# forwarded, ignore_older, level, event_id, provider, and include_xml. Please
+# visit the documentation for the complete details of each option.
+# https://go.es.io/WinlogbeatConfig
+
+winlogbeat.event_logs:
+  - name: Application
+    ignore_older: 30m
+
+  - name: Security
+    ignore_older: 30m
+
+  - name: System
+    ignore_older: 30m
+
+  # Powershell
+  - name: Windows PowerShell
+    event_id: 400, 403, 600, 800
+    ignore_older: 30m
+
+  - name: Microsoft-Windows-PowerShell/Operational
+    event_id: 4103, 4104, 4105, 4106
+    ignore_older: 30m
+
+  # WMI
+  - name: Microsoft-Windows-WMI-Activity/Operational
+    event_id: 5857,5858,5859,5860,5861
+    ignore_older: 30m
+
+  # RDP
+  - name: Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
+    ignore_older: 30m
+  - name: Microsoft-Windows-TerminalServices-RemoteConnectionManager/Operational
+    ignore_older: 30m
+
+  # SMB
+  - name: Microsoft-Windows-SMBServer/Operational
+    ignore_older: 30m
+
+  # Sysmon
+  # https://www.elastic.co/guide/en/beats/winlogbeat/master/winlogbeat-module-sysmon.html
+  - name: Microsoft-Windows-Sysmon/Operational
+    ignore_older: 30m
+    processors:
+      - script:
+          lang: javascript
+          id: sysmon
+          file: ${path.home}/module/sysmon/config/winlogbeat-sysmon.js
+      - add_tags:
+          tags: ["sysmon"]
+
+# ============================== Logstash Output ==============================
+output.logstash:
+  hosts: ["{{ groups.logstash_ingestor[0] }}:5044"]
+
+  # Enable SSL
+  ssl.enabled: true
+
+  # Disable verification due to self-signed cert
+  ssl.verification_mode: none
+
+# ================================ Processors =====================================
+
+processors:
+  - add_host_metadata: ~  # Simply enables the processor
+  # Add Community ID Network Flow Hashes to Sysmon logs
+  # https://www.elastic.co/guide/en/beats/winlogbeat/current/community-id.html
+  # https://holdmybeersecurity.com/2020/06/04/generating-communityids-with-sysmon-and-winlogbeat/
+  - community_id:
+      fields:
+        source_ip: SourceIP  # Correspond to field names from Sysmon Event ID 3: Network Connection
+        source_port: SourcePort
+        destination_ip: DestinationIP
+        destination_port: DestinationPort
+        transport: Protocol
+      target: network.community_id

@@ -62,8 +62,8 @@ winlogbeat.event_logs:
           tags: ["sysmon"]
 
 # ============================== Logstash Output ==============================
-output.logstash:
-  hosts: ["{{ groups.logstash_ingestor[0] }}:5044"]
+output.elastic:
+  hosts: ["172.16.22.10:9200"]
 
   # Enable SSL
   ssl.enabled: true

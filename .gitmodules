@@ -13,3 +13,6 @@
 [submodule "ansible/roles/juju4.sysmon"]
 	path = ansible/roles/juju4.sysmon
 	url = https://github.com/juju4/ansible-sysmon.git
+[submodule "ansible/roles/juju4.osquery"]
+	path = ansible/roles/juju4.osquery
+	url = https://github.com/juju4/ansible-osquery.git

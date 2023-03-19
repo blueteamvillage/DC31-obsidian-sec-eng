@@ -10,15 +10,15 @@ aws_region: us-east-2
 breakglass_serialuser_user: _breakglass
 breakglass_serialuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-breakglass-pass', region=aws_region) }}"
 
-filebeat_version: 7.x
+filebeat_version: 8.x
 filebeat_inputs:
   - type: log
     paths:
       - "/var/log/*.log"
-  - type: osquery
+  - type: log
     paths:
       - "/var/log/osquery/osqueryd.*.log"
-  - type: sysmon
+  - type: log
     paths:
       - "/var/log/sysmon/sysmon.log"
 filebeat_output_elasticsearch_enabled: true

@@ -206,7 +206,8 @@ resource "aws_instance" "iot_jump_box" {
   ################## DO NOT TOUCH ##################
 
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_${upper(each.key)}"
-    Project = var.PROJECT_PREFIX
+    Name        = "${var.PROJECT_PREFIX}_${each.key}_server"
+    Project     = var.PROJECT_PREFIX
+    Environment = "iot"
   }
 }

@@ -205,12 +205,6 @@ variable "windows_boxes_ec2_size" {
 
 
 ######################## Magnumtempus Financial ########################
-variable "project_route53_zone_id" {
-  description = "Route53 Zone ID to use for Magnustempus Financial DNS records"
-  type        = string
-  default     = "Z0222419PAP0957YFABU"
-}
-
 variable "project_base_domain" {
   description = "Route53 Zone ID to use for Magnustempus Financial DNS records"
   type        = string

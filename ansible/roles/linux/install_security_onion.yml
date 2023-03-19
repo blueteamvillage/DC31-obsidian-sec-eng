@@ -147,3 +147,14 @@
   ansible.builtin.reboot:
     reboot_timeout: 3600
   when: file.stat.exists is defined and file.stat.exists
+
+- name: Check if IP allowed
+  ansible.builtin.command:
+    cmd: grep 172.16.22.10 /opt/so/saltstack/local/salt/firewall/hostgroups.local.yaml
+  register: sofw
+  changed_when: false
+- name: Allow traffic from cribl
+  ansible.builtin.command:
+    cmd: so-allow -e -i 172.16.22.10
+  when:
+    - sofw.rc != 0

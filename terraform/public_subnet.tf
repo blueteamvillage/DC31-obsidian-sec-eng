@@ -411,6 +411,16 @@ resource "aws_instance" "splunk_server" {
   }
 }
 
+resource "aws_eip" "splunk_server_eip" {
+  instance = aws_instance.splunk_server.id
+  vpc      = true
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_splunk_server_eip"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+
 ############################################ Logging/SecurityOnion Server ############################################
 resource "aws_security_group" "securityonion_server_sg2" {
   vpc_id      = module.vpc.vpc_id

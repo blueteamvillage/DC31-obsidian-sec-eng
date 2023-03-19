@@ -1,36 +1,43 @@
 ############################################ Windows Domain Controller ############################################
+# Create Security group for corporate hosts
 resource "aws_security_group" "win_dc_sg" {
-  vpc_id      = module.vpc.vpc_id
-  description = "Windows Domain Controller security group"
+  vpc_id = module.vpc.vpc_id
+
+  # Allow ICMP, RDP, & WinRM from management subnet
+  ingress {
+    from_port = 8
+    to_port   = 0
+    protocol  = "icmp"
+    cidr_blocks = [
+      "${module.teleport.public_ip_addr}/32",
+      "${module.teleport.private_ip_addr}/32",
+      "${var.corp_cidr_block}"
+    ]
+  }
+
+  ingress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = [
+      "${module.teleport.public_ip_addr}/32",
+      "${module.teleport.private_ip_addr}/32",
+      "${var.corp_cidr_block}",
+      var.prod_cidr_block
+    ]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
     Name    = "${var.PROJECT_PREFIX}_WIN_DC_SG"
     Project = var.PROJECT_PREFIX
   }
-}
-
-resource "aws_security_group_rule" "win_domain_allow_inbound" {
-  type        = "ingress"
-  description = "Allow ALL inbound from teleport, corp, prod"
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  cidr_blocks = [
-    "${module.teleport.private_ip_addr}/32",
-    "${var.corp_cidr_block}",
-    var.prod_cidr_block
-  ]
-  security_group_id = aws_security_group.win_dc_sg.id
-}
-
-resource "aws_security_group_rule" "win_domain_allow_outbound" {
-  type              = "egress"
-  description       = "Allow outbound"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.win_dc_sg.id
 }
 
 resource "random_password" "win_domain_admin_random_passwd_gen" {

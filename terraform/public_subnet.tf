@@ -129,7 +129,6 @@ resource "aws_instance" "velociraptor_server" {
   lifecycle {
     ignore_changes = [
       instance_type,
-      instance_state,
       cpu_core_count,
       ebs_optimized,
     ]
@@ -296,81 +295,100 @@ resource "aws_eip" "cribl_server_eip" {
 
 ############################################ Splunk SIEM ############################################
 resource "aws_security_group" "splunk_server_sg" {
-  vpc_id = module.vpc.vpc_id
-
-  # Allow ICMP from jumpbox
-  ingress {
-    description = "Allow ICMP from management subnet"
-    from_port   = 8
-    to_port     = 0
-    protocol    = "icmp"
-    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
-  }
-
-  # Allow SSH from jumpbox
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
-  }
-
-  # NGINX HTTP port for Splunk UI
-  ingress {
-    from_port = 80
-    to_port   = 80
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-      #var.publicCIDRblock,
-      #var.managementCIDRblock,
-      #"0.0.0.0/0"
-    ]
-  }
-
-  # NGINX HTTPS port for Splunk UI
-  ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-      #var.publicCIDRblock,
-      #var.managementCIDRblock,
-      #"0.0.0.0/0"
-    ]
-  }
-
-  # Splunk REST API port for Splunk
-  ingress {
-    from_port   = 8089
-    to_port     = 8089
-    protocol    = "tcp"
-    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
-  }
-
-  # Allow Prometheus to access node exporter
-  ingress {
-    from_port = 9100
-    to_port   = 9100
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-    ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
+  vpc_id      = module.vpc.vpc_id
+  description = "Splunk server security group"
   tags = {
     Name    = "${var.PROJECT_PREFIX}_splunk_SERVER_SG"
     Project = var.PROJECT_PREFIX
   }
 }
+
+resource "aws_security_group_rule" "splunk_allow_icmp_from_jumpbox" {
+  type              = "ingress"
+  description       = "Allow ICMP from Teleport"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_ssh_from_jumpbox" {
+  type              = "ingress"
+  description       = "Allow SSH from Teleport"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_http" {
+  type        = "ingress"
+  description = "Allow HTTP to NGINX"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_https" {
+  type        = "ingress"
+  description = "Allow HTTPs to NGINX"
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_rest_api" {
+  type        = "ingress"
+  description = "Allow access to Splunk REST API"
+  from_port   = 8089
+  to_port     = 8089
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow prometheus to pull metrics from node exporter"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+
+resource "aws_security_group_rule" "splunk_allow_inbound" {
+  type              = "egress"
+  description       = "Allow outbound"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
 
 resource "aws_instance" "splunk_server" {
   ami                     = var.ubunut-ami
@@ -385,6 +403,11 @@ resource "aws_instance" "splunk_server" {
     volume_size           = 100
     volume_type           = "gp2"
     delete_on_termination = true
+  }
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_splunk_server"
+    Project = var.PROJECT_PREFIX
   }
 }
 

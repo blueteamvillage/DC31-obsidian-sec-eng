@@ -139,7 +139,7 @@ variable "iotplc_subnet_map" {
     "iot_plc05" = "172.16.60.15",
     "iot_plc06" = "172.16.60.16",
     "iot_plc07" = "172.16.60.17",
-    "iot_plc08" = "172.16.60.18",
+    "iot_plc08" = "172.16.60.18"
   }
 }
 
@@ -149,8 +149,9 @@ variable "iot_subnet_map" {
     "iot01"           = "172.16.60.10",
     "iot_hmi_alpha"   = "172.16.60.200",
     "iot_hmi_beta"    = "172.16.60.201",
-    "iot_hmi_charlie" = "172.16.60.202"
-    "iot_hmi_delta"   = "172.16.60.202"
+    "iot_hmi_charlie" = "172.16.60.202",
+    "iot_hmi_delta"   = "172.16.60.202",
+    "jhb01"           = "172.16.60.19"
   }
 }
 

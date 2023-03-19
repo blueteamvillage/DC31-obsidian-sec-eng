@@ -185,7 +185,7 @@ resource "aws_instance" "iot_jump_box" {
   subnet_id              = aws_subnet.iot.id
   vpc_security_group_ids = [aws_security_group.win_clients_sg.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip             = each.value
+  private_ip             = var.iot_subnet_map["jhb01"]
   get_password_data      = true
   user_data              = data.template_file.password_change.rendered
 

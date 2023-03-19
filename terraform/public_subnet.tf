@@ -491,22 +491,35 @@ resource "aws_security_group" "securityonion_server_sg2" {
   }
 }
 
+############################################ Create Security Onion EC2 instance ############################################
 resource "aws_network_interface" "seconion_mgmt_nic" {
-  subnet_id = aws_subnet.logging.id
-  #  private_ips     = ["var.public_subnet_map['security_onion']"]
-  # TO-DO: find adequate solution to use variables with private_ips instead
-  private_ips     = ["172.16.22.23"]
+  subnet_id       = aws_subnet.logging.id
+  private_ips     = [var.logging_subnet_map["securityonion"]]
   security_groups = [aws_security_group.securityonion_server_sg2.id]
 
   tags = {
     Name    = "${var.PROJECT_PREFIX}_SECURITYONION_MGMT_NIC"
     Project = var.PROJECT_PREFIX
   }
-
 }
 
+resource "aws_network_interface" "seconion_tap_interface" {
+  subnet_id       = aws_subnet.logging.id
+  security_groups = [aws_security_group.seconion_traffic_mirror_sg.id]
+  private_ips     = [var.logging_subnet_map["securityonion_bind"]]
 
-############################################ Create Security Onion EC2 instance ############################################
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE"
+    Project = var.PROJECT_PREFIX
+  }
+
+  # WITHOUT this statement the seconion EC2 will be DESTROYED
+  # AND RE-CREATED
+  attachment {
+    instance     = aws_instance.securityonion_server.id
+    device_index = 1
+  }
+}
 
 resource "aws_instance" "securityonion_server" {
   ami = var.ubuntu-so-ami
@@ -557,7 +570,6 @@ resource "aws_instance" "securityonion_server" {
 }
 
 resource "aws_eip" "securityonion_server_eip" {
-  instance                  = aws_instance.securityonion_server.id
   network_interface         = aws_network_interface.seconion_mgmt_nic.id
   associate_with_private_ip = var.logging_subnet_map["securityonion"]
   vpc                       = true
@@ -606,21 +618,6 @@ resource "aws_security_group" "seconion_traffic_mirror_sg" {
   }
 }
 
-resource "aws_network_interface" "seconion_tap_interface" {
-  # DC30 was using public_subnet. Does not exist in DC31, corp subnet?
-  subnet_id         = aws_subnet.corp.id
-  security_groups   = [aws_security_group.seconion_traffic_mirror_sg.id]
-  private_ips_count = 0
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE"
-    Project = var.PROJECT_PREFIX
-  }
-
-  attachment {
-    instance     = aws_instance.securityonion_server.id
-    device_index = 1
-  }
-}
 
 resource "aws_ec2_traffic_mirror_target" "seconion_traffic_mirror_target" {
   description          = "${var.PROJECT_PREFIX}_seconion ENI target"
@@ -717,52 +714,78 @@ resource "aws_ec2_traffic_mirror_session" "vuln_log4j_webserver_subnet_traffic_m
 # }
 
 ########################################### Create network traffic mirror sessions  - CORP ###########################################
+data "aws_instances" "corp_subnet_instances" {
+  filter {
+    name   = "tag:Project"
+    values = ["DEFCON_2023_OBSIDIAN"]
+  }
+
+  # instance_tags = {
+  #   "Project"     = "DEFCON_2023_OBSIDIAN"
+  #   #"Environment" = "corp"
+  # }
+}
+
 # Note: security onion server instance must be running to create below
 #	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "corp_subnet_tap_traffic_mirror_sessions" {
+  count = length(data.aws_instances.corp_subnet_instances)
 
-# Domain Controller
-resource "aws_ec2_traffic_mirror_session" "domain_controller_traffic_mirror_session" {
-  description              = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
-  network_interface_id     = aws_instance.windows_domain_controller.primary_network_interface_id
+  #description              = "${data.aws_instances.corp_subnet_tap_traffic_mirror_sessions.ids[count.index].tags["Name"]}_traffic_mirror_session"
+  network_interface_id     = data.aws_instances.corp_subnet_instances[count.index]
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
   session_number           = 1
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
+    #Name    = "${data.aws_instances.corp_subnet_tap_traffic_mirror_sessions.ids[count.index].tags["Name"]}_traffic_mirror_session"
     Project = var.PROJECT_PREFIX
   }
 }
 
 
-# Corp Docker Server
-resource "aws_ec2_traffic_mirror_session" "corp_docker_server_traffic_mirror_session" {
-  description              = "${var.PROJECT_PREFIX}_FILE_SERVER_traffic_mirror_session"
-  network_interface_id     = aws_instance.corp_docker_server.primary_network_interface_id
-  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-  session_number           = 1
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_CORP_DOCKER_SERVER_traffic_mirror_session"
-    Project = var.PROJECT_PREFIX
-  }
-}
+# # Domain Controller
+# resource "aws_ec2_traffic_mirror_session" "domain_controller_traffic_mirror_session" {
+#   description              = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
+#   network_interface_id     = aws_instance.windows_domain_controller.primary_network_interface_id
+#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+#   session_number           = 1
+#   tags = {
+#     Name    = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
+#     Project = var.PROJECT_PREFIX
+#   }
+# }
 
 
-# Windows Clients
-resource "aws_ec2_traffic_mirror_session" "windows_clients_traffic_mirror_session" {
+# # Corp Docker Server
+# resource "aws_ec2_traffic_mirror_session" "corp_docker_server_traffic_mirror_session" {
+#   description              = "${var.PROJECT_PREFIX}_FILE_SERVER_traffic_mirror_session"
+#   network_interface_id     = aws_instance.corp_docker_server.primary_network_interface_id
+#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+#   session_number           = 1
+#   tags = {
+#     Name    = "${var.PROJECT_PREFIX}_CORP_DOCKER_SERVER_traffic_mirror_session"
+#     Project = var.PROJECT_PREFIX
+#   }
+# }
 
-  for_each = {
-    for k, v in var.corp_subnet_map : k => v
-    if length(regexall("win_client\\d+", k)) > 0
-  }
 
-  description              = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
-  network_interface_id     = aws_instance.windows_clients[each.key].primary_network_interface_id
-  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-  session_number           = 1
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
-    Project = var.PROJECT_PREFIX
-  }
-}
+# # Windows Clients
+# resource "aws_ec2_traffic_mirror_session" "windows_clients_traffic_mirror_session" {
+
+#   for_each = {
+#     for k, v in var.corp_subnet_map : k => v
+#     if length(regexall("win_client\\d+", k)) > 0
+#   }
+
+#   description              = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
+#   network_interface_id     = aws_instance.windows_clients[each.key].primary_network_interface_id
+#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+#   session_number           = 1
+#   tags = {
+#     Name    = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
+#     Project = var.PROJECT_PREFIX
+#   }
+# }

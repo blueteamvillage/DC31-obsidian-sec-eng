@@ -96,7 +96,8 @@ resource "aws_instance" "windows_clients" {
   }
 
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_${upper(each.key)}"
-    Project = var.PROJECT_PREFIX
+    Name        = "${var.PROJECT_PREFIX}_${upper(each.key)}"
+    Project     = var.PROJECT_PREFIX
+    Environment = "corp"
   }
 }

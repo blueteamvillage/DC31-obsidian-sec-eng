@@ -1,0 +1,56 @@
+---
+teleport:
+  nodename: ip-172-16-10-93
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+    format:
+      output: text
+  ca_pin: ""
+  diag_addr: ""
+  storage:
+    type: dynamodb
+    region: "us-east-2"
+    # Name of the DynamoDB table. If it does not exist, Teleport will create it.
+    table_name: DEFCON_2023_OBSIDIAN-teleport-pcq49
+    audit_events_uri: ['dynamodb://DEFCON_2023_OBSIDIAN-teleport-pcq49-events', 'file:///var/lib/teleport/audit/events', 'stdout://']
+    audit_sessions_uri: "s3://defcon-2023-obsidian-teleport-kxl6y/records"
+    audit_retention_period: 90d
+auth_service:
+  enabled: "yes"
+  listen_addr: 0.0.0.0:3025
+  cluster_name: teleport.blueteamvillage.com
+  proxy_listener_mode: multiplex
+ssh_service:
+  enabled: "yes"
+  commands:
+    - name: hostname
+      command: [hostname]
+      period: 1m0s
+proxy_service:
+  enabled: "yes"
+  web_listen_addr: 0.0.0.0:443
+  public_addr: teleport.blueteamvillage.com:443
+  https_keypairs: []
+  acme:
+    enabled: "yes"
+    email: admin@teleport.blueteamvillage.com
+app_service:
+  enabled: "yes"
+  apps:
+    # Name of the application.
+    - name: "grafana"
+      uri: "https://172.16.21.10:443"
+      insecure_skip_verify: true
+      rewrite:
+        headers:
+          - "Host: grafana.teleport.blueteamvillage.com"
+          - "Origin: https://grafana.teleport.blueteamvillage.com"
+    - name: "securityonion"
+      uri: "https://172.16.22.23:443/login/?flow=6d4b0c72-32b6-420d-b50a-5c0157c6b36c"
+      insecure_skip_verify: true
+      rewrite:
+        headers:
+          - "Host: securityonion.magnumtempusfinancial.com"
+          - "Origin: https://securityonion.teleport.blueteamvillage.com"

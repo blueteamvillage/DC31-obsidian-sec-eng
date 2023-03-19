@@ -198,6 +198,13 @@ variable "windows_boxes_ec2_size" {
 }
 
 
+######################## Magnumtempus Financial ########################
+variable "project_base_domain" {
+  description = "Route53 domain to use for Magnustempus Financial DNS records"
+  type        = string
+  default     = "magnumtempusfinancial.com"
+}
+
 ######################## Teleport ########################
 variable "teleport_route53_zone_id" {
   description = "Route53 Zone ID to use for Teleport DNS records"

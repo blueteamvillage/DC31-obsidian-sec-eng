@@ -457,9 +457,11 @@ resource "aws_instance" "securityonion_server" {
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = var.logging_subnet_map["securityonion"]
   disable_api_termination = true
+
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
   }
 
   root_block_device {

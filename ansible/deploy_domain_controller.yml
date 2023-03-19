@@ -1,5 +1,8 @@
 ---
-- hosts: 'win_domain_controller'
+- name: Setup Windows Domain Controller
+  hosts: win_domain_controller
+  roles:
+    - win_node_exporter
   tasks:
     - include_vars: 'group_vars/metrics.yml'
     # Commenting this out until velociraptor is deployed.
@@ -8,9 +11,6 @@
     - import_tasks: 'roles/windows/domain_controller/setup_domain_controller.yml'
     - import_tasks: 'roles/windows/domain_controller/create_dns_zone.yml'
     - import_tasks: 'roles/windows/domain_controller/create_domain_users.yml'
-    - import_tasks: 'roles/windows/domain_controller/create_domain_honeypot_user.yml'
     - import_tasks: 'roles/windows/setup_rdp_servers.yml'
     - import_tasks: 'roles/windows/setup_sysmon.yml'
     - import_tasks: 'roles/windows/setup_winlogbeat.yml'
-    - import_tasks: 'roles/windows/setup_velociraptor_win_client.yml'
-    - import_tasks: 'roles/windows/setup_node_exporter.yml'

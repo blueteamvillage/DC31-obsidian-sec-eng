@@ -1,0 +1,9 @@
+---
+# vars file for ansible/roles/metrics_server
+###################################################### Grafana ######################################################
+grafana_version: '9.4.3'
+grafana_dl_url: 'https://dl.grafana.com/oss/release/grafana_{{ grafana_version }}_amd64.deb'
+
+###################################################### Prometheus ######################################################
+prometheus_version: '2.42.0'
+prometheus_dl_url: 'https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz'

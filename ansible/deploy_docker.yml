@@ -6,3 +6,6 @@
   become_user: root
   roles:
     - geerlingguy.docker
+    - geerlingguy.filebeat
+  tasks:
+    - import_tasks: 'roles/linux/init_linux.yml'

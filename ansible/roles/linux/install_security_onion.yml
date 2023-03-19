@@ -4,10 +4,9 @@
 # Initial steps
 ####################################################################
 - name: Install salt gpg key
-  ansible.builtin.get_url:
-    url: https://repo.saltproject.io/py3/ubuntu/20.04/amd64/3004/salt-archive-keyring.gpg
-    dest: /usr/share/keyrings/salt-archive-keyring.gpg
-    mode: 0644
+  ansible.builtin.apt_key:
+    url: https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/salt-archive-keyring.gpg
+    state: present
 
 - name: Add salt repository
   ansible.builtin.apt_repository:
@@ -52,7 +51,6 @@
 # Download & run setup script for Security Onion
 ####################################################################
 - name: Clone the Security Onion repository
-  # Only do v2.3.100 and onwards; TheHive won't be needed during workshops
   ansible.builtin.git:
     repo: 'https://github.com/Security-Onion-Solutions/securityonion'
     dest: /opt/securityonion
@@ -125,4 +123,27 @@
       ansible.builtin.command:
         cmd: "so-{{ item }}-restart"
       become: yes
-      loop: "{{ sostatus2.stdout }}"
+      loop: "{{ sostatus2.stdout_lines }}"
+
+- name: Disable web redirections in so-nginx
+  ansible.builtin.lineinfile:
+    # so-nginx-restart/salt will auto restore its default
+    # path: /opt/so/conf/nginx/nginx.conf
+    # regexp: "^[\\s]*return 307 https://securityonion.magnumtempusfinancial.com\\$request_uri;$"
+    path: /opt/so/saltstack/default/salt/nginx/etc/nginx.conf
+    regexp: "^[\\s]*return 307 https://{{ '{{' }} url_base {{ '}}' }}\\$request_uri;$"
+    state: absent
+    backup: yes
+  notify:
+    - Restart so-nginx
+
+- name: Debian | Check if a reboot is required
+  register: file
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_md5: no
+
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 3600
+  when: file.stat.exists is defined and file.stat.exists

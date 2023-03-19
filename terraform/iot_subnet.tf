@@ -99,7 +99,7 @@ resource "aws_security_group_rule" "allow_winrm_from_teleport" {
 
 resource "aws_security_group_rule" "allow_all_traffic_from_iot_subnet" {
   type              = "ingress"
-  description       = "Allow VNC connections from IoT network"
+  description       = "Allow all traffic from IoT network"
   from_port         = 0
   to_port           = 0
   protocol          = -1
@@ -118,7 +118,11 @@ resource "aws_security_group_rule" "iot_hmi_servers_allow_egress" {
 }
 
 resource "aws_instance" "iot_hmi_servers" {
-  for_each = var.iot_subnet_map
+  # https://regex101.com/r/9Q7UBi/1
+  for_each = {
+    for k, v in var.iot_subnet_map : k => v
+    if can(regex("iot_hmi.*", k))
+  }
 
   ami                     = var.iot_hmi_ami
   instance_type           = "t3.small"

@@ -150,7 +150,7 @@ variable "iot_subnet_map" {
     "iot_hmi_alpha"   = "172.16.60.200",
     "iot_hmi_beta"    = "172.16.60.201",
     "iot_hmi_charlie" = "172.16.60.202"
-    "iot_hmi_delta"   = "172.16.60.202"
+    "iot_hmi_delta"   = "172.16.60.203"
   }
 }
 

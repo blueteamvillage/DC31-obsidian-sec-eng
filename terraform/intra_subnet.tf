@@ -1,4 +1,26 @@
 ############################################ Metrics server ############################################
+resource "aws_security_group" "node_exporter_clients" {
+  vpc_id      = module.vpc.vpc_id
+  description = "metrics server security group"
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_node_exporter_sg"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_security_group_rule" "allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow Prometheus to consume metrics from node exporter"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.node_exporter_clients.id
+}
+
+
+
 resource "aws_security_group" "metrics" {
   vpc_id      = module.vpc.vpc_id
   description = "metrics server security group"

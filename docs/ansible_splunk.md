@@ -11,6 +11,9 @@ If not generated automatically by terraform
 1. `vim ansible/hosts.ini` and set `[splunk]` to the IP address of the server
 
 ## Run Ansible playbook
+1. Review group_vars/splunk
+1. Ensure to have splunk deb archive downloaded and available on orchestrator
+1. Splunk apps should be uploaded on splunk server beforehand and matching app_paths_install
 1. `ansible-playbook -i hosts.ini deploy_splunk.yml`
 
 ## References

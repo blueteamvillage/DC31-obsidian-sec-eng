@@ -9,8 +9,13 @@ The goal of this runbook is to help new users install Teleport on their local ma
 
 # Guides to install Teleport
 * [Teleport for Windows](https://goteleport.com/docs/installation/#windows-tsh-client-only)
+    * [![Setting up Teleport (tsh) on Windows](https://img.youtube.com/vi/XH047Qc45xs/0.jpg)](https://www.youtube.com/watch?v=XH047Qc45xs)
 * [Teleport for Linux](https://goteleport.com/docs/installation/#linux)
+    * [![Getting started with ( tsh ) on Linux Desktop](https://img.youtube.com/vi/x2KxhM_v4MM/0.jpg)](https://www.youtube.com/watch?v=x2KxhM_v4MM)
 * [Teleport for macOS](https://goteleport.com/docs/installation/#macos)
+    * [![Setting up Teleport (tsh) on Mac](https://img.youtube.com/vi/IdnQP-qCG7k/0.jpg)](https://www.youtube.com/watch?v=IdnQP-qCG7k)
+
+
 
 ## Log into Teleport via browser
 1. Browese to Teleport FQDN

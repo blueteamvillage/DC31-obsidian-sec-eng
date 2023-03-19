@@ -1,5 +1,5 @@
-################################ IOT01 SERVER ##################################
-resource "aws_security_group" "iot01_server" {
+############################################ PLCs ############################################
+resource "aws_security_group" "iot_plc_servers" {
   vpc_id      = module.vpc.vpc_id
   description = "IoT01 server security group"
 
@@ -9,7 +9,7 @@ resource "aws_security_group" "iot01_server" {
   }
 }
 
-resource "aws_security_group_rule" "iot01_allow_ingress_ssh" {
+resource "aws_security_group_rule" "iot_plc_allow_ingress_ssh" {
   type        = "ingress"
   description = "Allow inbound SSH"
   from_port   = 22
@@ -18,29 +18,42 @@ resource "aws_security_group_rule" "iot01_allow_ingress_ssh" {
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32"
   ]
-  security_group_id = aws_security_group.iot01_server.id
+  security_group_id = aws_security_group.iot_plc_servers.id
 }
 
-# is it needed?
-resource "aws_security_group_rule" "iot01_allow_egress" {
+resource "aws_security_group_rule" "iot_plc_allow_inbound_from_iot" {
+  type              = "ingress"
+  description       = "Allow inbound from corp"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = [var.iot_cidr_block]
+  security_group_id = aws_security_group.iot_plc_servers.id
+}
+
+resource "aws_security_group_rule" "iot_plc_allow_egress" {
   type              = "egress"
   description       = "Allow outbound"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.iot01_server.id
+  security_group_id = aws_security_group.iot_plc_servers.id
 }
 
-resource "aws_instance" "iotplc_servers" {
-  for_each = var.iotplc_subnet_map
+resource "aws_instance" "iot_plc_servers" {
+  # https://regex101.com/r/9Q7UBi/1
+  for_each = {
+    for k, v in var.iot_subnet_map : k => v
+    if can(regex("iot_plc.*", k))
+  }
 
   ami                    = var.ubunut-ami
   instance_type          = "t3.nano"
   subnet_id              = aws_subnet.iot.id
-  vpc_security_group_ids = [aws_security_group.iot01_server.id]
+  vpc_security_group_ids = [aws_security_group.iot_plc_servers.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip             = var.iot_subnet_map["iot01"]
+  private_ip             = each.value
   metadata_options {
     # https://github.com/hashicorp/terraform-provider-aws/issues/12564
     http_endpoint = "enabled"
@@ -55,10 +68,11 @@ resource "aws_instance" "iotplc_servers" {
   }
 
   tags = {
-    Name        = "${var.PROJECT_PREFIX}_IOT01_SERVER"
+    Name        = "${var.PROJECT_PREFIX}_${each.key}_server"
     Project     = var.PROJECT_PREFIX
-    Environment = "IOT"
+    Environment = "iot"
   }
+
 }
 
 ############################################ HMIs ############################################

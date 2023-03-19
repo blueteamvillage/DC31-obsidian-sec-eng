@@ -4,9 +4,6 @@
   roles:
     - win_node_exporter
   tasks:
-    - include_vars: 'group_vars/metrics.yml'
-    # Commenting this out until velociraptor is deployed.
-    # - include_vars: 'group_vars/velociraptor.yml'
     - import_tasks: 'roles/windows/init_windows.yml'
     - import_tasks: 'roles/windows/domain_controller/setup_domain_controller.yml'
     - import_tasks: 'roles/windows/domain_controller/create_dns_zone.yml'

@@ -486,9 +486,11 @@ resource "aws_instance" "securityonion_server" {
   # vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   disable_api_termination = true
+
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
   }
 
   network_interface {

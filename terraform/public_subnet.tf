@@ -746,24 +746,84 @@ resource "aws_ec2_traffic_mirror_session" "corp_subnet_tap_traffic_mirror_sessio
 
 ########################################### Create network traffic mirror sessions - IoT ###########################################
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
-data "aws_instances" "iot_subnet_instances" {
+data "aws_instances" "iot_plcs_subnet_instances" {
   filter {
     name   = "subnet-id"
     values = [aws_subnet.iot.id]
   }
+
+  filter {
+    name   = "tag:IOTtype"
+    values = ["plc"]
+  }
+
+  filter {
+    name = "tag:Name"
+    values = [
+      #"${var.PROJECT_PREFIX}_iot_plc01_server",
+      #"${var.PROJECT_PREFIX}_iot_plc02_server",
+      #"${var.PROJECT_PREFIX}_iot_plc03_server",
+      #"${var.PROJECT_PREFIX}_iot_plc04_server",
+      #"${var.PROJECT_PREFIX}_iot_plc05_server",
+      #"${var.PROJECT_PREFIX}_iot_plc06_server",
+      #"${var.PROJECT_PREFIX}_iot_plc07_server",
+      #"${var.PROJECT_PREFIX}_iot_plc08_server",
+      #"${var.PROJECT_PREFIX}_iot_plc09_server",
+      #"${var.PROJECT_PREFIX}_iot_plc10_server",
+      #"${var.PROJECT_PREFIX}_iot_plc11_server",
+    ]
+  }
+
   instance_state_names = ["running", "stopped"]
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
-data "aws_instance" "iot_subnet_instance" {
-  for_each    = toset(data.aws_instances.iot_subnet_instances.ids)
+data "aws_instance" "iot_plcs_subnet_instance" {
+  for_each    = toset(data.aws_instances.iot_plcs_subnet_instances.ids)
   instance_id = each.key
 }
 
 # Note: security onion server instance must be running to create below
 #	else you will get InvalidTrafficMirrorTarget error
-resource "aws_ec2_traffic_mirror_session" "iot_subnet_tap_traffic_mirror_sessions" {
-  for_each = data.aws_instance.iot_subnet_instance
+resource "aws_ec2_traffic_mirror_session" "iot_plcs_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.iot_plcs_subnet_instance
+
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+  session_number           = 1
+  tags = {
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
+data "aws_instances" "iot_hmis_subnet_instances" {
+  filter {
+    name   = "subnet-id"
+    values = [aws_subnet.iot.id]
+  }
+
+  filter {
+    name   = "tag:IOTtype"
+    values = ["hmi"]
+  }
+
+  instance_state_names = ["running", "stopped"]
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "iot_hmis_subnet_instance" {
+  for_each    = toset(data.aws_instances.iot_hmis_subnet_instances.ids)
+  instance_id = each.key
+}
+
+# Note: security onion server instance must be running to create below
+#	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "iot_hmis_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.iot_hmis_subnet_instance
 
   description              = "${each.value.tags["Name"]} traffic mirror session"
   network_interface_id     = each.value.network_interface_id

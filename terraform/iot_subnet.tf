@@ -71,6 +71,7 @@ resource "aws_instance" "iot_plc_servers" {
     Name        = "${var.PROJECT_PREFIX}_${each.key}_server"
     Project     = var.PROJECT_PREFIX
     Environment = "iot"
+    IOTtype     = "plc"
   }
 
 }
@@ -163,5 +164,6 @@ resource "aws_instance" "iot_hmi_servers" {
     Name        = "${var.PROJECT_PREFIX}_${each.key}_server"
     Project     = var.PROJECT_PREFIX
     Environment = "iot"
+    IOTtype     = "hmi"
   }
 }

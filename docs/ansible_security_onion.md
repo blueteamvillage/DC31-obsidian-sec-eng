@@ -40,5 +40,13 @@ terraform apply -target=aws_instance.securityonion_server -target=aws_ec2_traffi
 ```
 
 ## References
-* https://github.com/blueteamvillage/obsidian-sec-eng/tree/main/ansible/conf/security_onion
-* https://github.com/blueteamvillage/obsidian-sec-eng/blob/main/ansible/roles/linux/install_security_onion.yml
+* [install_security_onion.yml](https://github.com/blueteamvillage/obsidian-sec-eng/blob/main/ansible/roles/linux/install_security_onion.yml)
+* [conf/security_onion](https://github.com/blueteamvillage/obsidian-sec-eng/tree/main/ansible/conf/security_onion)
+* [Traffic Mirroring considerations](https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-considerations.html)
+* [describe-instances](https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html)
+* [Data Source: aws_instances](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances)
+* [Data Source: aws_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip)
+* [Filter Terraform Data Source by AWS Tag](https://wahlnetwork.com/2020/04/30/filter-terraform-data-source-by-aws-tag-value/)
+* []()
+* []()
+* []()

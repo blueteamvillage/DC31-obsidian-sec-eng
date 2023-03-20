@@ -133,7 +133,6 @@ variable "iot_cidr_block" {
 variable "iot_subnet_map" {
   type = map(string)
   default = {
-    "iot01"           = "172.16.60.10",
     "iot_plc01"       = "172.16.60.11",
     "iot_plc02"       = "172.16.60.12",
     "iot_plc03"       = "172.16.60.13",

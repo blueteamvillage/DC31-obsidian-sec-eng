@@ -17,8 +17,27 @@ This will provision a Windows Server to be a domain controller
 1. `ansible-playbook -i hosts.ini deploy_domain_controller.yml`
 
 ## Install Teleport
-1. `(Invoke-WebRequest -Uri https://teleport.blueteamvillage.com/v1/webapi/scripts/desktop-access/install-ad-cs.ps1).Content | Invoke-Expression`
+1. Open Powershell as Administrator
+```powershell
+$ErrorActionPreference = "Stop"
+
+Add-WindowsFeature Adcs-Cert-Authority -IncludeManagementTools
+Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -HashAlgorithmName SHA384 -Force
+Restart-Computer -Force
+```
 1. `(Invoke-WebRequest -Uri https://teleport.blueteamvillage.com/v1/webapi/scripts/desktop-access/configure/8085d934a8635b609dddacb46b03c284/configure-ad.ps1).Content | Invoke-Expression`
+1. Copy config output
+
+## Teleport cluster setup
+1. SSH into Teleport
+1. Add the teleport config output from above
+    1. [Example config](../conf/teleport/teleport.yaml)
+1. Restart Teleport
+
+## Set up Teleport Access
+1. `tctl create -f conf/teleport/windows_desktop_admins.yaml`
 
 ## References
 * [ansible.windows.win_service module ](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_service_module.html)
+* [Getting Started with Desktop Access](https://goteleport.com/docs/desktop-access/getting-started/)
+* [Getting started with Teleport Desktop Access for Windows Servers](https://www.youtube.com/watch?v=YvMqgcq0MTQ)

@@ -680,112 +680,98 @@ resource "aws_ec2_traffic_mirror_filter_rule" "seconion_traffic_mirror_ipv6_filt
   traffic_direction        = "egress"
 }
 
-########################################### Create network traffic mirror sessions  - DMZ ###########################################
+########################################### Create network traffic mirror sessions  - DMZ/prod ###########################################
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
+data "aws_instances" "dmz_subnet_instances" {
+  filter {
+    name   = "subnet-id"
+    values = [aws_subnet.prod.id]
+  }
+  instance_state_names = ["running", "stopped"]
+}
 
-# Traffic Mirroring for DMZ Web Server
-resource "aws_ec2_traffic_mirror_session" "vuln_log4j_webserver_subnet_traffic_mirror_session" {
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "dmz_subnet_instance" {
+  for_each    = toset(data.aws_instances.dmz_subnet_instances.ids)
+  instance_id = each.key
+}
 
-  description              = "${var.PROJECT_PREFIX}_vuln_log4j_webserver_traffic_mirror_session"
-  network_interface_id     = aws_instance.vuln_log4j_webserver.primary_network_interface_id
+# Note: security onion server instance must be running to create below
+#	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "dmz_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.dmz_subnet_instance
+
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
   session_number           = 1
-
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_VULN_LOG4J_WEB_SERVER_traffic_mirror_session"
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
     Project = var.PROJECT_PREFIX
   }
-
 }
 
-# Traffic Mirroring for DMZ RDP Host = IOT JUMPHOST?
-# resource "aws_ec2_traffic_mirror_session" "dmz_rdp_host_subnet_traffic_mirror_session" {
-#
-#   description              = "${var.PROJECT_PREFIX}_WINDOWS_DMZ_RDP_SERVER_traffic_mirror_session"
-#   network_interface_id     = aws_instance.WINDOWS_DMZ_RDP_SERVER.primary_network_interface_id
-#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-#   session_number           = 1
-#
-#   tags = {
-#     Name    = "${var.PROJECT_PREFIX}_WINDOWS_DMZ_RDP_SERVER_traffic_mirror_session"
-#     Project = var.PROJECT_PREFIX
-#   }
-# }
-
-########################################### Create network traffic mirror sessions  - CORP ###########################################
+########################################### Create network traffic mirror sessions - CORP ###########################################
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
 data "aws_instances" "corp_subnet_instances" {
   filter {
-    name   = "tag:Project"
-    values = ["DEFCON_2023_OBSIDIAN"]
+    name   = "subnet-id"
+    values = [aws_subnet.corp.id]
   }
+  instance_state_names = ["running", "stopped"]
+}
 
-  # instance_tags = {
-  #   "Project"     = "DEFCON_2023_OBSIDIAN"
-  #   #"Environment" = "corp"
-  # }
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "corp_subnet_instance" {
+  for_each    = toset(data.aws_instances.corp_subnet_instances.ids)
+  instance_id = each.key
 }
 
 # Note: security onion server instance must be running to create below
 #	else you will get InvalidTrafficMirrorTarget error
 resource "aws_ec2_traffic_mirror_session" "corp_subnet_tap_traffic_mirror_sessions" {
-  count = length(data.aws_instances.corp_subnet_instances)
+  for_each = data.aws_instance.corp_subnet_instance
 
-  #description              = "${data.aws_instances.corp_subnet_tap_traffic_mirror_sessions.ids[count.index].tags["Name"]}_traffic_mirror_session"
-  network_interface_id     = data.aws_instances.corp_subnet_instances[count.index]
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
   session_number           = 1
   tags = {
-    #Name    = "${data.aws_instances.corp_subnet_tap_traffic_mirror_sessions.ids[count.index].tags["Name"]}_traffic_mirror_session"
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
     Project = var.PROJECT_PREFIX
   }
 }
 
+########################################### Create network traffic mirror sessions - IoT ###########################################
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
+data "aws_instances" "iot_subnet_instances" {
+  filter {
+    name   = "subnet-id"
+    values = [aws_subnet.iot.id]
+  }
+  instance_state_names = ["running", "stopped"]
+}
 
-# # Domain Controller
-# resource "aws_ec2_traffic_mirror_session" "domain_controller_traffic_mirror_session" {
-#   description              = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
-#   network_interface_id     = aws_instance.windows_domain_controller.primary_network_interface_id
-#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-#   session_number           = 1
-#   tags = {
-#     Name    = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
-#     Project = var.PROJECT_PREFIX
-#   }
-# }
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "iot_subnet_instance" {
+  for_each    = toset(data.aws_instances.iot_subnet_instances.ids)
+  instance_id = each.key
+}
 
+# Note: security onion server instance must be running to create below
+#	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "iot_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.iot_subnet_instance
 
-# # Corp Docker Server
-# resource "aws_ec2_traffic_mirror_session" "corp_docker_server_traffic_mirror_session" {
-#   description              = "${var.PROJECT_PREFIX}_FILE_SERVER_traffic_mirror_session"
-#   network_interface_id     = aws_instance.corp_docker_server.primary_network_interface_id
-#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-#   session_number           = 1
-#   tags = {
-#     Name    = "${var.PROJECT_PREFIX}_CORP_DOCKER_SERVER_traffic_mirror_session"
-#     Project = var.PROJECT_PREFIX
-#   }
-# }
-
-
-# # Windows Clients
-# resource "aws_ec2_traffic_mirror_session" "windows_clients_traffic_mirror_session" {
-
-#   for_each = {
-#     for k, v in var.corp_subnet_map : k => v
-#     if length(regexall("win_client\\d+", k)) > 0
-#   }
-
-#   description              = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
-#   network_interface_id     = aws_instance.windows_clients[each.key].primary_network_interface_id
-#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-#   session_number           = 1
-#   tags = {
-#     Name    = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
-#     Project = var.PROJECT_PREFIX
-#   }
-# }
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+  session_number           = 1
+  tags = {
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
+    Project = var.PROJECT_PREFIX
+  }
+}

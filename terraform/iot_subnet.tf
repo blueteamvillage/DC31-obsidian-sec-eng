@@ -54,6 +54,7 @@ resource "aws_instance" "iot_plc_servers" {
   vpc_security_group_ids = [aws_security_group.iot_plc_servers.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = each.value
+
   metadata_options {
     # https://github.com/hashicorp/terraform-provider-aws/issues/12564
     http_endpoint = "enabled"
@@ -146,6 +147,7 @@ resource "aws_instance" "iot_hmi_servers" {
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = each.value
   disable_api_termination = true
+  user_data               = data.template_file.password_change.rendered
 
   metadata_options {
     http_endpoint          = "enabled"

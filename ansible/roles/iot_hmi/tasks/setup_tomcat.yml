@@ -7,36 +7,36 @@
     path: 'C:\Program Files\Apache Software Foundation\Tomcat {{ tomcat_major_version }}.0\bin\Tomcat{{ tomcat_major_version }}.exe'
   register: win_tomcat
 
-# - name: Download Tomcat
-#   ansible.windows.win_get_url:
-#     url: "{{ tomcat_dl_url }}"
-#     dest: '%USERPROFILE%\AppData\Local\Temp\apache-tomcat-{{ tomcat_version }}.exe'
-#   when: not win_tomcat.stat.exists
-
-
-- name: Create tomcat-app folder under C drive
-  ansible.windows.win_file:
-    path: C:\tomcat-app
-    state: directory
-  when: not win_tomcat.stat.exists
-
-- name: Download Tomcat9 installer to tomcat-app folder
+- name: Download Tomcat
   ansible.windows.win_get_url:
     url: "{{ tomcat_dl_url }}"
-    dest: C:\tomcat-app\apache-tomcat-{{ tomcat_major_version }}.exe
+    dest: '%USERPROFILE%\AppData\Local\Temp\apache-tomcat-{{ tomcat_version }}.exe'
+  when: not win_tomcat.stat.exists
 
-- name: Install Tomcat service
-  ansible.windows.win_shell: |
-    C:\tomcat-app\apache-tomcat-{{ tomcat_major_version }}.exe //IS//Tomcat{{ tomcat_major_version }} ^
-    --DisplayName="Apache Tomcat {{ tomcat_major_version }}" ^
-    --Install="C:\Program Files\Tomcat\bin\tomcat{{ tomcat_major_version }}.exe" ^
-    --Jvm=auto ^
-    --StartMode=jvm ^
-    --StopMode=jvm ^
-    --StartClass=org.apache.catalina.startup.Bootstrap ^
-    --StartParams=start ^
-    --StopClass=org.apache.catalina.startup.Bootstrap ^
-    --StopParams=stop
+
+# - name: Create tomcat-app folder under C drive
+#   ansible.windows.win_file:
+#     path: C:\tomcat-app
+#     state: directory
+#   when: not win_tomcat.stat.exists
+
+# - name: Download Tomcat9 installer to tomcat-app folder
+#   ansible.windows.win_get_url:
+#     url: "{{ tomcat_dl_url }}"
+#     dest: C:\tomcat-app\apache-tomcat-{{ tomcat_major_version }}.exe
+
+# - name: Install Tomcat service
+#   ansible.windows.win_shell: |
+#     C:\tomcat-app\apache-tomcat-{{ tomcat_major_version }}.exe //IS//Tomcat{{ tomcat_major_version }} ^
+#     --DisplayName="Apache Tomcat {{ tomcat_major_version }}" ^
+#     --Install="C:\Program Files\Tomcat\bin\tomcat{{ tomcat_major_version }}.exe" ^
+#     --Jvm=auto ^
+#     --StartMode=jvm ^
+#     --StopMode=jvm ^
+#     --StartClass=org.apache.catalina.startup.Bootstrap ^
+#     --StartParams=start ^
+#     --StopClass=org.apache.catalina.startup.Bootstrap ^
+#     --StopParams=stop
 
 
 # - name: Install Tomcat
@@ -48,21 +48,26 @@
 # - name: Create Tomcat service
 
 
-- name: Start Tomcat
-  ansible.windows.win_service:
-    name: 'Tomcat9'
-    state: restarted
+# - name: Start Tomcat
+#   ansible.windows.win_service:
+#     name: 'Tomcat9'
+#     state: restarted
 
 ####################################################################
 # Healthcheck Tomcat
 ####################################################################
+- name: Wait 300 seconds for Tomcat port to become open on the host, don't start checking for 10 seconds
+  ansible.windows.win_wait_for:
+    port: "{{ tomcat_port }}"
+    delay: 10
+
 - name: Tomcat health check
   ansible.windows.win_uri:
-    url: "http://127.0.0.1:{{ tomcat_port }}/ScadaBR/login.htm"
-    follow_redirects: false
+    url: "http://127.0.0.1:{{ tomcat_port }}"
+    follow_redirects: none
     method: GET
     status_code: 200
-  register: nginx_result
-  until: nginx_result.status == 200
+  register: tomcat_result
+  until: tomcat_result.status_code == 200
   retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
   delay: 5  # Every 5 seconds

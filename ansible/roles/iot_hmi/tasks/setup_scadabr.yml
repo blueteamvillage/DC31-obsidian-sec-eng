@@ -23,11 +23,11 @@
 ####################################################################
 - name: ScadaBR health check
   ansible.windows.win_uri:
-    url: "http://127.0.0.1:{{ tomcat_port }}"
+    url: "http://127.0.0.1:{{ tomcat_port }}/ScadaBR/login.htm"
     follow_redirects: none
     method: GET
     status_code: 200
-  register: nginx_result
-  until: nginx_result.status_code == 200
+  register: scadabr_result
+  until: scadabr_result.status_code == 200
   retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
   delay: 5  # Every 5 seconds

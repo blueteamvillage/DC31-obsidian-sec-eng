@@ -19,7 +19,6 @@
     timezone: '{{ timezone.split("/")[1] }}'
   tags: 'sysprep'
 
-
 ####################################################################
 # DISABLE updates
 ####################################################################
@@ -48,22 +47,16 @@
 ####################################################################
 # Install software
 ####################################################################
-- name: Install chocolatey
-  chocolatey.chocolatey.win_chocolatey:
-    name:
-      - chocolatey
-      - chocolatey-core.extension
-    state: present
+- name: Stat Firefox
+  ansible.windows.win_stat:
+    path: 'C:\Program Files\Mozilla Firefox\firefox.exe'
+  register: win_firefox
 
-- name: Install software
-  chocolatey.chocolatey.win_chocolatey:
-    name: '{{ item }}'
-    state: latest
-  with_items:
-    - 'googlechrome'
-    - 'vscode'
-    - 'wireshark'
-    - 'sysinternals'
+- name: Install Firefox
+  ansible.windows.win_package:
+    path: "{{ firefox_dl_url }}"
+    state: present
+  when: not win_firefox.stat.exists
 
 ####################################################################
 # Delay WinRM for reliability

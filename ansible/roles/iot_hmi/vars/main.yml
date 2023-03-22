@@ -16,3 +16,5 @@ python_dl_url: "https://www.python.org/ftp/python/{{ python_version }}/python-{{
 
 tightvnc_version: "2.8.75"
 tightvnc_dl_url: "https://www.tightvnc.com/download/{{ tightvnc_version }}/tightvnc-{{ tightvnc_version }}-gpl-setup-64bit.msi"
+
+firefox_dl_url: "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US"

@@ -48,12 +48,15 @@ resource "aws_instance" "iot_plc_servers" {
     if can(regex("iot_plc.*", k))
   }
 
-  ami                    = var.ubunut-ami
-  instance_type          = "t3.nano"
-  subnet_id              = aws_subnet.iot.id
-  vpc_security_group_ids = [aws_security_group.iot_plc_servers.id]
-  key_name               = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip             = each.value
+  ami           = var.ubunut-ami
+  instance_type = "t3.nano"
+  subnet_id     = aws_subnet.iot.id
+  vpc_security_group_ids = [
+    aws_security_group.iot_plc_servers.id,
+    aws_security_group.node_exporter_clients.id,
+  ]
+  key_name   = "${var.PROJECT_PREFIX}-ssh-key"
+  private_ip = each.value
 
   metadata_options {
     # https://github.com/hashicorp/terraform-provider-aws/issues/12564
@@ -140,10 +143,13 @@ resource "aws_instance" "iot_hmi_servers" {
     if can(regex("iot_hmi.*", k))
   }
 
-  ami                     = var.iot_hmi_ami
-  instance_type           = "t3.small"
-  subnet_id               = aws_subnet.iot.id
-  vpc_security_group_ids  = [aws_security_group.iot_hmi_servers.id]
+  ami           = var.iot_hmi_ami
+  instance_type = "t3.small"
+  subnet_id     = aws_subnet.iot.id
+  vpc_security_group_ids = [
+    aws_security_group.iot_hmi_servers.id,
+    aws_security_group.node_exporter_clients.id,
+  ]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = each.value
   disable_api_termination = true

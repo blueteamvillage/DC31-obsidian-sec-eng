@@ -71,3 +71,16 @@
   until: tomcat_result.status_code == 200
   retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
   delay: 5  # Every 5 seconds
+
+####################################################################
+# Firewall
+####################################################################
+- name: Firewall rule to allow Tomcat on TCP port {{ tomcat_port }}
+  community.windows.win_firewall_rule:
+    name: Tomcat
+    localport: "{{ tomcat_port }}"
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+    enabled: yes

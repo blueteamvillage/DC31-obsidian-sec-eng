@@ -56,3 +56,27 @@
   until: nginx_result.status_code == 200
   retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
   delay: 5  # Every 5 seconds
+
+####################################################################
+# Firewall
+####################################################################
+- name: Firewall rule to allow Win Node Exporter on TCP port {{ node_exporter_port }}
+  community.windows.win_firewall_rule:
+    name: Win Node Exporter
+    localport: "{{ node_exporter_port }}"
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+    enabled: yes
+
+- name: Win Node Exporter health check + Firewall
+  ansible.builtin.uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ node_exporter_port }}/metrics"
+    follow_redirects: none
+    method: GET
+    validate_certs: 'no'
+  register: _result
+  until: _result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

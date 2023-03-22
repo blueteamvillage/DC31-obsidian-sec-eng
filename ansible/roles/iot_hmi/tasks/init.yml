@@ -7,7 +7,7 @@
     name: "{{ inventory_hostname }}"
   register: hostname_state
 
-- name: Reboot after changing the hostname
+- name: Reboot after changing the hostname  # noqa no-handler
   ansible.windows.win_reboot:
   when: hostname_state is changed
 

@@ -37,7 +37,8 @@ This section assumes you have completed the pre-reqs.
     1. `hmidelta` - `172.16.60.203`
     1. ![teleport_ssh_tunnel_scadabr](../.img/teleport_ssh_tunnel_scadabr.png)
 1. Open a web browser
-1.
+1. Enter `http://127.0.0.1:8080/ScadaBR/login.htm`
+    1. ![teleport_ssh_tunnel_webui](../.img/teleport_ssh_tunnel_webui.png)
 
 
 

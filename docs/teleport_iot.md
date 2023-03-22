@@ -8,7 +8,20 @@ This runbook is for the IoT admins to access the IoT devices.
 * Install [Microsoft Remote Desktop app](https://www.microsoft.com/store/apps/9wzdncrfj3ps)
 * Access to the SecEng cred sheet - reach out to seceng to be granted access
 
-## Connecting to Windows HMIs via RDP
+## Connecting to Windows HMIs
+
+### ScadaBR web portal via Teleport
+THIS FEATURE IS EXPERIMENTAL, if you have any issues please use the method below `ScadaBR web portal via SSH tunnel`. If you run into any issues please report them to seceng.
+
+1. Open a web browser to `https://teleport.blueteamvillage.com/`
+1. Log into Teleport with your Github account
+1. Select "Applications"
+    1. ![teleport_app_scadabr](../.img/teleport_app_scadabr.png)
+1. Select "Launch" on the right for a scadaBR instance
+1. Your browser should direct you to the scadaBR instance
+
+
+### Connect to instance via RDP
 This section assumes you have completed the pre-reqs.
 
 1. Open terminal
@@ -26,7 +39,8 @@ This section assumes you have completed the pre-reqs.
 1. Double click the new entry
 1. Enter the username and password from the SecEng cred sheet - see prereq
 
-## Connecting to Windows HMIs ScadaBR web portal
+
+### ScadaBR web portal via SSH tunnel
 This section assumes you have completed the pre-reqs.
 
 1. Open terminal

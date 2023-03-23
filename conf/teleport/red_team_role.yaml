@@ -7,7 +7,7 @@ spec:
     logins:
       - ubuntu
     node_labels:
-      Environment: red_team
+      aws/Environment: red_team
   deny: {}
   options:
     cert_format: standard

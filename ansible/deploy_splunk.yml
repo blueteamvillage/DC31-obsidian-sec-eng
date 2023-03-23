@@ -4,7 +4,6 @@
   hosts: splunk
   become: yes
   become_user: root
-  become_method: sudo
   pre_tasks:
     - name: Create splunk group
       ansible.builtin.group:
@@ -25,9 +24,13 @@
         src: "{{ splunk_installer_orchestrator_path }}"
         dest: "{{ splunk.build_location }}"
         mode: 0644
+    - name: Ensure acl package is present for unprivileged become
+      ansible.builtin.package:
+        name: acl
+        state: present
   roles:
     - splunk_standalone
   tasks:
-    - include_vars: 'group_vars/metrics.yml'
+    # - include_vars: 'group_vars/metrics.yml'
     - import_tasks: 'roles/linux/init_linux.yml'
-    - import_tasks: 'roles/linux/setup_node_exporter.yml'
+    # - import_tasks: 'roles/linux/setup_node_exporter.yml'

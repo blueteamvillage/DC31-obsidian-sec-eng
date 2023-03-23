@@ -7,3 +7,4 @@
   become_method: sudo
   roles:
     - blueteamvillage.btv-sec-eng-teleport-cluster
+    - node_exporter

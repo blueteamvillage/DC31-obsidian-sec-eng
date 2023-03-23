@@ -1,0 +1,58 @@
+---
+
+- name: Check if Winlogbeat is installed
+  win_service:
+    name: winlogbeat
+  register: winlogbeat
+
+- name: Create installation directory
+  win_file:
+    path: "{{ winlogbeat_install_path }}"
+    state: directory
+  when: not winlogbeat.exists
+
+- name: Download Winlogbeat
+  win_get_url:
+    url: "{{ winlogbeat_url }}"
+    dest: "{{ ansible_env.TEMP }}\\winlogbeat.zip"
+  when: not winlogbeat.exists
+
+- name: Unzip Winlogbeat
+  win_unzip:
+    src: "{{ ansible_env.TEMP }}\\winlogbeat.zip"
+    dest: "{{ ansible_env.TEMP }}\\winlogbeat"
+    delete_archive: yes
+  when: not winlogbeat.exists
+
+- name: Copy unzipped files to permanant install directory
+  win_copy:
+    src: "{{ ansible_env.TEMP }}\\winlogbeat\\winlogbeat-{{ winlogbeat_version }}-windows-x86_64\\"
+    dest: "{{ winlogbeat_install_path }}"
+    remote_src: yes
+  when: not winlogbeat.exists
+
+- name: Upload Winlogbeat config
+  # Template does the same thing as win_copy and lets us Ansible variables in the Winlogbeat config file!
+  template:
+    src: conf/windows/winlogbeat/winlogbeat.yml
+    dest: "{{ winlogbeat_install_path }}\\winlogbeat.yml"
+
+- name: Install Winlogbeat
+  # Winlogbeat will automatically load configuration from "winlogbeat.yml" in the same directory
+  win_shell: powershell -ExecutionPolicy Bypass -File .\install-service-winlogbeat.ps1
+  args:
+    chdir: "{{ winlogbeat_install_path }}"
+  when: not winlogbeat.exists
+
+- name: Check Winlogbeat config
+  win_shell: '.\winlogbeat.exe test config'
+  args:
+    chdir: "{{ winlogbeat_install_path }}"
+  register: win_log_beat_config
+
+- name: Restart and enable Winlogbeat
+  win_service:
+    name: winlogbeat
+    state: restarted
+    start_mode: auto
+  when: not winlogbeat.exists or win_log_beat_config.changed

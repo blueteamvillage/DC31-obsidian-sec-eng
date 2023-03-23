@@ -50,6 +50,13 @@ scrape_configs:
         ]
 
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'teleport'
+    static_configs:
+      # Public subnet
+      - targets: [
+          "172.16.10.93:3000", # teleport
+        ]
+
   - job_name: 'node_exporter'
     static_configs:
       # Public subnet

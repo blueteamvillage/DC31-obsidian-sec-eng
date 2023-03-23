@@ -71,7 +71,7 @@
     follow_redirects: none
     method: GET
     status_code: 200
-  register: uri_result
-  until: uri_result.status == 200
+  register: node_exporter_result
+  until: node_exporter_result.status == 200
   retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
   delay: 5  # Every 5 seconds

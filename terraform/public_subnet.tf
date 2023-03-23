@@ -437,6 +437,17 @@ resource "aws_security_group" "securityonion_server_sg2" {
     ]
   }
 
+  ingress {
+    description = "Allow Elastic tcp/9200 from Cribl"
+    from_port   = 9200
+    to_port     = 9200
+    protocol    = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      "${var.logging_subnet_map["cribl"]}/32",
+    ]
+  }
+
   #tfsec:ignore:aws-ec2-no-public-egress-sgr
   egress {
     description = "Allow Outbound"
@@ -475,9 +486,11 @@ resource "aws_instance" "securityonion_server" {
   # vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   disable_api_termination = true
+
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
   }
 
   network_interface {

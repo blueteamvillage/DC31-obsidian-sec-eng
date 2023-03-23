@@ -29,7 +29,7 @@ resource "aws_security_group_rule" "iot01_allow_prometheus" {
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32",
-    "${aws_instance.metrics_server.private_ip}/32"
+    "${aws_instance.metrics.private_ip}/32"
   ]
   security_group_id = aws_security_group.iot01_server.id
 }

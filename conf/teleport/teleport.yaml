@@ -8,7 +8,8 @@ teleport:
     format:
       output: text
   ca_pin: ""
-  diag_addr: ""
+  # enable metric collection
+  diag_addr: 127.0.0.1:3000
   storage:
     type: dynamodb
     region: "us-east-2"

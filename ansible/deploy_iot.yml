@@ -1,15 +1,22 @@
 ---
 
-- name: Setup IoT environment
+- name: Setup IoT PLC environment
   hosts: iot_plc
   become: yes
   become_user: root
+  pre_tasks:
+    - import_tasks: 'roles/linux/init_linux.yml'
+    - name: Remove sysmon
+      ansible.builtin.package:
+        name:
+          - sysmonforlinux
+          - sysinternalsebpf
+        state: absent
+      when: false
   roles:
     - davidmarkallison.openplc
     - geerlingguy.filebeat
     - juju4.osquery
-    - juju4.sysmon
     - node_exporter
-    - prymalinstynct.velociraptor
-  tasks:
-    - import_tasks: 'roles/linux/init_linux.yml'
+    - juju4.sysmon
+    # - prymalinstynct.velociraptor

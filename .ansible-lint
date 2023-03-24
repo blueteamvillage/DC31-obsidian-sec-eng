@@ -40,6 +40,8 @@ use_default_rules: true
 # This makes linter to fully ignore rules/tags listed below
 skip_list:
   - role-name
+  - package-latest
+  - loop-var-prefix[missing]
 
 # Any rule that has the 'opt-in' tag will not be loaded unless its 'id' is
 # mentioned in the enable_list:

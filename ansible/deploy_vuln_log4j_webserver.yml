@@ -1,6 +1,10 @@
 ---
 - name: Install/Setup Vulnerable Log4j webserver
   become: true
-  hosts: all
+  hosts: log4j
   roles:
     - role: log4j
+    - juju4.osquery
+    - juju4.sysmon
+    - node_exporter
+    - prymalinstynct.velociraptor

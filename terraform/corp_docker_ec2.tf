@@ -1,6 +1,6 @@
 ################################ CORP DOCKER SERVER ##################################
 resource "aws_security_group" "corp_docker_server" {
-  vpc_id      = module.vpc.vgw_id
+  vpc_id      = module.vpc.vpc_id
   description = "Corporate docker server security group"
 
   tags = {
@@ -17,6 +17,19 @@ resource "aws_security_group_rule" "corp_docker_allow_ingress_ssh" {
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32"
+  ]
+  security_group_id = aws_security_group.corp_docker_server.id
+}
+
+resource "aws_security_group_rule" "corp_docker_allow_prometheus" {
+  type        = "ingress"
+  description = "Allow Prometheus to access node exporter"
+  from_port   = 9100
+  to_port     = 9100
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    "${aws_instance.metrics.private_ip}/32"
   ]
   security_group_id = aws_security_group.corp_docker_server.id
 }
@@ -40,7 +53,8 @@ resource "aws_instance" "corp_docker_server" {
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = var.corp_subnet_map["dockerserver"]
   metadata_options {
-    http_tokens = "required"
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   root_block_device {

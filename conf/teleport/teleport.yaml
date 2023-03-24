@@ -1,0 +1,131 @@
+---
+version: v3
+teleport:
+  nodename: ip-172-16-10-93
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+    format:
+      output: text
+  ca_pin: ""
+  diag_addr: 172.16.10.93:3000
+  storage:
+    type: dynamodb
+    region: "us-east-2"
+    # Name of the DynamoDB table. If it does not exist, Teleport will create it.
+    table_name: DEFCON_2023_OBSIDIAN-teleport-pcq49
+    audit_events_uri: ['dynamodb://DEFCON_2023_OBSIDIAN-teleport-pcq49-events', 'file:///var/lib/teleport/audit/events', 'stdout://']
+    audit_sessions_uri: "s3://defcon-2023-obsidian-teleport-kxl6y/records"
+    audit_retention_period: 90d
+auth_service:
+  enabled: "yes"
+  listen_addr: 0.0.0.0:3025
+  cluster_name: teleport.blueteamvillage.com
+  proxy_listener_mode: multiplex
+ssh_service:
+  enabled: "yes"
+  commands:
+    - name: hostname
+      command: [hostname]
+      period: 1m0s
+proxy_service:
+  enabled: "yes"
+  web_listen_addr: 0.0.0.0:443
+  public_addr: teleport.blueteamvillage.com:443
+  https_keypairs: []
+  acme:
+    enabled: "yes"
+    email: admin@teleport.blueteamvillage.com
+app_service:
+  enabled: "yes"
+  apps:
+    ######################################## IoT ########################################
+    - name: hmi-alpha-scadabr
+      uri: "http://172.16.60.200:8080/ScadaBR/login.htm"
+      labels:
+        env: "iot"
+    - name: hmi-beta-scadabr
+      uri: "http://172.16.60.201:8080/ScadaBR/login.htm"
+      labels:
+        env: "iot"
+    - name: hmi-charlie-scadabr
+      uri: "http://172.16.60.202:8080/ScadaBR/login.htm"
+      labels:
+        env: "iot"
+    - name: hmi-delta-scadabr
+      uri: "http://172.16.60.203:8080/ScadaBR/login.htm"
+      labels:
+        env: "iot"
+    ######################################## SIEMs ########################################
+    - name: "splunk"
+      uri: "https://172.16.22.20:443"
+      insecure_skip_verify: true
+      labels:
+        env: logging
+    - name: "velociraptor"
+      uri: "https://172.16.22.130:443"
+      insecure_skip_verify: true
+      labels:
+        env: logging
+    - name: "cribl"
+      uri: "https://172.16.22.10:443"
+      insecure_skip_verify: true
+      labels:
+        env: logging
+    - name: "securityonion"
+      uri: "https://172.16.22.23:443/login/?flow=6d4b0c72-32b6-420d-b50a-5c0157c6b36c"
+      insecure_skip_verify: true
+      labels:
+        env: logging
+      rewrite:
+        headers:
+          # - "Host: securityonion.magnumtempusfinancial.com"
+          - "Origin: https://securityonion.teleport.blueteamvillage.com"
+    ######################################## Intra ########################################
+    - name: "grafana"
+      uri: "https://172.16.21.10:443"
+      insecure_skip_verify: true
+      labels:
+        env: intra
+      rewrite:
+        headers:
+          - "Host: grafana.teleport.blueteamvillage.com"
+          - "Origin: https://grafana.teleport.blueteamvillage.com"
+windows_desktop_service:
+  enabled: yes
+  listen_addr: 0.0.0.0:3028
+  public_addr: "teleport.blueteamvillage.com:3028"
+  ldap:
+    addr: '172.16.50.100:636'
+    domain: 'magnumtempus.financial'
+    username: 'MAGNUMTEMPUS\svc-teleport'
+    sid: 'S-1-5-21-2369732838-3797832421-459094119-1103'
+    server_name: 'dc.magnumtempus.financial'
+    insecure_skip_verify: false
+    ldap_ca_cert: |
+        -----BEGIN CERTIFICATE-----
+        MIIDhzCCAm+gAwIBAgIQV1ht51xgl5VHP9gRttnGbjANBgkqhkiG9w0BAQwFADBW
+        MRkwFwYKCZImiZPyLGQBGRYJZmluYW5jaWFsMRwwGgYKCZImiZPyLGQBGRYMbWFn
+        bnVtdGVtcHVzMRswGQYDVQQDExJtYWdudW10ZW1wdXMtREMtQ0EwHhcNMjMwMzE5
+        MjMzNDM1WhcNMjgwMzE5MjM0NDI5WjBWMRkwFwYKCZImiZPyLGQBGRYJZmluYW5j
+        aWFsMRwwGgYKCZImiZPyLGQBGRYMbWFnbnVtdGVtcHVzMRswGQYDVQQDExJtYWdu
+        dW10ZW1wdXMtREMtQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDe
+        4dQ10KCqga2YoGaMIcYdLCK7KMugWdOe9TIVhityE8Y6Hj+FKEB4AnzLIbOusL+M
+        +Ls6glX7/bKyKqij4yywoNN+beXd+wEsmJbl8ww6Isov6XMbGvAN/rNCOiN7aPoh
+        aZSD3xezgfWPPh+XmpKA50oaq3OlkFZCpZPmXtgNWt6MJ5BD0uOK25Ynps0PP5Tu
+        33h/BebUGSAoMakMANzdHRjIf3IEwXmkcT8Fp+cpqtkb3CmtJDtIRIMYW5Stmn95
+        FzMmfHbYkpWAlnXT9B0vapcUdmAq67HmdEVUWuNH2TSzJV5eWxTDsQq+DrtOwteK
+        r6rRC9sb8oxul+OD2c8FAgMBAAGjUTBPMAsGA1UdDwQEAwIBhjAPBgNVHRMBAf8E
+        BTADAQH/MB0GA1UdDgQWBBTojOkpYRNnqeqfgk/z8JLR+jn5EzAQBgkrBgEEAYI3
+        FQEEAwIBADANBgkqhkiG9w0BAQwFAAOCAQEARTXh+RCkJH5FwdgEkGFZXnzV9DUq
+        7IwYUbKwm4WVTn858YGA7039iRFjD5GYV8vVDxgXetiDxQrffEasnh8angNuLprf
+        H4+ckjrRjLaze+hmMr1ODECTvKHYoOotKe+QbmgAvTJCccWO86M/RnAY/KB3t+Ki
+        dWBVvHxWN4i42kNSYjkQSvRsgMx3nmRzJ8g+LH08O9eon9HMgPcqdS0i55zucSHg
+        0bQqT5YMliN8osLJLsTmZPagFpuikSxMtZoKoD2HfRnTMJPxmReo1QMcHS12g7v9
+        iPfKjcjXJPM3h8rYx6tqtBYv3XSWctVK4rMr0tSmuljRAYe7BVaH+7q2xA==
+        -----END CERTIFICATE-----
+  discovery:
+    base_dn: '*'
+  labels:
+    teleport.internal/resource-id: 25f9e190-e4e1-497f-bb3e-2ad797f51430

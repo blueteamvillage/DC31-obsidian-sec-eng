@@ -349,6 +349,18 @@ resource "aws_security_group" "splunk_server_sg" {
     cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
   }
 
+  # Splunk tcp/9997
+  ingress {
+    description = "Allow tcp/9997 from cribl to splunk"
+    from_port   = 9997
+    to_port     = 9997
+    protocol    = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      "${var.logging_subnet_map["cribl"]}/32",
+    ]
+  }
+
   # Allow Prometheus to access node exporter
   ingress {
     from_port = 9100

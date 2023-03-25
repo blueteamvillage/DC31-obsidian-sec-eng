@@ -1,7 +1,12 @@
 ---
 - hosts: 'win_workstations'
+  gather_facts: no
   tasks:
-    - include_vars: 'group_vars/metrics.yml'
+    - name: Debug | ansible_password
+      ansible.builtin.debug:
+        var: ansible_password
+      when: false
+    # - include_vars: 'group_vars/metrics.yml'
     # Commenting this out until velociraptor is deployed.
     # - include_vars: 'group_vars/velociraptor.yml'
     # - import_tasks: 'roles/windows/init_windows.yml'

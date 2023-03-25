@@ -233,6 +233,7 @@ resource "aws_security_group_rule" "cribl_allow_http" {
   to_port     = 9000
   protocol    = "tcp"
   cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
     # cribl needs to call itself
     "${aws_eip.cribl_server_eip.public_ip}/32",
     var.corp_cidr_block,
@@ -319,6 +320,19 @@ resource "aws_security_group" "splunk_server_sg" {
     cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
   }
 
+  # Splunk UI
+  ingress {
+    from_port = 8000
+    to_port   = 8000
+    protocol  = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      #var.publicCIDRblock,
+      #var.managementCIDRblock,
+      #"0.0.0.0/0"
+    ]
+  }
+
   # NGINX HTTP port for Splunk UI
   ingress {
     from_port = 80
@@ -351,6 +365,18 @@ resource "aws_security_group" "splunk_server_sg" {
     to_port     = 8089
     protocol    = "tcp"
     cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
+  }
+
+  # Splunk tcp/9997
+  ingress {
+    description = "Allow tcp/9997 from cribl to splunk"
+    from_port   = 9997
+    to_port     = 9997
+    protocol    = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      "${var.logging_subnet_map["cribl"]}/32",
+    ]
   }
 
   # Allow Prometheus to access node exporter

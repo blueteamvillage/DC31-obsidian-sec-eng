@@ -1,0 +1,12 @@
+---
+- hosts: 'win_workstations'
+  tasks:
+    - include_vars: 'group_vars/metrics.yml'
+    # Commenting this out until velociraptor is deployed.
+    # - include_vars: 'group_vars/velociraptor.yml'
+    # - import_tasks: 'roles/windows/init_windows.yml'
+    # - import_tasks: 'roles/windows/setup_rdp_servers.yml'
+    # - import_tasks: 'roles/windows/setup_sysmon.yml'
+    - import_tasks: 'roles/windows/setup_winlogbeat.yml'
+    # - import_tasks: 'roles/windows/setup_velociraptor_win_client.yml'
+    # - import_tasks: 'roles/windows/setup_node_exporter.yml'

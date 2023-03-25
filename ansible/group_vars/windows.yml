@@ -5,7 +5,7 @@ ansible_connection: winrm
 ansible_winrm_scheme: https
 ansible_winrm_server_cert_validation: ignore
 ansible_user: Administrator
-ansible_password: "{{ lookup('amazon.aws.aws_secret', 'win_domain_admin_passwd', region=aws_region) }}"
+ansible_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-win_domain_admin_passwd', region=aws_region) }}"
 
 # Sysmon
 sysmon_version: "14.14"
@@ -23,11 +23,11 @@ filebeat_url: "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{{
 filebeat_install_path: "C:\\Program Files\\Filebeat"
 
 # Domain Configuration
-safe_mode_password: "{{ lookup('amazon.aws.aws_secret', 'win_domain_admin_passwd', region=aws_region) }}"
+safe_mode_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-win_domain_admin_passwd', region=aws_region) }}"
 employees_csv: "conf/windows/domaincontroller/employees.csv"
 
 # hMail Server Configuration
-hmail_admin_password: "{{ lookup('amazon.aws.aws_secret', 'win_domain_admin_passwd', region=aws_region) }}"
+hmail_admin_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-win_domain_admin_passwd', region=aws_region) }}"
 
 # Kill Chain Users
 killchain03_fileserver_spn: "brent.socium"

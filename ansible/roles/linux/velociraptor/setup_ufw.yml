@@ -23,13 +23,13 @@
 
 - name: UFW health check
   uri:
-    url: "https://{{ velociraptor_fqdn }}:443/app/index.html"
+    url: "https://{{ velociraptor_fqdn }}/app/index.html"
     follow_redirects: none
     method: GET
-    validate_certs: 'no'
-    status_code: 200
+    validate_certs: 'yes'
+    status_code: "{{ velociraptor_healthcheck_app_index_status_code }}"
   register: ufw_result
-  until: ufw_result.status == 200
+  until: ufw_result.status == velociraptor_healthcheck_app_index_status_code
   retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
   delay: 5  # Every 5 seconds
   no_log: True

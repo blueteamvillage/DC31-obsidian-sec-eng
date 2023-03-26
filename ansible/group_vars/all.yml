@@ -17,11 +17,17 @@ teleport_ca_pin: "sha256:5348f23e3b179ecca76e317e0f5740893c88b2ed6abe76fb3dac5a1
 teleport_auth_servers:
   - 172.16.10.93:3025
 
-filebeat_version: 7.x
+filebeat_version: 8.x
 filebeat_inputs:
   - type: log
     paths:
       - "/var/log/*.log"
+  - type: log
+    paths:
+      - "/var/log/osquery/osqueryd.*.log"
+  - type: log
+    paths:
+      - "/var/log/sysmon/sysmon.log"
 filebeat_output_elasticsearch_enabled: true
 filebeat_output_elasticsearch_hosts:
   - "172.16.22.10:9200"

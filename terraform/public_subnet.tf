@@ -526,11 +526,32 @@ resource "aws_network_interface" "seconion_tap_interface" {
   }
 }
 
+# AWS has a limit of 10 mirror sources per interface.
+# This interface is created to handle anything greater than 10
+# https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-limits.html
+resource "aws_network_interface" "seconion_tap_interface_overflow" {
+  subnet_id       = aws_subnet.logging.id
+  security_groups = [aws_security_group.seconion_traffic_mirror_sg.id]
+  private_ips     = [var.logging_subnet_map["securityonion_bind_overflow"]]
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE_OVERFLOW"
+    Project = var.PROJECT_PREFIX
+  }
+
+  # WITHOUT this statement the seconion EC2 will be DESTROYED
+  # AND RE-CREATED
+  attachment {
+    instance     = aws_instance.securityonion_server.id
+    device_index = 2
+  }
+}
+
 resource "aws_instance" "securityonion_server" {
   ami = var.ubuntu-so-ami
   # instance_type = var.logging_ec2_size
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
-  instance_type = "t3a.xlarge"
+  instance_type = "t3.xlarge"
   # no subnet_id/private_ip/vpc_security_group_ids if network_interface is set explicitely
   # subnet_id               = aws_subnet.logging.id
   # private_ip              = var.logging_subnet_map["securityonion"]
@@ -584,14 +605,6 @@ resource "aws_eip" "securityonion_server_eip" {
   }
 }
 
-# resource "aws_route53_record" "security_onion_route53" {
-#  zone_id = var.public_domain_zone_id
-#  name    = "securityonion.magnumtempusfinancial.com"
-#  type    = "A"
-#  ttl     = "300"
-#  records = [aws_eip.securityonion_server_eip.public_ip]
-# }
-
 ############################################ Create SecOnion network tap ############################################
 resource "aws_security_group" "seconion_traffic_mirror_sg" {
   name   = "AWS Traffic Mirroring"
@@ -630,6 +643,17 @@ resource "aws_ec2_traffic_mirror_target" "seconion_traffic_mirror_target" {
 
   tags = {
     Name    = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_target"
+    Project = var.PROJECT_PREFIX
+  }
+
+}
+
+resource "aws_ec2_traffic_mirror_target" "seconion_overflow_traffic_mirror_target" {
+  description          = "${var.PROJECT_PREFIX}_seconion_overflow ENI target"
+  network_interface_id = aws_network_interface.seconion_tap_interface_overflow.id
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_seconion_overflow)traffic_mirror_target"
     Project = var.PROJECT_PREFIX
   }
 
@@ -762,23 +786,6 @@ data "aws_instances" "iot_plcs_subnet_instances" {
     values = ["plc"]
   }
 
-  filter {
-    name = "tag:Name"
-    values = [
-      #"${var.PROJECT_PREFIX}_iot_plc01_server",
-      #"${var.PROJECT_PREFIX}_iot_plc02_server",
-      #"${var.PROJECT_PREFIX}_iot_plc03_server",
-      #"${var.PROJECT_PREFIX}_iot_plc04_server",
-      #"${var.PROJECT_PREFIX}_iot_plc05_server",
-      #"${var.PROJECT_PREFIX}_iot_plc06_server",
-      #"${var.PROJECT_PREFIX}_iot_plc07_server",
-      #"${var.PROJECT_PREFIX}_iot_plc08_server",
-      #"${var.PROJECT_PREFIX}_iot_plc09_server",
-      #"${var.PROJECT_PREFIX}_iot_plc10_server",
-      #"${var.PROJECT_PREFIX}_iot_plc11_server",
-    ]
-  }
-
   instance_state_names = ["running", "stopped"]
 }
 
@@ -796,7 +803,7 @@ resource "aws_ec2_traffic_mirror_session" "iot_plcs_subnet_tap_traffic_mirror_se
   description              = "${each.value.tags["Name"]} traffic mirror session"
   network_interface_id     = each.value.network_interface_id
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_overflow_traffic_mirror_target.id
   session_number           = 1
   tags = {
     Name    = "${each.value.tags["Name"]}_traffic_mirror_session"

@@ -341,6 +341,16 @@ resource "aws_security_group" "elastic_server_sg" {
     ]
   }
 
+  ingress {
+    description = "Allow tcp/9200 from cribl to elastic"
+    from_port   = 9200
+    to_port     = 9200
+    protocol    = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      "${var.logging_subnet_map["cribl"]}/32",
+    ]
+  }
 
   # Allow Prometheus to access node exporter
   ingress {

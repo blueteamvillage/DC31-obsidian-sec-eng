@@ -26,7 +26,11 @@ resource "aws_security_group_rule" "velociraptor_allow_http" {
     var.prod_cidr_block,
     var.iot_cidr_block,
     var.red_team_cidr_block,
-    #"0.0.0.0/0"
+    # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+    # else line should be commented
+    # `terraform apply -target=aws_security_group_rule.velociraptor_allow_https -target=aws_security_group_rule.velociraptor_allow_http`
+    # https://certbot.eff.org/faq#what-ip-addresses-will-the-let-s-encrypt-servers-use-to-validate-my-web-server
+    # "0.0.0.0/0"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
@@ -49,7 +53,7 @@ resource "aws_security_group_rule" "velociraptor_allow_https" {
     var.prod_cidr_block,
     var.iot_cidr_block,
     var.red_team_cidr_block,
-    # during initial setup, need to temporarily open to get public certificate with certbot
+    # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
     # else line should be commented
     # "0.0.0.0/0"
   ]
@@ -152,13 +156,13 @@ resource "aws_eip" "velociraptor_server_eip" {
   }
 }
 
-# resource "aws_route53_record" "velociraptor" {
-#   zone_id = var.public_domain_zone_id
-#   name    = "velociraptor.magnumtempusfinancial.com"
-#   type    = "A"
-#   ttl     = "300"
-#   records = [aws_eip.velociraptor_server_eip.public_ip]
-# }
+resource "aws_route53_record" "velociraptor" {
+  zone_id = var.teleport_route53_zone_id
+  name    = "velociraptor.teleport.${var.teleport_base_domain}"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.velociraptor_server_eip.public_ip]
+}
 
 ############################################ Logging/Cribl Server ############################################
 resource "aws_security_group" "cribl_server_sg2" {
@@ -229,6 +233,7 @@ resource "aws_security_group_rule" "cribl_allow_http" {
   to_port     = 9000
   protocol    = "tcp"
   cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
     # cribl needs to call itself
     "${aws_eip.cribl_server_eip.public_ip}/32",
     var.corp_cidr_block,
@@ -433,6 +438,19 @@ resource "aws_security_group" "splunk_server_sg" {
     cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
   }
 
+  # Splunk UI
+  ingress {
+    from_port = 8000
+    to_port   = 8000
+    protocol  = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      #var.publicCIDRblock,
+      #var.managementCIDRblock,
+      #"0.0.0.0/0"
+    ]
+  }
+
   # NGINX HTTP port for Splunk UI
   ingress {
     from_port = 80
@@ -465,6 +483,18 @@ resource "aws_security_group" "splunk_server_sg" {
     to_port     = 8089
     protocol    = "tcp"
     cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
+  }
+
+  # Splunk tcp/9997
+  ingress {
+    description = "Allow tcp/9997 from cribl to splunk"
+    from_port   = 9997
+    to_port     = 9997
+    protocol    = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
+      "${var.logging_subnet_map["cribl"]}/32",
+    ]
   }
 
   # Allow Prometheus to access node exporter

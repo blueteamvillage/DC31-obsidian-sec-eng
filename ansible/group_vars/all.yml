@@ -10,19 +10,32 @@ aws_region: us-east-2
 breakglass_serialuser_user: _breakglass
 breakglass_serialuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-breakglass-pass', region=aws_region) }}"
 
-# teleport node onboarding
+# mdsketch.teleport: teleport node onboarding
 # tctl nodes add --ttl=48h --roles=node
 teleport_auth_token: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-teleport-node-token', region=aws_region) }}"
 teleport_ca_pin: "sha256:5348f23e3b179ecca76e317e0f5740893c88b2ed6abe76fb3dac5a1323cd312b"
 teleport_auth_servers:
   - 172.16.10.93:3025
+  - "https://teleport.blueteamvillage.com"
+teleport_proxy_server: teleport.blueteamvillage.com:443
 
-filebeat_version: 7.x
+
+filebeat_version: 8.x
 filebeat_inputs:
   - type: log
     paths:
       - "/var/log/*.log"
+  - type: log
+    paths:
+      - "/var/log/osquery/osqueryd.*.log"
+  - type: log
+    paths:
+      - "/var/log/sysmon/sysmon.log"
 filebeat_output_elasticsearch_enabled: true
 filebeat_output_elasticsearch_hosts:
   - "172.16.22.10:9200"
 filebeat_output_logstash_enabled: false
+
+# From terraform
+teleport_base_domain: "blueteamvillage.com"
+logging_base_ext_domain: "teleport.{{ teleport_base_domain }}"

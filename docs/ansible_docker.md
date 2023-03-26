@@ -11,5 +11,9 @@ If not generated automatically by terraform
 ## Run Ansible playbook
 1. `ansible-playbook -i hosts.ini deploy_docker.yml`
 
+## Troubleshooting, known issues
+
+* Setup was first to directly call ansible docker module for mariadb and mediawiki but it didn't work. Switched to docker compose setup which is functional.
+
 ## References
 * [geerlingguy.docker](https://github.com/geerlingguy/ansible-role-docker)

@@ -4,8 +4,73 @@
   hosts: docker_server
   become: yes
   become_user: root
+  pre_tasks:
+    - import_tasks: 'roles/linux/init_linux.yml'
   roles:
     - geerlingguy.docker
     - geerlingguy.filebeat
+    - juju4.osquery
+    - juju4.sysmon
+    - node_exporter
+    - prymalinstynct.velociraptor
+    - mdsketch.teleport
   tasks:
-    - import_tasks: 'roles/linux/init_linux.yml'
+    - name: Ensure python3-pip is present
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+    - name: Ensure docker python module is present
+      ansible.builtin.pip:
+        name:
+          - docker
+          - docker-compose
+        state: present
+    # https://hub.docker.com/_/mediawiki
+    # https://hub.docker.com/_/mariadb
+    - name: Pull docker images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        source: pull
+        pull:
+          platform: amd64
+      loop:
+        - mediawiki:latest
+        - mariadb:latest
+    - name: Create wiki database container
+      community.docker.docker_container:
+        name: wikidatabase
+        image: mariadb:latest
+        state: present
+        env:
+          MARIADB_USER: wikiuser
+          MARIADB_PASSWORD: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-wiki-db-pass', region=aws_region) }}"
+          MARIADB_ROOT_PASSWORD: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-wiki-db-root-pass', region=aws_region) }}"
+        volumes:
+          - db:/var/lib/mysql
+      when: false
+    - name: Create wiki container
+      community.docker.docker_container:
+        name: companywiki
+        image: mediawiki:latest
+        state: present
+        # FIXME! not listening ports... trying docker command
+        ports:
+          - 8080:80
+        # FIXME! Cannot link to a non running container: /wikidatabase AS /companywiki/wikidbalias
+        links:
+          - wikidatabase:wikidbalias
+      when: false
+    # This works!
+    - name: Set docker compose config
+      ansible.builtin.template:
+        src: conf/linux/docker-compose-mediawiki.yml.j2
+        dest: /home/ubuntu/docker-compose.yml
+        mode: 0600
+        owner: ubuntu
+    - name: Create and start mediawiki services
+      community.docker.docker_compose:
+        project_src: /home/ubuntu
+      register: output
+    - name: Debug | docker compose output
+      ansible.builtin.debug:
+        var: output

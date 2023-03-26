@@ -26,11 +26,11 @@
     data: 3
     type: dword
 
-- name: Enable Windows Superfetch
-  win_command: sc config "SysMain" start=auto
-
 - name: Start Windows Superfetch
-  win_command: sc start "SysMain"
+  ansible.windows.win_service:
+    name: SysMain
+    state: started
+    start_mode: auto
 
 ####################################################################
 # Install software

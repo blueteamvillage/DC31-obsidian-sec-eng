@@ -1,0 +1,20 @@
+---
+###################################################################
+# Install TightVNC server
+###################################################################
+- name: Stat TightVNC
+  ansible.windows.win_stat:
+    path: 'C:\Program Files\TightVNC\jdk-{{ tightvnc_version }}-hotpsot\bin\javac.exe'
+  register: win_tightvnc
+
+- name: Download TightVNC
+  ansible.windows.win_get_url:
+    url: "{{ tightvnc_dl_url }}"
+    dest: '%USERPROFILE%\AppData\Local\Temp\tightvnc-{{ tightvnc_version }}-gpl-setup-64bit.msi'
+  when: not win_tightvnc.stat.exists
+
+- name: Install TightVNC
+  ansible.windows.win_package:
+    path: 'C:\Users\{{ ansible_user }}\AppData\Local\Temp\tightvnc-{{ tightvnc_version }}-gpl-setup-64bit.msi'
+    state: present
+  when: not win_tightvnc.stat.exists

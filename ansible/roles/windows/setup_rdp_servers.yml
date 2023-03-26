@@ -1,0 +1,10 @@
+---
+####################################################################
+# Add IT domain group to a server's local Remote Desktop Users group
+####################################################################
+- name: Adding IT domain group to the local Remote Desktop Users group
+  win_group_membership:
+    name: Remote Desktop Users
+    members:
+      - "{{ internal_domain }}\\IT"
+    state: present

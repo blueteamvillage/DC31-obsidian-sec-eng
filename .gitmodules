@@ -4,3 +4,15 @@
 [submodule "ansible/roles/geerlingguy.docker"]
 	path = ansible/roles/geerlingguy.docker
 	url = https://github.com/juju4/ansible-role-docker-1.git
+[submodule "ansible/roles/geerlingguy.filebeat"]
+	path = ansible/roles/geerlingguy.filebeat
+	url = https://github.com/juju4/ansible-role-filebeat.git
+[submodule "ansible/roles/prymalinstynct.velociraptor"]
+	path = ansible/roles/prymalinstynct.velociraptor
+	url = https://github.com/juju4/ansible_velociraptor.git
+[submodule "ansible/roles/juju4.sysmon"]
+	path = ansible/roles/juju4.sysmon
+	url = https://github.com/juju4/ansible-sysmon.git
+[submodule "ansible/roles/juju4.osquery"]
+	path = ansible/roles/juju4.osquery
+	url = https://github.com/juju4/ansible-osquery.git

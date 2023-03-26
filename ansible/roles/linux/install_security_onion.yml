@@ -3,22 +3,47 @@
 ####################################################################
 # Initial steps
 ####################################################################
-- name: Install software for Security Onion
-  package:
-    name: '{{ item }}'
+- name: Install salt gpg key
+  ansible.builtin.apt_key:
+    url: https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/salt-archive-keyring.gpg
+    state: present
+
+- name: Add salt repository
+  ansible.builtin.apt_repository:
+    # repo: deb [signed-by=/usr/share/keyrings/salt-archive-keyring.gpg arch=amd64] https://repo.saltproject.io/py3/ubuntu/20.04/amd64/3004 focal main
+    repo: deb https://repo.securityonion.net/file/securityonion-repo/ubuntu/20.04/amd64/salt3004.2/ focal main
+    state: present
+    filename: saltstack
+
+- name: Install softwares for Security Onion
+  ansible.builtin.package:
+    name:
+      - curl
+      - git
+      - python3-pip
+      # align to securityonion to use package (4.1.0-1) and not latest from pip (6.0.1)
+      # https://github.com/Security-Onion-Solutions/securityonion/blob/master/salt/common/init.sls#L101
+      - python3-docker
+      - salt-master
     state: latest
-  with_items:
-    - curl
-    - git
+    update_cache: yes
+    cache_valid_time: yes
+
+- name: Pull SecurityOnion Docker images
+  community.general.docker_image:
+    name: "{{ item }}:{{ securityonion_docker_images_version }}"
+    source: pull
+  with_items: "{{ securityonion_docker_images }}"
+  when: false
 
 - name: Change hostname to securityonion
-  hostname:
+  ansible.builtin.hostname:
     name: securityonion
     use: systemd
   register: seconion_hostname
 
 - name: Reboot if hostname was changed
-  reboot:
+  ansible.builtin.reboot:
     msg: '[*] Hostname changed, rebooting now!'
   when: seconion_hostname.changed
 
@@ -26,24 +51,110 @@
 # Download & run setup script for Security Onion
 ####################################################################
 - name: Clone the Security Onion repository
-  # Only do v2.3.100 and onwards; TheHive won't be needed during workshops
-  git:
+  ansible.builtin.git:
     repo: 'https://github.com/Security-Onion-Solutions/securityonion'
     dest: /opt/securityonion
-    force: yes
+    # force: yes
+    force: no
+    update: no
     version: "{{ securityonion_version }}"
 
+- name: Debug | Management network interface for Security Onion
+  ansible.builtin.debug:
+    msg: "{{ securityonion_management_nic }}"
+- name: Debug | Bonding network interface for Security Onion
+  ansible.builtin.debug:
+    msg: "{{ securityonion_bonding_nic }}"
+
 - name: Copy our custom configuration file over to remote host
-  template:
+  ansible.builtin.template:
     src: conf/security_onion/standalone_net_ubuntu.j2
     dest: /opt/securityonion/setup/automation/standalone-net-ubuntu
+    mode: 0644
+    backup: yes
 
 - name: Copy our slightly tweaked setup script to force automated setup
-  copy:
+  ansible.builtin.copy:
     src: conf/security_onion/so-setup
     dest: /opt/securityonion/setup/so-setup
+    mode: 0755
+    backup: yes
 
-- name: Run the Security Onion automated setup script
-  shell: bash so-setup "network" "standalone-net-ubuntu"
+- name: Pause/ready?
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Run the Security Onion automated setup script - async
+  ansible.builtin.shell: bash so-setup "network" "standalone-net-ubuntu"
   args:
     chdir: /opt/securityonion/setup/
+    # comment this line or (re)move file if want to force task run
+    creates: /root/sosetup.log
+  async: 7200
+  poll: 0
+  register: sosetup
+
+- name: Check on sosetup async task
+  ansible.builtin.async_status:
+    jid: "{{ sosetup.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 150
+  delay: 30
+
+- name: Post check
+  block:
+    - name: Check so-status
+      ansible.builtin.command:
+        cmd: so-status
+      become: yes
+      changed_when: false
+      register: sostatus
+      failed_when:
+        - "'WAIT_START' in sostatus.stdout"
+  rescue:
+    - name: Get NOK services from so-status
+      ansible.builtin.shell:
+        cmd: so-status | awk '/WAIT_START/ { print $1 }'
+      become: yes
+      changed_when: false
+      register: sostatus2
+    - name: Restart NOK services - be patient...
+      ansible.builtin.command:
+        cmd: "so-{{ item }}-restart"
+      become: yes
+      loop: "{{ sostatus2.stdout_lines }}"
+
+- name: Disable web redirections in so-nginx
+  ansible.builtin.lineinfile:
+    # so-nginx-restart/salt will auto restore its default
+    # path: /opt/so/conf/nginx/nginx.conf
+    # regexp: "^[\\s]*return 307 https://securityonion.magnumtempusfinancial.com\\$request_uri;$"
+    path: /opt/so/saltstack/default/salt/nginx/etc/nginx.conf
+    regexp: "^[\\s]*return 307 https://{{ '{{' }} url_base {{ '}}' }}\\$request_uri;$"
+    state: absent
+    backup: yes
+  notify:
+    - Restart so-nginx
+
+- name: Debian | Check if a reboot is required
+  register: file
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_md5: no
+
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 3600
+  when: file.stat.exists is defined and file.stat.exists
+
+- name: Check if IP allowed
+  ansible.builtin.command:
+    cmd: grep 172.16.22.10 /opt/so/saltstack/local/salt/firewall/hostgroups.local.yaml
+  register: sofw
+  changed_when: false
+- name: Allow traffic from cribl
+  ansible.builtin.command:
+    cmd: so-allow -e -i 172.16.22.10
+  when:
+    - sofw.rc != 0

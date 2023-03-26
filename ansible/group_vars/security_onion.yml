@@ -1,17 +1,67 @@
 ---
 
 # Security Onion variables - Installation Script
+# Note that password will be passed to shell variables so quotes and few other special characters may
+# create issue
 securityonion_adminuser: "onionroot"
-securityonion_adminuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-admin-pass') }}"
+securityonion_adminuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-admin-pass', region=aws_region) }}"
 securityonion_hostname: 'securityonion'
-securityonion_soremote_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-soremote-pass') }}"
+securityonion_soremote_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-soremote-pass', region=aws_region) }}"
 securityonion_webuser_email: "so-superuser@{{ external_domain }}"
-securityonion_webuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-webuser-pass') }}"
+securityonion_webuser_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-securityonion-webuser-pass', region=aws_region) }}"
 
-# Security Onion interfaces - select first two options
-securityonion_management_nic: '{{ (ansible_interfaces | sort)[0] }}'
-securityonion_bonding_nic: '{{ (ansible_interfaces | sort)[1] }}'
+# Security Onion interfaces
+# use `ansible -m setup <server>` to ensure you pick the right ones
+# securityonion_management_nic: '{{ (ansible_interfaces | sort)[0] }}'
+securityonion_management_nic: "{{ ansible_default_ipv4.interface }}"
+# securityonion_bonding_nic: '{{ (ansible_interfaces | sort)[1] }}'
+securityonion_bonding_nic: 'ens6'
 
 # Security Onion - pinned version
-# Hotfix for v2.3.100: https://github.com/Security-Onion-Solutions/securityonion/releases/tag/2.3.100-20220202
-securityonion_version: c39047666b94a9c9f8b9393374099d7c88226060
+# Security Onion 2.3.220-20230224
+securityonion_version: b756b8ea32547a90ad753798009430d38730c946
+
+# pre load docker images
+securityonion_docker_images_version: 2.3.220
+securityonion_docker_images:
+  - ghcr.io/security-onion-solutions/so-soc
+  - ghcr.io/security-onion-solutions/so-strelka-backend
+  - ghcr.io/security-onion-solutions/so-mysql
+  - ghcr.io/security-onion-solutions/so-zeek
+  - ghcr.io/security-onion-solutions/so-nginx
+  - ghcr.io/security-onion-solutions/so-suricata
+  - ghcr.io/security-onion-solutions/so-strelka-filestream
+  - ghcr.io/security-onion-solutions/so-kibana
+  - ghcr.io/security-onion-solutions/so-kratos
+  - ghcr.io/security-onion-solutions/so-wazuh
+  - ghcr.io/security-onion-solutions/so-idstools
+  - ghcr.io/security-onion-solutions/so-elasticsearch
+  - ghcr.io/security-onion-solutions/so-soctopus
+  - ghcr.io/security-onion-solutions/so-logstash
+  - ghcr.io/security-onion-solutions/so-filebeat
+  - ghcr.io/security-onion-solutions/so-strelka-manager
+  - ghcr.io/security-onion-solutions/so-steno
+  - ghcr.io/security-onion-solutions/so-telegraf
+  - ghcr.io/security-onion-solutions/so-fleet
+  - ghcr.io/security-onion-solutions/so-grafana
+  - ghcr.io/security-onion-solutions/so-fleet-launcher
+  - ghcr.io/security-onion-solutions/so-strelka-frontend
+  - ghcr.io/security-onion-solutions/so-pcaptools
+  - ghcr.io/security-onion-solutions/so-curator
+  - ghcr.io/security-onion-solutions/so-idh
+  - ghcr.io/security-onion-solutions/so-playbook
+  - ghcr.io/security-onion-solutions/so-elastalert
+  - ghcr.io/security-onion-solutions/so-influxdb
+  - ghcr.io/security-onion-solutions/so-acng
+  - ghcr.io/security-onion-solutions/so-redis
+  # - ghcr.io/security-onion-solutions/registry
+
+# geerlingguy.docker with version aligned to securityonion
+docker_packages:
+  - docker-ce=5:20.10.8~3-0~ubuntu-focal
+  - docker-ce-cli=5:20.10.8~3-0~ubuntu-focal
+  - docker-ce-rootless-extras=5:20.10.8~3-0~ubuntu-focal
+  - "containerd.io"
+
+# mdsketch.teleport
+teleport_config_template: teleport-securityonion.yaml.j2

@@ -1,0 +1,39 @@
+---
+
+- hosts: velociraptor_server
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - prymalinstynct.velociraptor
+    - node_exporter
+    - mdsketch.teleport
+  tasks:
+    # - include_vars: 'group_vars/metrics.yml'
+    - import_tasks: 'roles/linux/init_linux.yml'
+    # - import_tasks: 'roles/linux/velociraptor/setup_velociraptor_server.yml'
+    - import_tasks: 'roles/linux/velociraptor/setup_nginx.yml'
+    - import_tasks: 'roles/linux/velociraptor/setup_ufw.yml'
+
+    - name: Final Velociraptor health check - gui
+      uri:
+        url: "https://{{ velociraptor_fqdn }}/app/index.html"
+        follow_redirects: none
+        method: GET
+        validate_certs: 'yes'
+        status_code: "{{ velociraptor_healthcheck_app_index_status_code }}"
+      register: vhc_result
+      until: vhc_result.status == velociraptor_healthcheck_app_index_status_code
+      retries: 12
+      delay: 5
+    - name: Final Velociraptor health check - frontend
+      uri:
+        url: "https://{{ velociraptor_fqdn }}/frontend"
+        follow_redirects: none
+        method: GET
+        validate_certs: 'yes'
+        status_code: 404
+      register: vhc_result
+      until: vhc_result.status == 404
+      retries: 12
+      delay: 5

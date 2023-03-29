@@ -2,6 +2,7 @@
 - hosts: 'win_jumpbox'
   roles:
     - import_tasks: 'roles/windows/init_windows.yml'
+    - import_tasks: 'roles/windows/setup_iot_jumpbox.yml'
     - import_tasks: 'roles/windows/setup_rdp_servers.yml'
     - import_tasks: 'roles/windows/setup_sysmon.yml'
     - import_tasks: 'roles/windows/setup_winlogbeat.yml'

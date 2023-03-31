@@ -1,0 +1,33 @@
+---
+###################################################################
+# Install/Setup ScadaBR
+###################################################################
+- name: Stat ScadaBR
+  ansible.windows.win_stat:
+    path: 'C:\Program Files\Apache Software Foundation\Tomcat {{ tomcat_major_version }}.0\webapps\ScadaBR.war'
+  register: win_scadabr
+
+- name: Download ScadaBR
+  ansible.windows.win_get_url:
+    url: "{{ scadabr_dl_url }}"
+    dest: 'C:\Program Files\Apache Software Foundation\Tomcat {{ tomcat_major_version }}.0\webapps\ScadaBR.war'
+  when: not win_scadabr.stat.exists
+
+- name: Start Tomcat
+  ansible.windows.win_service:
+    name: 'Tomcat{{ tomcat_major_version }}'
+    state: restarted
+
+####################################################################
+# Healthcheck ScadaBR
+####################################################################
+- name: ScadaBR health check
+  ansible.windows.win_uri:
+    url: "http://127.0.0.1:{{ tomcat_port }}/ScadaBR/login.htm"
+    follow_redirects: none
+    method: GET
+    status_code: 200
+  register: scadabr_result
+  until: scadabr_result.status_code == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

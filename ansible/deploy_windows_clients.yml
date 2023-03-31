@@ -1,0 +1,5 @@
+---
+- hosts: 'win_clients'
+  roles:
+    - win_node_exporter
+    - windows_clients

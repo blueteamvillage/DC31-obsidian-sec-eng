@@ -83,7 +83,8 @@ resource "aws_instance" "windows_domain_controller" {
   }
 
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_WINDOWS_DOMAIN_CONTROLLER"
-    Project = var.PROJECT_PREFIX
+    Name        = "${var.PROJECT_PREFIX}_WINDOWS_DOMAIN_CONTROLLER"
+    Project     = var.PROJECT_PREFIX
+    Environment = "corp"
   }
 }

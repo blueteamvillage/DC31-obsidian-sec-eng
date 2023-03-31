@@ -1,0 +1,4 @@
+---
+# tasks file for ansible/roles/win_exporter
+- name: Install Win node exporter
+  ansible.builtin.import_tasks: setup_win_node_exporter.yml

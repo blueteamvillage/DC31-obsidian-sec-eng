@@ -1,0 +1,14 @@
+---
+# tasks file for ansible/roles/iot_hmi
+- name: Init setup
+  ansible.builtin.import_tasks: init.yml
+- name: Install Openjdk
+  ansible.builtin.import_tasks: install_openjdk.yml
+- name: Install Python
+  ansible.builtin.import_tasks: install_python.yml
+- name: Install Tomcat
+  ansible.builtin.import_tasks: setup_tomcat.yml
+- name: Install/Setup ScadaBR
+  ansible.builtin.import_tasks: setup_scadabr.yml
+- name: Install/Setup VNC
+  ansible.builtin.import_tasks: setup_vnc.yml

@@ -110,3 +110,9 @@ splunk:
       - /var/tmp/infosec-app-for-splunk_170.tgz
       # Splunk Security Essentials https://splunkbase.splunk.com/app/3435
       - /var/tmp/splunk-security-essentials_370.spl
+      # Add-on for Linux Sysmon https://splunkbase.splunk.com/app/6176
+      - /var/tmp/add-on-for-linux-sysmon_104.tgz
+      # Splunk Add-on for Sysmon https://apps.splunk.com/app/5709
+      - /var/tmp/splunk-add-on-for-sysmon_310.tgz
+      # add-on for osquery https://apps.splunk.com/app/4402
+      - /var/tmp/add-on-for-osquery_100.tgz

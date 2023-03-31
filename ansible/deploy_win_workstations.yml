@@ -1,5 +1,6 @@
 ---
-- hosts: 'win_workstations'
+- name: Windows workstations/clients playbook
+  hosts: 'win_clients'
   gather_facts: no
   tasks:
     - name: Debug | ansible_password
@@ -11,7 +12,7 @@
     # - include_vars: 'group_vars/velociraptor.yml'
     # - import_tasks: 'roles/windows/init_windows.yml'
     # - import_tasks: 'roles/windows/setup_rdp_servers.yml'
-    # - import_tasks: 'roles/windows/setup_sysmon.yml'
+    - import_tasks: 'roles/windows/setup_sysmon.yml'
     - import_tasks: 'roles/windows/setup_winlogbeat.yml'
     # - import_tasks: 'roles/windows/setup_velociraptor_win_client.yml'
     # - import_tasks: 'roles/windows/setup_node_exporter.yml'

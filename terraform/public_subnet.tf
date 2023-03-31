@@ -26,7 +26,11 @@ resource "aws_security_group_rule" "velociraptor_allow_http" {
     var.prod_cidr_block,
     var.iot_cidr_block,
     var.red_team_cidr_block,
-    #"0.0.0.0/0"
+    # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+    # else line should be commented
+    # `terraform apply -target=aws_security_group_rule.velociraptor_allow_https -target=aws_security_group_rule.velociraptor_allow_http`
+    # https://certbot.eff.org/faq#what-ip-addresses-will-the-let-s-encrypt-servers-use-to-validate-my-web-server
+    # "0.0.0.0/0"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
@@ -49,7 +53,7 @@ resource "aws_security_group_rule" "velociraptor_allow_https" {
     var.prod_cidr_block,
     var.iot_cidr_block,
     var.red_team_cidr_block,
-    # during initial setup, need to temporarily open to get public certificate with certbot
+    # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
     # else line should be commented
     # "0.0.0.0/0"
   ]
@@ -129,7 +133,6 @@ resource "aws_instance" "velociraptor_server" {
   lifecycle {
     ignore_changes = [
       instance_type,
-      instance_state,
       cpu_core_count,
       ebs_optimized,
     ]
@@ -152,13 +155,13 @@ resource "aws_eip" "velociraptor_server_eip" {
   }
 }
 
-# resource "aws_route53_record" "velociraptor" {
-#   zone_id = var.public_domain_zone_id
-#   name    = "velociraptor.magnumtempusfinancial.com"
-#   type    = "A"
-#   ttl     = "300"
-#   records = [aws_eip.velociraptor_server_eip.public_ip]
-# }
+resource "aws_route53_record" "velociraptor" {
+  zone_id = var.teleport_route53_zone_id
+  name    = "velociraptor.teleport.${var.teleport_base_domain}"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.velociraptor_server_eip.public_ip]
+}
 
 ############################################ Logging/Cribl Server ############################################
 resource "aws_security_group" "cribl_server_sg2" {
@@ -229,6 +232,7 @@ resource "aws_security_group_rule" "cribl_allow_http" {
   to_port     = 9000
   protocol    = "tcp"
   cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
     # cribl needs to call itself
     "${aws_eip.cribl_server_eip.public_ip}/32",
     var.corp_cidr_block,
@@ -296,81 +300,100 @@ resource "aws_eip" "cribl_server_eip" {
 
 ############################################ Splunk SIEM ############################################
 resource "aws_security_group" "splunk_server_sg" {
-  vpc_id = module.vpc.vpc_id
-
-  # Allow ICMP from jumpbox
-  ingress {
-    description = "Allow ICMP from management subnet"
-    from_port   = 8
-    to_port     = 0
-    protocol    = "icmp"
-    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
-  }
-
-  # Allow SSH from jumpbox
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
-  }
-
-  # NGINX HTTP port for Splunk UI
-  ingress {
-    from_port = 80
-    to_port   = 80
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-      #var.publicCIDRblock,
-      #var.managementCIDRblock,
-      #"0.0.0.0/0"
-    ]
-  }
-
-  # NGINX HTTPS port for Splunk UI
-  ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-      #var.publicCIDRblock,
-      #var.managementCIDRblock,
-      #"0.0.0.0/0"
-    ]
-  }
-
-  # Splunk REST API port for Splunk
-  ingress {
-    from_port   = 8089
-    to_port     = 8089
-    protocol    = "tcp"
-    cidr_blocks = ["${module.teleport.private_ip_addr}/32"]
-  }
-
-  # Allow Prometheus to access node exporter
-  ingress {
-    from_port = 9100
-    to_port   = 9100
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-    ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
+  vpc_id      = module.vpc.vpc_id
+  description = "Splunk server security group"
   tags = {
     Name    = "${var.PROJECT_PREFIX}_splunk_SERVER_SG"
     Project = var.PROJECT_PREFIX
   }
 }
+
+resource "aws_security_group_rule" "splunk_allow_icmp_from_jumpbox" {
+  type              = "ingress"
+  description       = "Allow ICMP from Teleport"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_ssh_from_jumpbox" {
+  type              = "ingress"
+  description       = "Allow SSH from Teleport"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_http" {
+  type        = "ingress"
+  description = "Allow HTTP to NGINX"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_https" {
+  type        = "ingress"
+  description = "Allow HTTPs to NGINX"
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_rest_api" {
+  type        = "ingress"
+  description = "Allow access to Splunk REST API"
+  from_port   = 8089
+  to_port     = 8089
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "splunk_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow prometheus to pull metrics from node exporter"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+
+resource "aws_security_group_rule" "splunk_allow_inbound" {
+  type              = "egress"
+  description       = "Allow outbound"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
 
 resource "aws_instance" "splunk_server" {
   ami                     = var.ubunut-ami
@@ -386,7 +409,22 @@ resource "aws_instance" "splunk_server" {
     volume_type           = "gp2"
     delete_on_termination = true
   }
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_splunk_server"
+    Project = var.PROJECT_PREFIX
+  }
 }
+
+resource "aws_eip" "splunk_server_eip" {
+  instance = aws_instance.splunk_server.id
+  vpc      = true
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_splunk_server_eip"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
 
 ############################################ Logging/SecurityOnion Server ############################################
 resource "aws_security_group" "securityonion_server_sg2" {
@@ -458,28 +496,62 @@ resource "aws_security_group" "securityonion_server_sg2" {
   }
 }
 
+############################################ Create Security Onion EC2 instance ############################################
 resource "aws_network_interface" "seconion_mgmt_nic" {
-  subnet_id = aws_subnet.logging.id
-  #  private_ips     = ["var.public_subnet_map['security_onion']"]
-  # TO-DO: find adequate solution to use variables with private_ips instead
-  private_ips     = ["172.16.22.23"]
+  subnet_id       = aws_subnet.logging.id
+  private_ips     = [var.logging_subnet_map["securityonion"]]
   security_groups = [aws_security_group.securityonion_server_sg2.id]
 
   tags = {
     Name    = "${var.PROJECT_PREFIX}_SECURITYONION_MGMT_NIC"
     Project = var.PROJECT_PREFIX
   }
-
 }
 
+resource "aws_network_interface" "seconion_tap_interface" {
+  subnet_id       = aws_subnet.logging.id
+  security_groups = [aws_security_group.seconion_traffic_mirror_sg.id]
+  private_ips     = [var.logging_subnet_map["securityonion_bind"]]
 
-############################################ Create Security Onion EC2 instance ############################################
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE"
+    Project = var.PROJECT_PREFIX
+  }
+
+  # WITHOUT this statement the seconion EC2 will be DESTROYED
+  # AND RE-CREATED
+  attachment {
+    instance     = aws_instance.securityonion_server.id
+    device_index = 1
+  }
+}
+
+# AWS has a limit of 10 mirror sources per interface.
+# This interface is created to handle anything greater than 10
+# https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-limits.html
+resource "aws_network_interface" "seconion_tap_interface_overflow" {
+  subnet_id       = aws_subnet.logging.id
+  security_groups = [aws_security_group.seconion_traffic_mirror_sg.id]
+  private_ips     = [var.logging_subnet_map["securityonion_bind_overflow"]]
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE_OVERFLOW"
+    Project = var.PROJECT_PREFIX
+  }
+
+  # WITHOUT this statement the seconion EC2 will be DESTROYED
+  # AND RE-CREATED
+  attachment {
+    instance     = aws_instance.securityonion_server.id
+    device_index = 2
+  }
+}
 
 resource "aws_instance" "securityonion_server" {
   ami = var.ubuntu-so-ami
   # instance_type = var.logging_ec2_size
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
-  instance_type = "t3a.xlarge"
+  instance_type = "t3.xlarge"
   # no subnet_id/private_ip/vpc_security_group_ids if network_interface is set explicitely
   # subnet_id               = aws_subnet.logging.id
   # private_ip              = var.logging_subnet_map["securityonion"]
@@ -524,7 +596,6 @@ resource "aws_instance" "securityonion_server" {
 }
 
 resource "aws_eip" "securityonion_server_eip" {
-  instance                  = aws_instance.securityonion_server.id
   network_interface         = aws_network_interface.seconion_mgmt_nic.id
   associate_with_private_ip = var.logging_subnet_map["securityonion"]
   vpc                       = true
@@ -533,14 +604,6 @@ resource "aws_eip" "securityonion_server_eip" {
     Project = var.PROJECT_PREFIX
   }
 }
-
-# resource "aws_route53_record" "security_onion_route53" {
-#  zone_id = var.public_domain_zone_id
-#  name    = "securityonion.magnumtempusfinancial.com"
-#  type    = "A"
-#  ttl     = "300"
-#  records = [aws_eip.securityonion_server_eip.public_ip]
-# }
 
 ############################################ Create SecOnion network tap ############################################
 resource "aws_security_group" "seconion_traffic_mirror_sg" {
@@ -573,21 +636,6 @@ resource "aws_security_group" "seconion_traffic_mirror_sg" {
   }
 }
 
-resource "aws_network_interface" "seconion_tap_interface" {
-  # DC30 was using public_subnet. Does not exist in DC31, corp subnet?
-  subnet_id         = aws_subnet.corp.id
-  security_groups   = [aws_security_group.seconion_traffic_mirror_sg.id]
-  private_ips_count = 0
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE"
-    Project = var.PROJECT_PREFIX
-  }
-
-  attachment {
-    instance     = aws_instance.securityonion_server.id
-    device_index = 1
-  }
-}
 
 resource "aws_ec2_traffic_mirror_target" "seconion_traffic_mirror_target" {
   description          = "${var.PROJECT_PREFIX}_seconion ENI target"
@@ -595,6 +643,17 @@ resource "aws_ec2_traffic_mirror_target" "seconion_traffic_mirror_target" {
 
   tags = {
     Name    = "${var.PROJECT_PREFIX}_seconion_traffic_mirror_target"
+    Project = var.PROJECT_PREFIX
+  }
+
+}
+
+resource "aws_ec2_traffic_mirror_target" "seconion_overflow_traffic_mirror_target" {
+  description          = "${var.PROJECT_PREFIX}_seconion_overflow ENI target"
+  network_interface_id = aws_network_interface.seconion_tap_interface_overflow.id
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_seconion_overflow)traffic_mirror_target"
     Project = var.PROJECT_PREFIX
   }
 
@@ -650,86 +709,141 @@ resource "aws_ec2_traffic_mirror_filter_rule" "seconion_traffic_mirror_ipv6_filt
   traffic_direction        = "egress"
 }
 
-########################################### Create network traffic mirror sessions  - DMZ ###########################################
-
-# Traffic Mirroring for DMZ Web Server
-resource "aws_ec2_traffic_mirror_session" "vuln_log4j_webserver_subnet_traffic_mirror_session" {
-
-  description              = "${var.PROJECT_PREFIX}_vuln_log4j_webserver_traffic_mirror_session"
-  network_interface_id     = aws_instance.vuln_log4j_webserver.primary_network_interface_id
-  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-  session_number           = 1
-
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_VULN_LOG4J_WEB_SERVER_traffic_mirror_session"
-    Project = var.PROJECT_PREFIX
+########################################### Create network traffic mirror sessions  - DMZ/prod ###########################################
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
+data "aws_instances" "dmz_subnet_instances" {
+  filter {
+    name   = "subnet-id"
+    values = [aws_subnet.prod.id]
   }
-
+  instance_state_names = ["running", "stopped"]
 }
 
-# Traffic Mirroring for DMZ RDP Host = IOT JUMPHOST?
-# resource "aws_ec2_traffic_mirror_session" "dmz_rdp_host_subnet_traffic_mirror_session" {
-#
-#   description              = "${var.PROJECT_PREFIX}_WINDOWS_DMZ_RDP_SERVER_traffic_mirror_session"
-#   network_interface_id     = aws_instance.WINDOWS_DMZ_RDP_SERVER.primary_network_interface_id
-#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
-#   session_number           = 1
-#
-#   tags = {
-#     Name    = "${var.PROJECT_PREFIX}_WINDOWS_DMZ_RDP_SERVER_traffic_mirror_session"
-#     Project = var.PROJECT_PREFIX
-#   }
-# }
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "dmz_subnet_instance" {
+  for_each    = toset(data.aws_instances.dmz_subnet_instances.ids)
+  instance_id = each.key
+}
 
-########################################### Create network traffic mirror sessions  - CORP ###########################################
 # Note: security onion server instance must be running to create below
 #	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "dmz_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.dmz_subnet_instance
 
-# Domain Controller
-resource "aws_ec2_traffic_mirror_session" "domain_controller_traffic_mirror_session" {
-  description              = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
-  network_interface_id     = aws_instance.windows_domain_controller.primary_network_interface_id
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
   session_number           = 1
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_DOMAIN_CONTROLLER_traffic_mirror_session"
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
     Project = var.PROJECT_PREFIX
   }
 }
 
+########################################### Create network traffic mirror sessions - CORP ###########################################
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
+data "aws_instances" "corp_subnet_instances" {
+  filter {
+    name   = "subnet-id"
+    values = [aws_subnet.corp.id]
+  }
+  instance_state_names = ["running", "stopped"]
+}
 
-# Corp Docker Server
-resource "aws_ec2_traffic_mirror_session" "corp_docker_server_traffic_mirror_session" {
-  description              = "${var.PROJECT_PREFIX}_FILE_SERVER_traffic_mirror_session"
-  network_interface_id     = aws_instance.corp_docker_server.primary_network_interface_id
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "corp_subnet_instance" {
+  for_each    = toset(data.aws_instances.corp_subnet_instances.ids)
+  instance_id = each.key
+}
+
+# Note: security onion server instance must be running to create below
+#	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "corp_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.corp_subnet_instance
+
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
   session_number           = 1
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_CORP_DOCKER_SERVER_traffic_mirror_session"
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
     Project = var.PROJECT_PREFIX
   }
 }
 
-
-# Windows Clients
-resource "aws_ec2_traffic_mirror_session" "windows_clients_traffic_mirror_session" {
-
-  for_each = {
-    for k, v in var.corp_subnet_map : k => v
-    if length(regexall("win_client\\d+", k)) > 0
+########################################### Create network traffic mirror sessions - IoT ###########################################
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
+data "aws_instances" "iot_plcs_subnet_instances" {
+  filter {
+    name   = "subnet-id"
+    values = [aws_subnet.iot.id]
   }
 
-  description              = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
-  network_interface_id     = aws_instance.windows_clients[each.key].primary_network_interface_id
+  filter {
+    name   = "tag:IOTtype"
+    values = ["plc"]
+  }
+
+  instance_state_names = ["running", "stopped"]
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "iot_plcs_subnet_instance" {
+  for_each    = toset(data.aws_instances.iot_plcs_subnet_instances.ids)
+  instance_id = each.key
+}
+
+# Note: security onion server instance must be running to create below
+#	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "iot_plcs_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.iot_plcs_subnet_instance
+
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_overflow_traffic_mirror_target.id
+  session_number           = 1
+  tags = {
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
+data "aws_instances" "iot_hmis_subnet_instances" {
+  filter {
+    name   = "subnet-id"
+    values = [aws_subnet.iot.id]
+  }
+
+  filter {
+    name   = "tag:IOTtype"
+    values = ["hmi"]
+  }
+
+  instance_state_names = ["running", "stopped"]
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
+data "aws_instance" "iot_hmis_subnet_instance" {
+  for_each    = toset(data.aws_instances.iot_hmis_subnet_instances.ids)
+  instance_id = each.key
+}
+
+# Note: security onion server instance must be running to create below
+#	else you will get InvalidTrafficMirrorTarget error
+resource "aws_ec2_traffic_mirror_session" "iot_hmis_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.iot_hmis_subnet_instance
+
+  description              = "${each.value.tags["Name"]} traffic mirror session"
+  network_interface_id     = each.value.network_interface_id
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target.id
   session_number           = 1
   tags = {
-    Name    = "${var.PROJECT_PREFIX}_${each.key}_traffic_mirror_session"
+    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
     Project = var.PROJECT_PREFIX
   }
 }

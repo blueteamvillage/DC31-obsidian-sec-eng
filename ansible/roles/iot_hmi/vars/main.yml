@@ -1,0 +1,20 @@
+---
+# vars file for ansible/roles/iot_hmi
+openjdk_version: "8u362-b09"
+openjdk_dl_url: "https://builds.openlogic.com/downloadJDK/openlogic-openjdk/{{ openjdk_version }}/openlogic-openjdk-{{ openjdk_version }}-windows-x64.msi"
+
+tomcat_major_version: "9"
+tomcat_version: "9.0.73"
+tomcat_dl_url: "https://dlcdn.apache.org/tomcat/tomcat-9/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.exe"
+tomcat_port: 8080
+
+scadabr_version: "1.2"
+scadabr_dl_url: "https://github.com/ScadaBR/ScadaBR/releases/download/v{{ scadabr_version }}/ScadaBR.war"
+
+python_version: "3.7.9"
+python_dl_url: "https://www.python.org/ftp/python/{{ python_version }}/python-{{ python_version }}-amd64.exe"
+
+tightvnc_version: "2.8.75"
+tightvnc_dl_url: "https://www.tightvnc.com/download/{{ tightvnc_version }}/tightvnc-{{ tightvnc_version }}-gpl-setup-64bit.msi"
+
+firefox_dl_url: "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US"

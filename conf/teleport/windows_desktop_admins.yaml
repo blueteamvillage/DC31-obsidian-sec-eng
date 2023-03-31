@@ -1,0 +1,10 @@
+---
+kind: role
+version: v5
+metadata:
+  name: windows_desktop_admins
+spec:
+  allow:
+    windows_desktop_labels:
+      "*": "*"
+    windows_desktop_logins: ["Administrator"]

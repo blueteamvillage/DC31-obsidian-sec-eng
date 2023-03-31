@@ -14,3 +14,4 @@
   tasks:
     - import_tasks: 'roles/linux/init_linux.yml'
     - import_tasks: 'roles/linux/install_security_onion.yml'
+    - import_tasks: 'roles/linux/setup_nginx_security_onion.yml'

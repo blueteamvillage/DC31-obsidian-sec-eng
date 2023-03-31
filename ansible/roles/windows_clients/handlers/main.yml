@@ -1,2 +1,5 @@
 ---
 # handlers file for ansible/roles/windows_clients
+
+- name: Reboot Windows
+  ansible.windows.win_reboot:

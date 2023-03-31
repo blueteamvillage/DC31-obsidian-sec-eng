@@ -27,6 +27,9 @@ filebeat_inputs:
       - "/var/log/*.log"
   - type: log
     paths:
+      - "/var/log/syslog"
+  - type: log
+    paths:
       - "/var/log/osquery/osqueryd.*.log"
   - type: log
     paths:

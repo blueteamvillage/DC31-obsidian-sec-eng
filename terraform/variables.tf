@@ -73,10 +73,12 @@ variable "logging_cidr_block" {
 variable "logging_subnet_map" {
   type = map(string)
   default = {
-    "cribl"         = "172.16.22.10",
-    "splunk"        = "172.16.22.20",
-    "securityonion" = "172.16.22.23",
-    "velociraptor"  = "172.16.22.130",
+    "cribl"                       = "172.16.22.10",
+    "splunk"                      = "172.16.22.20",
+    "securityonion"               = "172.16.22.23",
+    "securityonion_bind"          = "172.16.22.24",
+    "securityonion_bind_overflow" = "172.16.22.25",
+    "velociraptor"                = "172.16.22.130",
   }
 }
 
@@ -129,28 +131,22 @@ variable "iot_cidr_block" {
   default     = "172.16.60.0/24"
 }
 
-variable "iotplc_subnet_map" {
-  type = map(string)
-  default = {
-    "iot_plc01" = "172.16.60.11",
-    "iot_plc02" = "172.16.60.12",
-    "iot_plc03" = "172.16.60.13",
-    "iot_plc04" = "172.16.60.14",
-    "iot_plc05" = "172.16.60.15",
-    "iot_plc06" = "172.16.60.16",
-    "iot_plc07" = "172.16.60.17",
-    "iot_plc08" = "172.16.60.18",
-  }
-}
-
 variable "iot_subnet_map" {
   type = map(string)
   default = {
-    "iot01"           = "172.16.60.10",
+    "iot_plc01"       = "172.16.60.11",
+    "iot_plc02"       = "172.16.60.12",
+    "iot_plc03"       = "172.16.60.13",
+    "iot_plc04"       = "172.16.60.14",
+    "iot_plc05"       = "172.16.60.15",
+    "iot_plc06"       = "172.16.60.16",
+    "iot_plc07"       = "172.16.60.17",
+    "iot_plc08"       = "172.16.60.18",
     "iot_hmi_alpha"   = "172.16.60.200",
     "iot_hmi_beta"    = "172.16.60.201",
-    "iot_hmi_charlie" = "172.16.60.202"
-    "iot_hmi_delta"   = "172.16.60.202"
+    "iot_hmi_charlie" = "172.16.60.202",
+    "iot_hmi_delta"   = "172.16.60.203",
+    "jhb01"           = "172.16.60.19"
   }
 }
 

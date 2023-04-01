@@ -1,6 +1,9 @@
 ---
 # ansible-vault?
 
+# splunk_fqdn: "splunk.{{ logging_base_ext_domain }}"
+splunk_fqdn: "splunk.{{ external_domain }}"
+
 # https://splunk.github.io/splunk-ansible/advanced/default.yml.spec.html#sample
 # alternative: https://github.com/splunk/ansible-role-for-splunk
 
@@ -46,7 +49,7 @@ splunk:
   license_uri: null
   ignore_license: true
   admin_user: splunk_admin
-  password: splunk_admin
+  password: REDACTED
   user: splunk
   group: splunk
   enable_service: true
@@ -104,6 +107,7 @@ splunk:
   app_paths_install:
     default:
       # local path on target splunk server
+      # $ rsync -e ssh /path/_install/splunk/* btv_splunk:/var/tmp/
       # Splunk Common Information Model (CIM) https://splunkbase.splunk.com/app/1621
       - /var/tmp/splunk-common-information-model-cim_510.tgz
       # InfoSec App for Splunk https://splunkbase.splunk.com/app/4240
@@ -116,3 +120,22 @@ splunk:
       - /var/tmp/splunk-add-on-for-sysmon_310.tgz
       # add-on for osquery https://apps.splunk.com/app/4402
       - /var/tmp/add-on-for-osquery_100.tgz
+      # Splunk Add-on for Microsoft Windows https://splunkbase.splunk.com/app/742
+      - /var/tmp/splunk-add-on-for-microsoft-windows_860.tgz
+
+# juju4.harden_nginx
+hardenwebserver_disable_http: true
+hardenwebserver_cert: certbot
+certbot_args: "--register-unsafely-without-email --agree-tos --domains {{ splunk_fqdn }}"
+hardenwebserver_https_template: conf/splunk/splunk-nginx.conf.j2
+# https://splunk.magnumtempusfinancial.com
+# hardenwebserver_header_csp: "default-src 'self'; script-src 'self' 'unsafe-inline' 'report-sample'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; font-src 'self' data:;base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; report-uri /csp/report.php;"
+hardenwebserver_header_csp: "upgrade-insecure-requests; report-uri /csp/report.php;"
+hardenwebserver_ssl_cert: "/etc/letsencrypt/live/{{ splunk_fqdn }}/fullchain.pem"
+hardenwebserver_ssl_key: "/etc/letsencrypt/live/{{ splunk_fqdn }}/privkey.pem"
+hardenwebserver_systemd_dir_acl:
+  - { p: /etc/letsencrypt/archive, perm: rx, m: '0711' }
+  - { p: /etc/letsencrypt/live, perm: rx, m: '0711' }
+  - { p: "/var/log/nginx", perm: rwx, m: '0755' }
+hardenwebserver_systemd_files_acl:
+  - { p: "/etc/letsencrypt/live/{{ splunk_fqdn }}/privkey.pem", perm: r }

@@ -59,7 +59,8 @@ enable_list:
 # This makes the linter display but not fail for rules/tags listed below:
 warn_list:
   - skip_this_tag
-  - experimental  # experimental is included in the implicit list
+  - experimental
+  - no-handler
   # - role-name
   # - yaml[document-start]  # you can also use sub-rule matches
 

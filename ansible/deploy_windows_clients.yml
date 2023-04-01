@@ -3,3 +3,5 @@
   roles:
     - win_node_exporter
     - windows_clients
+  tasks:
+    - import_tasks: 'roles/windows/setup_autohotkey.yml'

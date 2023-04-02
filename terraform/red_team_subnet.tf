@@ -33,6 +33,16 @@ resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
   security_group_id = aws_security_group.red_team_servers.id
 }
 
+resource "aws_security_group_rule" "redteam_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow Prometheus"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.red_team_servers.id
+}
+
 resource "aws_security_group_rule" "allow_inbound_from_log4j" {
   type        = "ingress"
   description = "Allow all traffic from log4j"

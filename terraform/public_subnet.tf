@@ -8,6 +8,19 @@ resource "aws_security_group" "velociraptor_server_sg2" {
   }
 }
 
+# This is what allow client traffic to move out and reach back velociraptor server with public access blocked.
+resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
+  type        = "ingress"
+  description = "Allow all traffic from NAT gateway for velociraptor server"
+  from_port   = 0
+  to_port     = 0
+  protocol    = -1
+  cidr_blocks = [
+    "${module.vpc.nat_public_ips[0]}/32",
+  ]
+  security_group_id = aws_security_group.velociraptor_server_sg2.id
+}
+
 resource "aws_security_group_rule" "velociraptor_allow_http" {
   type        = "ingress"
   description = "Allow HTTP from jumpbox, corp + dmz subnets, web server, and corp subnet NAT gateway for Velociraptor networking"

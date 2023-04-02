@@ -73,15 +73,17 @@ app_service:
       insecure_skip_verify: true
       labels:
         env: logging
+    # https://docs.securityonion.net/en/2.3/url-base.html
+    # 1. Set `url_base` in `/opt/so/saltstack/local/pillar/global.sls` to `securityonion.teleport.blueteamvillage.com`
+    # 2. `sudo salt-call state.highstate`
     - name: "securityonion"
-      uri: "https://172.16.22.23:443/login/?flow=6d4b0c72-32b6-420d-b50a-5c0157c6b36c"
+      uri: "https://172.16.22.23:443"
       insecure_skip_verify: true
       labels:
         env: logging
       rewrite:
         headers:
-          # - "Host: securityonion.magnumtempusfinancial.com"
-          - "Origin: https://securityonion.teleport.blueteamvillage.com"
+          - "Host: securityonion.teleport.blueteamvillage.com"
     ######################################## Intra ########################################
     - name: "grafana"
       uri: "https://172.16.21.10:443"

@@ -92,7 +92,7 @@ resource "aws_security_group_rule" "velociraptor_allow_prometheus" {
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32",
-    # "${aws_instance.metrics_server.private_ip}/32"
+    "${aws_instance.metrics.private_ip}/32"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
@@ -238,6 +238,16 @@ resource "aws_security_group_rule" "cribl_allow_http" {
     var.corp_cidr_block,
     # "0.0.0.0/0"
   ]
+  security_group_id = aws_security_group.cribl_server_sg2.id
+}
+
+resource "aws_security_group_rule" "cribl_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow Prometheus"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
 
@@ -473,6 +483,14 @@ resource "aws_security_group" "securityonion_server_sg2" {
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
     ]
+  }
+
+  ingress {
+    description = "Allow Prometheus"
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["${aws_instance.metrics.private_ip}/32"]
   }
 
   ingress {

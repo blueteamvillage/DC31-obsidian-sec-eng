@@ -1,0 +1,20 @@
+---
+###################################################################
+# Install Python
+###################################################################
+- name: Stat Python
+  ansible.windows.win_stat:
+    path: C:\Python37\python.exe
+  register: win_python
+
+- name: Download Python
+  ansible.windows.win_get_url:
+    url: "{{ python_dl_url }}"
+    dest: '%USERPROFILE%\AppData\Local\Temp\python-{{ python_version }}-amd64.exe'
+  when: not win_python.stat.exists
+
+- name: Install Python
+  ansible.windows.win_powershell:
+    script: |
+      & 'C:\Users\{{ ansible_user }}\AppData\Local\Temp\python-{{ python_version }}-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0'
+  when: not win_python.stat.exists

@@ -14,6 +14,7 @@
 - name: Check whether we have a certificate installed
   command: certbot certificates
   register: certbot_certificates
+  changed_when: false
 
 - name: Upload Nginx configuration
   template:
@@ -55,13 +56,13 @@
 
 - name: nginx health check
   uri:
-    url: "https://127.0.0.1:443/app/index.html"
+    url: "https://{{ velociraptor_fqdn }}/app/index.html"
     follow_redirects: none
     method: GET
     validate_certs: 'yes'
-    status_code: 401
+    status_code: "{{ velociraptor_healthcheck_app_index_status_code }}"
   register: vhc_result
-  until: vhc_result.status == 200
+  until: vhc_result.status == velociraptor_healthcheck_app_index_status_code
   retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
   delay: 5  # Every 5 seconds
-  no_log: True
+  # no_log: True

@@ -20,7 +20,6 @@ THIS FEATURE IS EXPERIMENTAL, if you have any issues please use the method below
 1. Select "Launch" on the right for a scadaBR instance
 1. Your browser should direct you to the scadaBR instance
 
-
 ### Connect to HMIs via RDP
 This section assumes you have completed the pre-reqs.
 
@@ -54,12 +53,12 @@ This section assumes you have completed the pre-reqs.
 1. Enter `http://127.0.0.1:8080/ScadaBR/login.htm`
     1. ![teleport_ssh_tunnel_webui](../.img/teleport_ssh_tunnel_webui.png)
 
-
 ## Connecting to Ubuntu PLCs via Teleport/SSH
 1. `tsh ls`
     1. ![teleport_plc_ssh_ls](../.img/teleport_plc_ssh_ls.png)
 1. `tsh ssh ubuntu@<PLC node name>`
     1. ![teleport_plc_ssh](../.img/teleport_plc_ssh.png)
+
 
 ## References
 * []()

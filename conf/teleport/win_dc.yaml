@@ -1,0 +1,49 @@
+---
+version: v3
+teleport:
+  auth_token: 8085d934a8635b609dddacb46b03c284
+  proxy_server: teleport.blueteamvillage.com:443
+
+auth_service:
+  enabled: no
+ssh_service:
+  enabled: no
+proxy_service:
+  enabled: no
+
+windows_desktop_service:
+  enabled: yes
+  listen_addr: 0.0.0.0:3028
+  ldap:
+    addr: '172.16.50.100:636'
+    domain: 'magnumtempus.financial'
+    username: 'MAGNUMTEMPUS\svc-teleport'
+    sid: 'S-1-5-21-2369732838-3797832421-459094119-1103'
+    server_name: 'dc.magnumtempus.financial'
+    insecure_skip_verify: false
+    ldap_ca_cert: |
+        -----BEGIN CERTIFICATE-----
+        MIIDhzCCAm+gAwIBAgIQV1ht51xgl5VHP9gRttnGbjANBgkqhkiG9w0BAQwFADBW
+        MRkwFwYKCZImiZPyLGQBGRYJZmluYW5jaWFsMRwwGgYKCZImiZPyLGQBGRYMbWFn
+        bnVtdGVtcHVzMRswGQYDVQQDExJtYWdudW10ZW1wdXMtREMtQ0EwHhcNMjMwMzE5
+        MjMzNDM1WhcNMjgwMzE5MjM0NDI5WjBWMRkwFwYKCZImiZPyLGQBGRYJZmluYW5j
+        aWFsMRwwGgYKCZImiZPyLGQBGRYMbWFnbnVtdGVtcHVzMRswGQYDVQQDExJtYWdu
+        dW10ZW1wdXMtREMtQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDe
+        4dQ10KCqga2YoGaMIcYdLCK7KMugWdOe9TIVhityE8Y6Hj+FKEB4AnzLIbOusL+M
+        +Ls6glX7/bKyKqij4yywoNN+beXd+wEsmJbl8ww6Isov6XMbGvAN/rNCOiN7aPoh
+        aZSD3xezgfWPPh+XmpKA50oaq3OlkFZCpZPmXtgNWt6MJ5BD0uOK25Ynps0PP5Tu
+        33h/BebUGSAoMakMANzdHRjIf3IEwXmkcT8Fp+cpqtkb3CmtJDtIRIMYW5Stmn95
+        FzMmfHbYkpWAlnXT9B0vapcUdmAq67HmdEVUWuNH2TSzJV5eWxTDsQq+DrtOwteK
+        r6rRC9sb8oxul+OD2c8FAgMBAAGjUTBPMAsGA1UdDwQEAwIBhjAPBgNVHRMBAf8E
+        BTADAQH/MB0GA1UdDgQWBBTojOkpYRNnqeqfgk/z8JLR+jn5EzAQBgkrBgEEAYI3
+        FQEEAwIBADANBgkqhkiG9w0BAQwFAAOCAQEARTXh+RCkJH5FwdgEkGFZXnzV9DUq
+        7IwYUbKwm4WVTn858YGA7039iRFjD5GYV8vVDxgXetiDxQrffEasnh8angNuLprf
+        H4+ckjrRjLaze+hmMr1ODECTvKHYoOotKe+QbmgAvTJCccWO86M/RnAY/KB3t+Ki
+        dWBVvHxWN4i42kNSYjkQSvRsgMx3nmRzJ8g+LH08O9eon9HMgPcqdS0i55zucSHg
+        0bQqT5YMliN8osLJLsTmZPagFpuikSxMtZoKoD2HfRnTMJPxmReo1QMcHS12g7v9
+        iPfKjcjXJPM3h8rYx6tqtBYv3XSWctVK4rMr0tSmuljRAYe7BVaH+7q2xA==
+        -----END CERTIFICATE-----
+  discovery:
+    base_dn: '*'
+  labels:
+    teleport.internal/resource-id: 25f9e190-e4e1-497f-bb3e-2ad797f51430

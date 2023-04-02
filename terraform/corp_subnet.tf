@@ -16,6 +16,13 @@ resource "aws_security_group" "win_dc_sg" {
   }
 
   ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["${aws_instance.metrics.private_ip}/32"]
+  }
+
+  ingress {
     from_port = 0
     to_port   = 0
     protocol  = "-1"

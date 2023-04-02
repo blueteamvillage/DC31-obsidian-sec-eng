@@ -21,6 +21,18 @@ resource "aws_security_group_rule" "corp_docker_allow_ingress_ssh" {
   security_group_id = aws_security_group.corp_docker_server.id
 }
 
+resource "aws_security_group_rule" "corp_docker_allow_web" {
+  type        = "ingress"
+  description = "Allow wiki web access from teleport"
+  from_port   = 8080
+  to_port     = 8080
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+  ]
+  security_group_id = aws_security_group.corp_docker_server.id
+}
+
 resource "aws_security_group_rule" "corp_docker_allow_prometheus" {
   type        = "ingress"
   description = "Allow Prometheus to access node exporter"

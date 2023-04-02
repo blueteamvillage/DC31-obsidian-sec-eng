@@ -92,7 +92,7 @@ resource "aws_security_group_rule" "velociraptor_allow_prometheus" {
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32",
-    # "${aws_instance.metrics_server.private_ip}/32"
+    "${aws_instance.metrics.private_ip}/32"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
@@ -153,14 +153,6 @@ resource "aws_eip" "velociraptor_server_eip" {
     Name    = "${var.PROJECT_PREFIX}_velociraptor_server_eip"
     Project = var.PROJECT_PREFIX
   }
-}
-
-resource "aws_route53_record" "velociraptor" {
-  zone_id = var.teleport_route53_zone_id
-  name    = "velociraptor.teleport.${var.teleport_base_domain}"
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.velociraptor_server_eip.public_ip]
 }
 
 ############################################ Logging/Cribl Server ############################################
@@ -242,6 +234,16 @@ resource "aws_security_group_rule" "cribl_allow_http" {
 }
 
 #tfsec:ignore:aws-ec2-no-public-egress-sgr
+resource "aws_security_group_rule" "cribl_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow Prometheus"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.cribl_server_sg2.id
+}
+
 resource "aws_security_group_rule" "cribl_allow_egress" {
   type              = "egress"
   description       = "Allow all outbound traffic"
@@ -474,6 +476,14 @@ resource "aws_security_group" "securityonion_server_sg2" {
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
     ]
+  }
+
+  ingress {
+    description = "Allow Prometheus"
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["${aws_instance.metrics.private_ip}/32"]
   }
 
   ingress {

@@ -1,6 +1,8 @@
 ---
 
+
 # Security Onion variables - Installation Script
+security_onion_fqdn: "securityonion.{{ external_domain }}"
 # Note that password will be passed to shell variables so quotes and few other special characters may
 # create issue
 securityonion_adminuser: "onionroot"

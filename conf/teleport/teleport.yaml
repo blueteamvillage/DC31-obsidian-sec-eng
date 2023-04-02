@@ -64,10 +64,13 @@ app_service:
       labels:
         env: logging
     - name: "velociraptor"
-      uri: "https://172.16.22.130:443"
+      uri: "https://172.16.22.130:443/app/index.html"
       insecure_skip_verify: true
       labels:
         env: logging
+      rewrite:
+        headers:
+          - "Host: velociraptor.teleport.blueteamvillage.com"
     - name: "cribl"
       uri: "https://172.16.22.10:443"
       insecure_skip_verify: true

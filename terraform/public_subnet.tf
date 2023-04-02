@@ -155,14 +155,6 @@ resource "aws_eip" "velociraptor_server_eip" {
   }
 }
 
-resource "aws_route53_record" "velociraptor" {
-  zone_id = var.teleport_route53_zone_id
-  name    = "velociraptor.teleport.${var.teleport_base_domain}"
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.velociraptor_server_eip.public_ip]
-}
-
 ############################################ Logging/Cribl Server ############################################
 resource "aws_security_group" "cribl_server_sg2" {
   vpc_id      = module.vpc.vpc_id

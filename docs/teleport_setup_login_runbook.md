@@ -45,6 +45,68 @@ ip-172-16-21-10 ⟵ Tunnel       hostname=ip-172-16-21-10,aws/Name=DEFCON_2023_O
 ubuntu@ip-172-16-21-10:~$
 ```
 
+## Advanced: Setup your SSH config to use Teleport
+This section is for advanced users who need to use SSH explicitly to access hosts behind Teleport. The SSH config generated bt Teleport proxies all SSH connections through Teleport. The way this works is the FQDN of the host must be specified and that schema is `ssh <username>@<Teleport node name>.teleport.blueteamvillage.com`.
+
+1. `tsh config`
+```shell
+➜  DC31-obsidian-sec-eng git:(teleport-docs-3) tsh config
+# Begin generated Teleport configuration for teleport.blueteamvillage.com by tsh
+
+# Common flags for all teleport.blueteamvillage.com hosts
+Host *.teleport.blueteamvillage.com teleport.blueteamvillage.com
+    UserKnownHostsFile "/Users/thunderwagon/.tsh/known_hosts"
+    IdentityFile "/Users/thunderwagon/.tsh/keys/teleport.blueteamvillage.com/CptOfEvilMinions"
+    CertificateFile "/Users/thunderwagon/.tsh/keys/teleport.blueteamvillage.com/CptOfEvilMinions-ssh/teleport.blueteamvillage.com-cert.pub"
+    HostKeyAlgorithms rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,ssh-rsa-cert-v01@openssh.com
+
+# Flags for all teleport.blueteamvillage.com hosts except the proxy
+Host *.teleport.blueteamvillage.com !teleport.blueteamvillage.com
+    Port 3022
+    ProxyCommand "/usr/local/bin/tsh" proxy ssh --cluster=teleport.blueteamvillage.com --proxy=teleport.blueteamvillage.com %r@%h:%p
+
+# End generated Teleport configuration
+```
+1. Append the above SSH config to your existing SSH config: `tsh config >> ~/.ssh/config`
+1. `tsh ls`
+```shell
+➜  DC31-obsidian-sec-eng git:(teleport-docs-3) ✗ tsh ls
+Node Name        Address        Labels
+---------------- -------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------
+ip-172-16-10-93  127.0.0.1:3022 hostname=ip-172-16-10-93,aws/Name=DEFCON_2023_OBSIDIAN-teleport-cluster,aws/Project=DEFCON_2023_OBSIDIAN
+```
+1. `ssh <username>@<Teleport node name>.teleport.blueteamvillage.com`
+1.
+```shell
+➜  DC31-obsidian-sec-eng git:(teleport-docs-3) ✗ ssh ubuntu@ip-172-16-10-93.teleport.blueteamvillage.com
+ubuntu@ip-172-16-10-93:~$
+```
+
+## Advanced: Specify s short name for a host
+Example:
+```shell
+Host btv_so_serial
+  Hostname serial-console.ec2-instance-connect.us-east-2.aws
+  User i-0b92af4ea521fc37e.port0
+  IdentityFile /path/DC31-obsidian-sec-eng/terraform/ssh_keys/id_ed25519
+  ProxyJump ubuntu@ip-172-16-10-93.teleport.blueteamvillage.com
+  # unix_listener: path "/home/<user>/.ssh/ctl-i-<ami>.port0-serial-console.ec2-instance-connect.us-east-2.aws-22.yL5bFjIUkgVu45DE" too long for Unix domain socket
+  ControlPath ~/.ssh/ctl-%C
+
+Host btv_docker
+  Hostname 172.16.50.101
+  User ubuntu
+  IdentityFile /path/DC31-obsidian-sec-eng/terraform/ssh_keys/id_ed25519
+  ProxyJump ubuntu@ip-172-16-10-93.teleport.blueteamvillage.com
+
+Host btv_velo
+  Hostname 172.16.22.130
+  User ubuntu
+  IdentityFile /path/DC31-obsidian-sec-eng/terraform/ssh_keys/id_ed25519
+  ProxyJump ubuntu@ip-172-16-10-93.teleport.blueteamvillage.com
+  LocalForward 8001 127.0.0.1:80
+```
+
 ## Troubleshooting
 If you have any issues please reachout to the SecEng team in Discord via `#station-engineering`.
 

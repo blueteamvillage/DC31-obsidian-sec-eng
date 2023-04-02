@@ -224,7 +224,6 @@ resource "aws_instance" "iot_jump_box" {
   vpc_security_group_ids = [aws_security_group.win_clients_sg.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = var.iot_subnet_map["jhb01"]
-  get_password_data      = true
   user_data              = data.template_file.password_change.rendered
 
   root_block_device {
@@ -233,15 +232,15 @@ resource "aws_instance" "iot_jump_box" {
     delete_on_termination = true
   }
 
-  ################## DO NOT TOUCH ##################
-  ############# IGNORE instance type ###############
-  lifecycle {
-    ignore_changes = [
-      instance_state,
-    ]
-  }
-  ############# IGNORE instance type ###############
-  ################## DO NOT TOUCH ##################
+  # ################## DO NOT TOUCH ##################
+  # ############# IGNORE instance type ###############
+  # lifecycle {
+  #   ignore_changes = [
+  #     instance_state,
+  #   ]
+  # }
+  # ############# IGNORE instance type ###############
+  # ################## DO NOT TOUCH ##################
 
   tags = {
     Name        = "${var.PROJECT_PREFIX}_IOT_JUMPHOST_SERVER"

@@ -1,4 +1,4 @@
-# Ansible - Vulnerable Log4j web server
+# Ansible - <template name>
 ## Description
 
 

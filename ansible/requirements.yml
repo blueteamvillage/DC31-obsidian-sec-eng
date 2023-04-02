@@ -1,4 +1,12 @@
 ---
+
+collections:
+  - name: amazon.aws
+    version: 5.3.0
+  - name: splunk-ansible
+    src: https://github.com/splunk/splunk-ansible.git
+    version: master
+
 roles:
   - name: blueteamvillage.btv-sec-eng-teleport-cluster
     src: https://github.com/blueteamvillage/btv-sec-eng-teleport-cluster

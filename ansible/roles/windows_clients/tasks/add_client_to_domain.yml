@@ -1,0 +1,38 @@
+---
+####################################################################
+# Change default hostname
+####################################################################
+- name: Change the hostname to match with the inventory configuration
+  ansible.windows.win_hostname:
+    name: "{{ inventory_hostname }}"
+  register: hostname_state
+
+- name: Reboot after changing the hostname
+  ansible.windows.win_reboot:
+  when: hostname_state is changed
+
+####################################################################
+# Configure DNS settings for clients
+####################################################################
+- name: Set DNS address to Domain Controller
+  ansible.windows.win_dns_client:
+    adapter_names: '*'
+    ipv4_addresses:
+      - "{{ groups.win_domain_controller[0] }}"
+  register: dns_state
+
+####################################################################
+# Join computer to domain
+####################################################################
+- name: Join Windows domain
+  # https://docs.ansible.com/ansible/2.9/modules/win_domain_membership_module.html
+  ansible.windows.win_domain_membership:
+    dns_domain_name: "{{ internal_domain }}"
+    domain_admin_user: "Administrator@{{ internal_domain }}"
+    domain_admin_password: "{{ ansible_password }}"
+    state: domain
+  register: domain_state
+
+- name: Reboot after joining Windows domain if required
+  ansible.windows.win_reboot:
+  when: domain_state.reboot_required

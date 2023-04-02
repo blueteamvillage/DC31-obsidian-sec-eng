@@ -1,0 +1,13 @@
+---
+- name: Setup Windows Domain Controller
+  hosts: win_domain_controller
+  roles:
+    - win_node_exporter
+  tasks:
+    - import_tasks: 'roles/windows/init_windows.yml'
+    - import_tasks: 'roles/windows/domain_controller/setup_domain_controller.yml'
+    - import_tasks: 'roles/windows/domain_controller/create_dns_zone.yml'
+    - import_tasks: 'roles/windows/domain_controller/create_domain_users.yml'
+    - import_tasks: 'roles/windows/setup_rdp_servers.yml'
+    - import_tasks: 'roles/windows/setup_sysmon.yml'
+    - import_tasks: 'roles/windows/setup_winlogbeat.yml'

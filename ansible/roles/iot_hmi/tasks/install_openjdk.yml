@@ -1,0 +1,20 @@
+---
+###################################################################
+# Install OpenJDK
+###################################################################
+- name: Stat OpenJDK
+  ansible.windows.win_stat:
+    path: 'C:\Program Files\OpenJDK\jdk-{{ openjdk_version }}-hotpsot\bin\javac.exe'
+  register: win_openjdk
+
+- name: Download OpenJDK
+  ansible.windows.win_get_url:
+    url: "{{ openjdk_dl_url }}"
+    dest: '%USERPROFILE%\AppData\Local\Temp\openjdk-{{ openjdk_version }}-windows-x64.msi'
+  when: not win_openjdk.stat.exists
+
+- name: Install OpenJDK
+  ansible.windows.win_package:
+    path: 'C:\Users\{{ ansible_user }}\AppData\Local\Temp\openjdk-{{ openjdk_version }}-windows-x64.msi'
+    state: present
+  when: not win_openjdk.stat.exists

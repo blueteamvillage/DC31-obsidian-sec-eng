@@ -1,0 +1,9 @@
+telemetry:
+   addr: 0.0.0.0:{{ node_exporter_port }}
+collectors:
+  enabled: cpu,cs,net,service,logical_disk,os,memory,system
+collector:
+  service:
+    services-where: "Name='windows_exporter'"
+log:
+  level: warn

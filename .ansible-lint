@@ -60,6 +60,7 @@ enable_list:
 warn_list:
   - skip_this_tag
   - experimental  # experimental is included in the implicit list
+  - no-handler
   # - role-name
   # - yaml[document-start]  # you can also use sub-rule matches
 

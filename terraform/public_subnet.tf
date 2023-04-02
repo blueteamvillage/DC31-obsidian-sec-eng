@@ -464,6 +464,9 @@ resource "aws_security_group" "securityonion_server_sg2" {
     protocol    = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
+      # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+      # else line should be commented
+      # "0.0.0.0/0"
     ]
   }
 
@@ -475,6 +478,10 @@ resource "aws_security_group" "securityonion_server_sg2" {
     protocol    = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
+      # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+      # else line should be commented
+      # "0.0.0.0/0"
+
     ]
   }
 

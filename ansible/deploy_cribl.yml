@@ -7,7 +7,7 @@
   become_method: sudo
   roles:
     - juju4.cribl
+    - juju4.harden_nginx
+    - node_exporter
   tasks:
-    # - include_vars: 'group_vars/metrics.yml'
     - import_tasks: 'roles/linux/init_linux.yml'
-    # - import_tasks: 'roles/linux/setup_node_exporter.yml'

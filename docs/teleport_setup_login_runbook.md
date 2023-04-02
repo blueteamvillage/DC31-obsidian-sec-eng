@@ -82,6 +82,11 @@ ip-172-16-10-93  127.0.0.1:3022 hostname=ip-172-16-10-93,aws/Name=DEFCON_2023_OB
 ubuntu@ip-172-16-10-93:~$
 ```
 
+## Advanced: Creating a normal SSH tunnel
+This section assumes you did the instructions in the previous seciton. The command below will use SSH to create an SSH tunnel that can be used to funnel traffic.
+
+1. `ssh -L 127.0.0.1:8080:<Win HMI IP addr>:8080 ubuntu@ip-172-16-10-93.teleport.blueteamvillage.com`
+
 ## Advanced: Specify s short name for a host
 Example:
 ```shell
@@ -106,6 +111,7 @@ Host btv_velo
   ProxyJump ubuntu@ip-172-16-10-93.teleport.blueteamvillage.com
   LocalForward 8001 127.0.0.1:80
 ```
+
 
 ## Troubleshooting
 If you have any issues please reachout to the SecEng team in Discord via `#station-engineering`.

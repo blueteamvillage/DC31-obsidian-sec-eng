@@ -1,0 +1,74 @@
+####################################################################
+# Change default hostname to iot_eng_wkst
+####################################################################
+---
+
+
+ tasks:
+    - name: Change the hostname to DC for iot_eng_wkst
+      win_hostname:
+        name: "iot_eng_wkst"
+      register: hostname_state
+
+    - name: Reboot after changing the hostname
+      win_reboot:
+      when: hostname_state is changed
+    - name: Install Chocolatey package manager
+      win_chocolatey:
+        name: chocolatey
+        state: present
+
+    - name: Install Python 3.7
+      win_chocolatey:
+        name: python
+        version: '3.7.7'
+        state: present
+
+    - name: Install Java 8
+      win_chocolatey:
+        name: openjdk8
+        state: present
+
+    - name: Install GCC and G++ compilers
+      win_chocolatey:
+        name: mingw
+        state: present
+
+    - name: Install Bison
+      win_chocolatey:
+        name: winflexbison
+        state: present
+
+    - name: Install Make
+      win_chocolatey:
+        name: make
+        state: present
+
+    - name: Install Python 2.7
+      win_chocolatey:
+        name: python2
+        version: '2.7.18'
+        state: present
+
+    - name: Install pip for Python 2.7
+      win_chocolatey:
+        name: pip
+        state: present
+      args:
+        executable: python2
+
+    - name: Install wxPython 3.0
+      win_chocolatey:
+        name: wxpython
+        version: '3.0.2.0'
+        state: present
+
+    - name: Install OpenPLC Editor requirements
+      win_chocolatey:
+        name: '{{ item }}'
+        state: present
+      loop:
+        - git
+        - cmake
+        - visualstudio2019buildtools
+        - visualstudio2019-workload-vctools

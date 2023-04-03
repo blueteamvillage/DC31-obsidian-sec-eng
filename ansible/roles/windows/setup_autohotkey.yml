@@ -2,11 +2,9 @@
 - name: Check if Chocolately is installed exists
   hosts: windows
   tasks:
-    - name: Check choco ins installed
-      win_stat:
-        path: C:\ProgramData\chocolatey\choco.exe
-      register: file_check
+    - name: Ensure Chocolatey itself is installed, using community repo for the bootstrap
+      win_chocolatey:
+        name: chocolatey
 
     - name: Install Autohotkey if choco is installed
-      when: file_check.stat.exists
       win_shell: choco install autohotkey -y

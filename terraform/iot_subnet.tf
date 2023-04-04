@@ -232,16 +232,6 @@ resource "aws_instance" "iot_jump_box" {
     delete_on_termination = true
   }
 
-  # ################## DO NOT TOUCH ##################
-  # ############# IGNORE instance type ###############
-  # lifecycle {
-  #   ignore_changes = [
-  #     instance_state,
-  #   ]
-  # }
-  # ############# IGNORE instance type ###############
-  # ################## DO NOT TOUCH ##################
-
   tags = {
     Name        = "${var.PROJECT_PREFIX}_IOT_JUMPHOST_SERVER"
     Project     = var.PROJECT_PREFIX

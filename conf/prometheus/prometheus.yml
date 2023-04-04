@@ -1,7 +1,8 @@
+---
 # my global config
 global:
-  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  scrape_interval: 15s  # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds. The default is every 1 minute.
   # scrape_timeout is set to the global default (10s).
 
 # Alertmanager configuration
@@ -12,9 +13,9 @@ global:
 #       # - alertmanager:9093
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
-rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+# rule_files:
+# - "first_rules.yml"
+# - "second_rules.yml"
 
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
@@ -23,87 +24,87 @@ scrape_configs:
     static_configs:
       # Corp subnet
       - targets: [
-          "172.16.50.100:9100",   # win_domain_controller
-          "172.16.50.130:9100",   # Windows client 1
-          "172.16.50.131:9100",   # Windows client 2
-          "172.16.50.132:9100",   # Windows client 3
-          "172.16.50.133:9100",   # Windows client 4
-          "172.16.50.134:9100",   # Windows client 5
-          "172.16.50.135:9100",   # Windows client 6
-          "172.16.50.136:9100",   # Windows client 7
-          "172.16.50.137:9100",   # Windows client 8
-          "172.16.50.138:9100",   # Windows client 9
-          "172.16.50.139:9100",   # Windows client 10
-          "172.16.50.140:9100",   # Windows client 11
-          "172.16.50.141:9100",   # Windows client 12
-          "172.16.50.142:9100",   # Windows client 13
-          "172.16.50.143:9100",   # Windows client 14
-          "172.16.50.144:9100",   # Windows client 15
-          "172.16.50.145:9100",   # Windows client 16
-          "172.16.50.146:9100",   # Windows client 17
-        ]
+        "172.16.50.100:9100",   # win_domain_controller
+        "172.16.50.130:9100",   # Windows client 1
+        "172.16.50.131:9100",   # Windows client 2
+        "172.16.50.132:9100",   # Windows client 3
+        "172.16.50.133:9100",   # Windows client 4
+        "172.16.50.134:9100",   # Windows client 5
+        "172.16.50.135:9100",   # Windows client 6
+        "172.16.50.136:9100",   # Windows client 7
+        "172.16.50.137:9100",   # Windows client 8
+        "172.16.50.138:9100",   # Windows client 9
+        "172.16.50.139:9100",   # Windows client 10
+        "172.16.50.140:9100",   # Windows client 11
+        "172.16.50.141:9100",   # Windows client 12
+        "172.16.50.142:9100",   # Windows client 13
+        "172.16.50.143:9100",   # Windows client 14
+        "172.16.50.144:9100",   # Windows client 15
+        "172.16.50.145:9100",   # Windows client 16
+        "172.16.50.146:9100",   # Windows client 17
+      ]
       # IoT subnet
       - targets: [
-          "172.16.60.200:9100",  # HMI-Alpha
-          "172.16.60.201:9100",  # HMI-Beta
-          "172.16.60.202:9100",  # HMI-Charlie
-          "172.16.60.203:9100",  # HMI-Delta
-        ]
+        "172.16.60.200:9100",  # HMI-Alpha
+        "172.16.60.201:9100",  # HMI-Beta
+        "172.16.60.202:9100",  # HMI-Charlie
+        "172.16.60.203:9100",  # HMI-Delta
+      ]
 
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'teleport'
     static_configs:
       # Public subnet
       - targets: [
-          "172.16.10.93:3000", # teleport
-        ]
+        "172.16.10.93:3000",  # teleport
+      ]
 
   - job_name: 'node_exporter'
     static_configs:
       # Public subnet
       - targets: [
-          "172.16.10.93:9100", # teleport
-        ]
+        "172.16.10.93:9100",  # teleport
+      ]
 
       # IoT subnet
       - targets: [
-          "172.16.60.11:9100",
-          "172.16.60.12:9100",
-          "172.16.60.13:9100",
-          "172.16.60.14:9100",
-          "172.16.60.15:9100",
-          "172.16.60.16:9100",
-          "172.16.60.17:9100",
-          "172.16.60.18:9100",
-        ]
+        "172.16.60.11:9100",
+        "172.16.60.12:9100",
+        "172.16.60.13:9100",
+        "172.16.60.14:9100",
+        "172.16.60.15:9100",
+        "172.16.60.16:9100",
+        "172.16.60.17:9100",
+        "172.16.60.18:9100",
+      ]
 
       # corp subnet
       - targets: [
-          "172.16.50.101:9100", # docker server
-        ]
+        "172.16.50.101:9100",  # docker server
+      ]
 
       # prod subnet
       - targets: [
-          "172.16.40.100:9100", # log4_vuln_webserver
-        ]
+        "172.16.40.100:9100",  # log4_vuln_webserver
+      ]
 
       # red team
       - targets: [
-          "172.16.181.200:9100",  # red team alpha
-          "172.16.181.201:9100",  # red team beta
-          "172.16.181.202:9100",  # red team charlie
-        ]
+        "172.16.181.200:9100",  # red team alpha
+        "172.16.181.201:9100",  # red team beta
+        "172.16.181.202:9100",  # red team charlie
+      ]
 
       # logging subnet
       - targets: [
-          "172.16.22.23:9100",   # security_onion
-          "172.16.22.10:9100",   # cribl
-          #"172.16.22.120:9100",   # graylog
-          #"172.16.22.130:9100",   # velociraptor
-          #"172.16.22.140:9100",   # security_onion
-        ]
+        "172.16.22.23:9100",   # security_onion
+        "172.16.22.10:9100",   # cribl
+        # "172.16.22.120:9100",   # graylog
+        # "172.16.22.130:9100",   # velociraptor
+        # "172.16.22.140:9100",   # security_onion
+      ]
 
       # intranet subnet
       - targets: [
-          "127.0.0.1:9100",   # metrics server
-        ]
+        "127.0.0.1:9100",   # metrics server
+      ]

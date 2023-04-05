@@ -11,6 +11,8 @@ If not generated automatically by terraform
 ## Run Ansible playbook
 1. `ansible-playbook -i hosts.ini deploy_security_onion.yml`
 
+If it is the first execution or the one to setup or renew letsencrypt certificate, you must open aws security group from all sources aka 0.0.0.0 temporarily, either from Terraform, either from web portal.
+
 ## Troubleshooting/Known issues
 
 * Don't try ec2 size below recommended xlarge. Install is heavy and using smaller size will results in oom-killer, slowness (40min deployment vs 3h+/incomplete)  and other issues.
@@ -39,6 +41,10 @@ terraform destroy -target=aws_instance.securityonion_server
 terraform apply -target=aws_instance.securityonion_server -target=aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter -target=aws_ec2_traffic_mirror_filter_rule.seconion_traffic_mirror_ipv4_filter_rule_egress -target=aws_ec2_traffic_mirror_filter_rule.seconion_traffic_mirror_ipv4_filter_rule_ingress -target=aws_ec2_traffic_mirror_filter_rule.seconion_traffic_mirror_ipv6_filter_rule_egress -target=aws_ec2_traffic_mirror_filter_rule.seconion_traffic_mirror_ipv6_filter_rule_ingress -target=aws_ec2_traffic_mirror_session.corp_docker_server_traffic_mirror_session -target=aws_ec2_traffic_mirror_session.dmz_web_server_subnet_traffic_mirror_session  -target=aws_ec2_traffic_mirror_session.domain_controller_traffic_mirror_session -target=aws_ec2_traffic_mirror_target.seconion_traffic_mirror_target -target=aws_security_group.securityonion_server_sg2
 ```
 
+* User password reset with `so-user` - https://docs.securityonion.net/en/2.3/passwords.html
+
+* Change base url - https://docs.securityonion.net/en/2.3/url-base.html
+
 ## References
 * [install_security_onion.yml](https://github.com/blueteamvillage/obsidian-sec-eng/blob/main/ansible/roles/linux/install_security_onion.yml)
 * [conf/security_onion](https://github.com/blueteamvillage/obsidian-sec-eng/tree/main/ansible/conf/security_onion)
@@ -47,6 +53,6 @@ terraform apply -target=aws_instance.securityonion_server -target=aws_ec2_traffi
 * [Data Source: aws_instances](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances)
 * [Data Source: aws_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip)
 * [Filter Terraform Data Source by AWS Tag](https://wahlnetwork.com/2020/04/30/filter-terraform-data-source-by-aws-tag-value/)
-* []()
+* [ Allow user to change web interface cert #1766 ](https://github.com/Security-Onion-Solutions/securityonion/issues/1766)
 * []()
 * []()

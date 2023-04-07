@@ -2,5 +2,8 @@
 - name: Install/Setup HMI controllers
   hosts: iot_hmi
   roles:
-    - win_node_exporter
-    - iot_hmi
+    #- win_node_exporter
+    #iot_hmi- iot_hmi
+  tasks:
+    - import_tasks: 'roles/windows/setup_sysmon.yml'
+    - import_tasks: 'roles/windows/setup_winlogbeat.yml'

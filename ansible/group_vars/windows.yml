@@ -13,7 +13,7 @@ sysmon_url: "https://download.sysinternals.com/files/Sysmon.zip"
 sysmon_install_path: "C:\\Program Files\\Sysmon"
 
 # Winlogbeat
-winlogbeat_version: "8.6.2"
+winlogbeat_version: "8.7.0"
 winlogbeat_url: "https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-{{ winlogbeat_version }}-windows-x86_64.zip"
 winlogbeat_install_path: "C:\\Program Files\\Winlogbeat"
 

@@ -29,7 +29,6 @@
     src: /etc/nginx/sites-available/{{ velociraptor_fqdn }}.conf
     dest: /etc/nginx/sites-enabled/{{ velociraptor_fqdn }}
     state: link
-  when: certbot_certificates.stdout.find("Found the following certs") == -1
 
 - name: Remove default symlink
   file:

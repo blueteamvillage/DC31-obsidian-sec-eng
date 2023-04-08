@@ -5,11 +5,11 @@
 - name: Change the hostname to match with the inventory configuration
   ansible.windows.win_hostname:
     name: "{{ inventory_hostname }}"
-  register: hostname_state
+  notify:
+    - Reboot Windows
 
-- name: Reboot after changing the hostname
-  ansible.windows.win_reboot:
-  when: hostname_state is changed
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
 
 ####################################################################
 # Configure DNS settings for clients
@@ -31,8 +31,8 @@
     domain_admin_user: "Administrator@{{ internal_domain }}"
     domain_admin_password: "{{ ansible_password }}"
     state: domain
-  register: domain_state
+  notify:
+    - Reboot Windows
 
-- name: Reboot after joining Windows domain if required
-  ansible.windows.win_reboot:
-  when: domain_state.reboot_required
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

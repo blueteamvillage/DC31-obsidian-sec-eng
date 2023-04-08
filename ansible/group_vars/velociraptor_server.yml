@@ -19,8 +19,8 @@ teleport_ssh_labels:
 velociraptor_healthcheck_app_index_status_code: 401
 
 # Configuration
-# velociraptor_fqdn: velociraptor.{{ external_domain }}
-velociraptor_fqdn: velociraptor.{{ logging_base_ext_domain }}
+velociraptor_fqdn: velociraptor.{{ external_domain }}
+# velociraptor_fqdn: velociraptor.{{ logging_base_ext_domain }}
 velociraptor_frontend_base_path: frontend
 
 ## Version

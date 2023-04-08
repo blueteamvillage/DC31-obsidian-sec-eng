@@ -1,4 +1,6 @@
 ---
 
 velociraptor_client: true
-velociraptor_host: 172.16.22.130
+# velociraptor_host: 172.16.22.130
+velociraptor_host: velociraptor.{{ external_domain }}
+velociraptor_port: 443

@@ -45,6 +45,18 @@ resource "aws_security_group_rule" "log4j_allow_prometheus" {
   security_group_id = aws_security_group.vuln_log4j_webserver.id
 }
 
+resource "aws_security_group_rule" "log4j_allow_red_team" {
+  for_each = var.red_team_subnet_map
+
+  type              = "ingress"
+  description       = "Allow red team boxes"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["${aws_eip.red_team_servers_eips[each.key].public_ip}/32"]
+  security_group_id = aws_security_group.vuln_log4j_webserver.id
+}
+
 resource "aws_security_group_rule" "log4j_allow_egress" {
   type              = "egress"
   description       = "Allow outbound"

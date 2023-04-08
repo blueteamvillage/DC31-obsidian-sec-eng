@@ -36,8 +36,10 @@ filebeat_inputs:
       - "/var/log/sysmon/sysmon.log"
 filebeat_output_elasticsearch_enabled: true
 filebeat_output_elasticsearch_hosts:
-  - "172.16.22.10:9200"
+  - "https://172.16.22.10:9200"
 filebeat_output_logstash_enabled: false
+filebeat_output_elasticsearch_ssl_enabled: true
+filebeat_output_elasticsearch_ssl_verification: 'none'
 
 # From terraform
 teleport_base_domain: "blueteamvillage.com"

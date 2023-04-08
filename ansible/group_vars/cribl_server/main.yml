@@ -2,8 +2,16 @@
 
 # TODO: add btv one
 # cribl_license_dat: cribl-license.dat
+cribl_api_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-cribl-api-pass', region=aws_region) }}"
 
 cribl_fqdn: "cribl.{{ external_domain }}"
+
+cribl_in_elastic_version: 8.7.0
+
+cribl_outputs_template: cribl-outputs.yml
+
+cribl_elastic_in_tls: true
+cribl_elastic_in_cert_name: magnumtempusfinancial
 
 # juju4.harden_nginx
 hardenwebserver_disable_http: true
@@ -18,6 +26,8 @@ hardenwebserver_ssl_key: "/etc/letsencrypt/live/{{ cribl_fqdn }}/privkey.pem"
 hardenwebserver_systemd_dir_acl:
   - { p: /etc/letsencrypt/archive, perm: rx, m: '0711' }
   - { p: /etc/letsencrypt/live, perm: rx, m: '0711' }
+  - { p: "/etc/ssl/private", perm: rx, m: '0710' }
   - { p: "/var/log/nginx", perm: rwx, m: '0755' }
 hardenwebserver_systemd_files_acl:
   - { p: "/etc/letsencrypt/live/{{ cribl_fqdn }}/privkey.pem", perm: r }
+  - { p: "/etc/ssl/private/dhparam4.pem", perm: r }

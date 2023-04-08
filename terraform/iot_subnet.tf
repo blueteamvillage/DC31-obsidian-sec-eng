@@ -224,7 +224,6 @@ resource "aws_instance" "iot_jump_box" {
   vpc_security_group_ids = [aws_security_group.iot_jump_box_sg.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = var.iot_subnet_map["jhb01"]
-  get_password_data      = true
   user_data              = data.template_file.password_change.rendered
 
   root_block_device {
@@ -232,16 +231,6 @@ resource "aws_instance" "iot_jump_box" {
     volume_type           = "gp2"
     delete_on_termination = true
   }
-
-  ################## DO NOT TOUCH ##################
-  ############# IGNORE instance type ###############
-  lifecycle {
-    ignore_changes = [
-      instance_state,
-    ]
-  }
-  ############# IGNORE instance type ###############
-  ################## DO NOT TOUCH ##################
 
   tags = {
     Name        = "${var.PROJECT_PREFIX}_IOT_JUMPHOST_SERVER"
@@ -275,6 +264,24 @@ resource "aws_security_group" "iot_eng_wkst_sg" {
     ]
   }
 
+
+  ingress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = [
+      #teleport internal and external IP.
+      "${aws_instance.windows_domain_controller.private_ip}/32",
+    ]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
     Name    = "${var.PROJECT_PREFIX}_iot_eng_wkst_SG"
     Project = var.PROJECT_PREFIX
@@ -282,14 +289,16 @@ resource "aws_security_group" "iot_eng_wkst_sg" {
 }
 
 resource "aws_instance" "iot_eng_wkst" {
-  ami                    = var.windows-ami
-  instance_type          = var.windows_boxes_ec2_size
-  subnet_id              = aws_subnet.iot.id
-  vpc_security_group_ids = [aws_security_group.iot_eng_wkst_sg.id]
-  key_name               = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip             = var.iot_subnet_map["iot_eng_wkst"]
-  get_password_data      = true
-  user_data              = data.template_file.password_change.rendered
+  ami           = var.windows-ami
+  instance_type = var.windows_boxes_ec2_size
+  subnet_id     = aws_subnet.iot.id
+  vpc_security_group_ids = [
+    aws_security_group.iot_eng_wkst_sg.id,
+    aws_security_group.node_exporter_clients.id,
+  ]
+  key_name   = "${var.PROJECT_PREFIX}-ssh-key"
+  private_ip = var.iot_subnet_map["iot_eng_wkst"]
+  user_data  = data.template_file.password_change.rendered
 
   root_block_device {
     volume_size           = 50

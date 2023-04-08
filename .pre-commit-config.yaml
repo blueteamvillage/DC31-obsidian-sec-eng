@@ -44,7 +44,7 @@ repos:
     rev: v6.11.0
     hooks:
       - id: ansible-lint
-        files: ^ansible/
+        files: ^ansible\/.*
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.77.0

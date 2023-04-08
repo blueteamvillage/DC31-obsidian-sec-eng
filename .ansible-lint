@@ -42,6 +42,7 @@ skip_list:
   - role-name
   - package-latest
   - loop-var-prefix[missing]
+  - schema[requirements]
 
 # Any rule that has the 'opt-in' tag will not be loaded unless its 'id' is
 # mentioned in the enable_list:

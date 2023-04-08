@@ -1,24 +1,37 @@
----
 kind: github
 metadata:
   name: github
 spec:
+  api_endpoint_url: ""
   client_id: a236b1590a0c4abdc0a6
-  client_secret: d3d6aaa138b476292a76fa6e04859ec748d3c61c
+  client_secret: <secret>
   display: GitHub
   endpoint_url: ""
   redirect_url: https://teleport.blueteamvillage.com/v1/webapi/github/callback
   teams_to_logins: null
   teams_to_roles:
-    - organization: blueteamvillage
-      roles:
-        - editor
-        - sec_infra
-        - access
-        - windows_desktop_admins
-      team: dc31-obsidian-sec-eng
-    - organization: blueteamvillage
-      roles:
-        - workshop_contributors
-      team: dc31-workshop-contributors
+  - organization: blueteamvillage
+    roles:
+    - editor
+    - sec_infra
+    - access
+    - windows_desktop_admins
+    - windows_desktop_users
+    team: dc31-obsidian-sec-eng
+  - organization: blueteamvillage
+    roles:
+    - jumpbox
+    - workshop_contributors
+    - windows_desktop_users
+    team: dc31-workshop-contributors
+  - organization: blueteamvillage
+    roles:
+    - iot_team
+    - jumpbox
+    team: dc31-iot-team
+  - organization: blueteamvillage
+    roles:
+    - jumpbox
+    - red_team
+    team: dc31-red-team
 version: v3

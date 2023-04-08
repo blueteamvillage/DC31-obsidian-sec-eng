@@ -48,10 +48,11 @@
 # - name: Create Tomcat service
 
 
-# - name: Start Tomcat
-#   ansible.windows.win_service:
-#     name: 'Tomcat9'
-#     state: restarted
+- name: Start Tomcat
+  ansible.windows.win_service:
+    name: 'Tomcat9'
+    start_mode: auto
+    state: restarted
 
 ####################################################################
 # Healthcheck Tomcat

@@ -6,6 +6,13 @@ cribl_api_password: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-cr
 
 cribl_fqdn: "cribl.{{ external_domain }}"
 
+cribl_in_elastic_version: 8.7.0
+
+cribl_outputs_template: cribl-outputs.yml
+
+cribl_elastic_in_tls: true
+cribl_elastic_in_cert_name: magnumtempusfinancial
+
 # juju4.harden_nginx
 hardenwebserver_disable_http: true
 hardenwebserver_cert: certbot

@@ -1,0 +1,186 @@
+outputs:
+  default:
+    defaultId: remotesplunk
+    type: default
+  remotesplunk:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    port: 9997
+    nestedFields: none
+    throttleRatePerSec: "0"
+    connectionTimeout: 10000
+    writeTimeout: 60000
+    tls:
+      disabled: true
+    enableMultiMetrics: false
+    enableACK: true
+    maxS2Sversion: v3
+    onBackpressure: block
+    authType: manual
+    authToken: ""
+    type: splunk
+    host: 172.16.22.20
+  remotesecurityonion:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    loadBalanced: false
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    auth:
+      disabled: true
+      authType: manual
+    elasticVersion: auto
+    onBackpressure: block
+    useRoundRobinDns: false
+    type: elastic
+    index: cribl_data
+    url: https://172.16.22.23:9200/_bulk
+  localdebug:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    addIdToStagePath: true
+    removeEmptyDirs: false
+    partitionExpr: "C.Time.strftime(_time ? _time : Date.now()/1000, '%Y/%m/%d')"
+    format: json
+    baseFileName: "`CriblOut`"
+    fileNameSuffix: '`.${C.env["CRIBL_WORKER_ID"]}.${__format}${__compression ===
+      "gzip" ? ".gz" : ""}`'
+    maxFileSizeMB: 32
+    maxFileOpenTimeSec: 300
+    maxFileIdleTimeSec: 30
+    maxOpenFiles: 100
+    onBackpressure: block
+    compress: none
+    type: filesystem
+    destPath: /tmp/cribl-debug-output.log
+  MultiSIEMOutputs:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    rules:
+      - final: true
+        filter: __inputId=='elastic:in_elastic'
+        output: remotesplunk
+        description: Splunk
+      - final: true
+        filter: __inputId=='elastic:in_elastic'
+        output: remotesecurityonion
+        description: SecurityOnion
+      - final: true
+        filter: __inputId=='elastic:in_elastic'
+        output: localdebug
+        description: Debug
+      - final: false
+        output: splunk-tcp-sysmonforlinux
+        description: Splunk TCP input for sysmonforlinux
+        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+          log.file.path == '/var/log/sysmon/sysmon.log'
+      - final: false
+        output: splunk-tcp-osquery
+        description: Splunk TCP input for osquery linux
+        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+          log.file.path == '/var/log/osquery/osqueryd.results.log'
+      - final: false
+        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+          log.file.path == '/var/log/sysmon/sysmon.log'
+        output: splunk-tcp-sysmonforlinux-syslog
+        description: Splunk TCP input for sysmonforlinux (syslog)
+    type: router
+  rawlogs:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    awsAuthenticationMethod: auto
+    signatureVersion: v4
+    reuseConnections: true
+    rejectUnauthorized: true
+    enableAssumeRole: false
+    stagePath: $CRIBL_HOME/state/outputs/staging
+    addIdToStagePath: true
+    removeEmptyDirs: false
+    objectACL: private
+    partitionExpr: "`${C.Time.strftime(_time ? _time : Date.now() / 1000,
+      '%Y/%m/%d')}/${index ? index : 'no_index'}/${host ? host :
+      'no_host'}/${sourcetype ? sourcetype : 'no_sourcetype'}`"
+    format: json
+    baseFileName: "`DEFCON_2023_OBSIDIAN`"
+    fileNameSuffix: '`.${C.env["CRIBL_WORKER_ID"]}.${__format}${__compression ===
+      "gzip" ? ".gz" : ""}`'
+    maxFileSizeMB: 32
+    maxFileOpenTimeSec: 300
+    maxFileIdleTimeSec: 30
+    maxOpenFiles: 100
+    onBackpressure: block
+    compress: gzip
+    type: s3
+    bucket: raw-logs-bucket
+    region: us-east-2
+    destPath: rawlogs
+  splunk-tcp-sysmonforlinux:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    port: 9516
+    nestedFields: none
+    throttleRatePerSec: "0"
+    connectionTimeout: 10000
+    writeTimeout: 60000
+    tls:
+      disabled: true
+    enableMultiMetrics: false
+    enableACK: true
+    maxS2Sversion: v3
+    onBackpressure: block
+    authType: manual
+    authToken: ""
+    type: splunk
+    host: 172.16.22.20
+  splunk-tcp-osquery:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    port: 9515
+    nestedFields: none
+    throttleRatePerSec: "0"
+    connectionTimeout: 10000
+    writeTimeout: 60000
+    tls:
+      disabled: true
+    enableMultiMetrics: false
+    enableACK: true
+    maxS2Sversion: v3
+    onBackpressure: block
+    authType: manual
+    authToken: ""
+    type: splunk
+    host: 172.16.22.20
+  splunk-tcp-sysmonforlinux-syslog:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    protocol: tcp
+    facility: 1
+    severity: 5
+    appName: sysmonforlinux
+    messageFormat: rfc3164
+    timestampFormat: syslog
+    throttleRatePerSec: "0"
+    loadBalanced: false
+    connectionTimeout: 10000
+    writeTimeout: 60000
+    tls:
+      disabled: true
+    onBackpressure: block
+    type: syslog
+    host: 172.16.22.20
+    port: 9516

@@ -59,9 +59,9 @@ resource "aws_instance" "iot_plc_servers" {
   private_ip = each.value
 
   metadata_options {
-    # https://github.com/hashicorp/terraform-provider-aws/issues/12564
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
+    instance_metadata_tags = "enabled"
   }
 
   root_block_device {

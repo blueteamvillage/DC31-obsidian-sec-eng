@@ -21,17 +21,17 @@ resource "aws_security_group_rule" "allow_ssh_from_teleport" {
   security_group_id = aws_security_group.red_team_servers.id
 }
 
-resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
-  type        = "ingress"
-  description = "Allow all traffic from NAT gateway"
-  from_port   = 0
-  to_port     = 0
-  protocol    = -1
-  cidr_blocks = [
-    "${module.vpc.nat_public_ips[0]}/32",
-  ]
-  security_group_id = aws_security_group.red_team_servers.id
-}
+# resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
+#   type        = "ingress"
+#   description = "Allow all traffic from NAT gateway"
+#   from_port   = 0
+#   to_port     = 0
+#   protocol    = -1
+#   cidr_blocks = [
+#     "${module.vpc.nat_public_ips[0]}/32",
+#   ]
+#   security_group_id = aws_security_group.red_team_servers.id
+# }
 
 resource "aws_security_group_rule" "redteam_allow_prometheus" {
   type              = "ingress"

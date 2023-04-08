@@ -21,7 +21,7 @@ resource "aws_security_group_rule" "allow_ssh_from_teleport" {
   security_group_id = aws_security_group.red_team_servers.id
 }
 
-resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
+resource "aws_security_group_rule" "red_team_allow_inbound_from_nat_gateway" {
   type        = "ingress"
   description = "Allow all traffic from NAT gateway"
   from_port   = 0
@@ -30,6 +30,16 @@ resource "aws_security_group_rule" "allow_inbound_from_nat_gateway" {
   cidr_blocks = [
     "${module.vpc.nat_public_ips[0]}/32",
   ]
+  security_group_id = aws_security_group.red_team_servers.id
+}
+
+resource "aws_security_group_rule" "redteam_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow Prometheus"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
   security_group_id = aws_security_group.red_team_servers.id
 }
 
@@ -89,7 +99,6 @@ resource "aws_instance" "red_team_servers" {
 resource "aws_eip" "red_team_servers_eips" {
   for_each = var.red_team_subnet_map
 
-  #aws_instance.red_team_servers["red_team_box_charlie"]
   instance = aws_instance.red_team_servers[each.key].id
   vpc      = true
   tags = {

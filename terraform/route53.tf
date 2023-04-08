@@ -34,3 +34,12 @@ resource "aws_route53_record" "cribl" {
   ttl             = 300
   records         = [aws_eip.cribl_server_eip.public_ip]
 }
+
+resource "aws_route53_record" "velociraptor" {
+  allow_overwrite = true
+  zone_id         = data.aws_route53_zone.project_route53_zone.zone_id
+  name            = "velociraptor.${var.project_base_domain}"
+  type            = "A"
+  ttl             = 300
+  records         = [aws_eip.velociraptor_server_eip.public_ip]
+}

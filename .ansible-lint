@@ -42,6 +42,7 @@ skip_list:
   - role-name
   - package-latest
   - loop-var-prefix[missing]
+  - schema[requirements]
 
 # Any rule that has the 'opt-in' tag will not be loaded unless its 'id' is
 # mentioned in the enable_list:
@@ -60,6 +61,8 @@ enable_list:
 warn_list:
   - skip_this_tag
   - experimental  # experimental is included in the implicit list
+  - no-handler
+  - yaml
   # - role-name
   # - yaml[document-start]  # you can also use sub-rule matches
 

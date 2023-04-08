@@ -50,6 +50,16 @@ pip install -r requirements.txt
 ansible-galaxy install -r requirements.yml
 ansible-playbook -v <playbook.yml>
 ```
+For ansible with amazon resources
+```
+export AWS_ACCESS_KEY_ID=REDACTED
+export AWS_SECRET_ACCESS_KEY=REDACTED
+ansible-playbook -v amazon_logging_off.yml
+```
+with hosts.ini entry. interpreter part only needed if virtualenv.
+```
+localhost ansible_connection=local ansible_python_interpreter=/path/to/bin/python3
+```
 
 ## References
 ### Terraform

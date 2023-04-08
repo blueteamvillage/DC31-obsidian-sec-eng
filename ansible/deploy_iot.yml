@@ -19,4 +19,4 @@
     - juju4.osquery
     - node_exporter
     - juju4.sysmon
-    # - prymalinstynct.velociraptor
+    - prymalinstynct.velociraptor

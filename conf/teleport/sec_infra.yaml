@@ -1,16 +1,22 @@
-kind: role
+sekind: role
 metadata:
-  name: jumpbox
+  name: sec_infra
 spec:
   allow:
-    kubernetes_resources:
-    - kind: pod
-      name: '*'
-      namespace: '*'
+    kubernetes_groups:
+    - edit
     logins:
+    - ubuntu
+    - administrator
     - btv
     node_labels:
-      aws/Name: DEFCON_2023_OBSIDIAN-teleport-cluster
+      '*': '*'
+    rules:
+    - resources:
+      - session
+      verbs:
+      - read
+      - list
   deny: {}
   options:
     cert_format: standard
@@ -31,4 +37,4 @@ spec:
       default: best_effort
       desktop: true
     ssh_file_copy: true
-version: v5
+version: v6

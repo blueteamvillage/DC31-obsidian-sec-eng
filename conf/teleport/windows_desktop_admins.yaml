@@ -1,10 +1,34 @@
----
 kind: role
-version: v5
 metadata:
   name: windows_desktop_admins
 spec:
   allow:
+    kubernetes_resources:
+    - kind: pod
+      name: '*'
+      namespace: '*'
     windows_desktop_labels:
-      "*": "*"
-    windows_desktop_logins: ["Administrator"]
+      '*': '*'
+    windows_desktop_logins:
+    - Administrator
+  deny: {}
+  options:
+    cert_format: standard
+    create_host_user: false
+    desktop_clipboard: true
+    desktop_directory_sharing: true
+    enhanced_recording:
+    - command
+    - network
+    forward_agent: false
+    idp:
+      saml:
+        enabled: true
+    max_session_ttl: 30h0m0s
+    pin_source_ip: false
+    port_forwarding: true
+    record_session:
+      default: best_effort
+      desktop: true
+    ssh_file_copy: true
+version: v5

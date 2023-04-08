@@ -1,12 +1,18 @@
----
 kind: role
 metadata:
+  id: 1680650313244499794
   name: workshop_contributors
 spec:
   allow:
+    app_labels:
+      env: logging
+    kubernetes_resources:
+    - kind: pod
+      name: '*'
+      namespace: '*'
     logins:
-      - ubuntu
-      - Administrator
+    - ubuntu
+    - Administrator
     node_labels:
       Environment: corp
   deny: {}
@@ -16,8 +22,8 @@ spec:
     desktop_clipboard: true
     desktop_directory_sharing: true
     enhanced_recording:
-      - command
-      - network
+    - command
+    - network
     forward_agent: false
     idp:
       saml:

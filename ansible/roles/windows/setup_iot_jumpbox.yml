@@ -1,0 +1,12 @@
+####################################################################
+# Change default hostname to iot_jumpbox
+####################################################################
+---
+- name: Change the hostname to DC for iot_jumpbox
+  win_hostname:
+    name: "iot_jumpbox"
+  register: hostname_state
+
+- name: Reboot after changing the hostname
+  win_reboot:
+  when: hostname_state is changed

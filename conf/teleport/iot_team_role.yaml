@@ -1,15 +1,19 @@
----
 kind: role
 metadata:
+  id: 1680971967081045053
   name: iot_team
 spec:
   allow:
     app_labels:
-      env: "iot"
+      env: iot
+    kubernetes_resources:
+    - kind: pod
+      name: '*'
+      namespace: '*'
     logins:
-      - ubuntu
+    - ubuntu
     node_labels:
-      Environment: iot
+      aws/Environment: iot
   deny: {}
   options:
     cert_format: standard
@@ -17,8 +21,8 @@ spec:
     desktop_clipboard: true
     desktop_directory_sharing: true
     enhanced_recording:
-      - command
-      - network
+    - command
+    - network
     forward_agent: false
     idp:
       saml:

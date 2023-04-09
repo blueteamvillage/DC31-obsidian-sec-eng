@@ -8,6 +8,19 @@ resource "aws_security_group" "velociraptor_server_sg2" {
   }
 }
 
+# This is what allow client traffic to move out and reach back velociraptor server with public access blocked.
+resource "aws_security_group_rule" "velociraptor_allow_inbound_from_nat_gateway" {
+  type        = "ingress"
+  description = "Allow all traffic from NAT gateway for velociraptor server"
+  from_port   = 0
+  to_port     = 0
+  protocol    = -1
+  cidr_blocks = [
+    "${module.vpc.nat_public_ips[0]}/32",
+  ]
+  security_group_id = aws_security_group.velociraptor_server_sg2.id
+}
+
 resource "aws_security_group_rule" "velociraptor_allow_http" {
   type        = "ingress"
   description = "Allow HTTP from jumpbox, corp + dmz subnets, web server, and corp subnet NAT gateway for Velociraptor networking"
@@ -92,7 +105,7 @@ resource "aws_security_group_rule" "velociraptor_allow_prometheus" {
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32",
-    # "${aws_instance.metrics_server.private_ip}/32"
+    "${aws_instance.metrics.private_ip}/32"
   ]
   security_group_id = aws_security_group.velociraptor_server_sg2.id
 }
@@ -155,14 +168,6 @@ resource "aws_eip" "velociraptor_server_eip" {
   }
 }
 
-resource "aws_route53_record" "velociraptor" {
-  zone_id = var.teleport_route53_zone_id
-  name    = "velociraptor.teleport.${var.teleport_base_domain}"
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.velociraptor_server_eip.public_ip]
-}
-
 ############################################ Logging/Cribl Server ############################################
 resource "aws_security_group" "cribl_server_sg2" {
   vpc_id      = module.vpc.vpc_id
@@ -184,6 +189,17 @@ resource "aws_security_group_rule" "cribl_allow_ssh" {
   ]
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
+
+resource "aws_security_group_rule" "cribl_allow_teleport" {
+  type              = "ingress"
+  description       = "Allow Teleport to access web UI"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
+  security_group_id = aws_security_group.cribl_server_sg2.id
+}
+
 
 resource "aws_security_group_rule" "cribl_allow_ping" {
   type        = "ingress"
@@ -238,6 +254,17 @@ resource "aws_security_group_rule" "cribl_allow_http" {
     var.corp_cidr_block,
     # "0.0.0.0/0"
   ]
+  security_group_id = aws_security_group.cribl_server_sg2.id
+}
+
+#tfsec:ignore:aws-ec2-no-public-egress-sgr
+resource "aws_security_group_rule" "cribl_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow Prometheus"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
 
@@ -461,6 +488,9 @@ resource "aws_security_group" "securityonion_server_sg2" {
     protocol    = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
+      # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+      # else line should be commented
+      # "0.0.0.0/0"
     ]
   }
 
@@ -472,7 +502,19 @@ resource "aws_security_group" "securityonion_server_sg2" {
     protocol    = "tcp"
     cidr_blocks = [
       "${module.teleport.private_ip_addr}/32",
+      # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+      # else line should be commented
+      # "0.0.0.0/0"
+
     ]
+  }
+
+  ingress {
+    description = "Allow Prometheus"
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["${aws_instance.metrics.private_ip}/32"]
   }
 
   ingress {

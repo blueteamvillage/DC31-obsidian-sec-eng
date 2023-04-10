@@ -1,0 +1,25 @@
+---
+####################################################################
+# Setup Petitpotam vuln
+# https://github.com/blueteamvillage/obsidian-sec-eng/issues/156
+####################################################################
+- name: Set NtlmMinClientSec
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0
+    name: NtlmMinClientSec
+    data: 0
+    type: dword
+
+- name: Set AllowOpenRawDL
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\EFS
+    name: AllowOpenRawDL
+    data: 1
+    type: dword
+
+- name: Set RestrictSendingNTLMTraffic
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0
+    name: RestrictSendingNTLMTraffic
+    data: 1
+    type: dword

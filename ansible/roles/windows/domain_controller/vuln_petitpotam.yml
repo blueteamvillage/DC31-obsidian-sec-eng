@@ -23,3 +23,10 @@
     name: RestrictSendingNTLMTraffic
     data: 1
     type: dword
+
+- name: Set RestrictSendingNTLMTraffic
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+    name: lmcompatibilitylevel
+    data: 0
+    type: dword

@@ -1,0 +1,10 @@
+---
+- name: Check if Chocolately is installed exists
+  hosts: windows
+  tasks:
+    - name: Ensure Chocolatey itself is installed, using community repo for the bootstrap
+      win_chocolatey:
+        name: chocolatey
+
+    - name: Install Autohotkey if choco is installed
+      win_shell: choco install autohotkey -y

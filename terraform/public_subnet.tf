@@ -169,6 +169,9 @@ resource "aws_eip" "velociraptor_server_eip" {
 }
 
 ############################################ Logging/Cribl Server ############################################
+
+
+
 resource "aws_security_group" "cribl_server_sg2" {
   vpc_id      = module.vpc.vpc_id
   description = "Cribl security group"
@@ -179,14 +182,12 @@ resource "aws_security_group" "cribl_server_sg2" {
 }
 
 resource "aws_security_group_rule" "cribl_allow_ssh" {
-  type        = "ingress"
-  description = "Allow SSH"
-  from_port   = 22
-  to_port     = 22
-  protocol    = "tcp"
-  cidr_blocks = [
-    "${module.teleport.private_ip_addr}/32"
-  ]
+  type              = "ingress"
+  description       = "Allow SSH"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
 

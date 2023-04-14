@@ -1,0 +1,61 @@
+{{ ansible_managed | comment }}
+# /opt/splunk/etc/apps/search/local/inputs.conf
+
+# Data input > TCP
+[tcp://9514]
+connection_host = dns
+host = {{ ansible_hostname }}
+index = syslog
+sourcetype = syslog
+disabled = 1
+
+[splunktcp://9525]
+connection_host = ip
+
+[http://splunk_hec_token_linux]
+description = Linux logs
+disabled = 0
+host = {{ ansible_hostname }}
+index = linux
+indexes = linux
+source = linux
+sourcetype = linux_messages_syslog
+token = REDACTED
+
+[http://splunk_hec_token_osquery]
+description = osquery linux
+disabled = 0
+host = {{ ansible_hostname }}
+index = osquery
+indexes = osquery
+source = osquery
+sourcetype = osquery:results
+token = REDACTED
+
+[http://splunk_hec_token_sysmonforlinux]
+description = sysmonforlinux
+disabled = 0
+host = {{ ansible_hostname }}
+index = sysmonforlinux
+indexes = sysmonforlinux
+source = sysmonforlinux
+sourcetype = sysmon_linux
+token = REDACTED
+
+[http://splunk_hec_token_windows]
+description = windows event logs
+disabled = 0
+host = {{ ansible_hostname }}
+index = windows
+indexes = windows
+source = windows
+token = REDACTED
+
+[http://splunk_hec_token_sysmon]
+description = sysmon windows
+disabled = 0
+host = {{ ansible_hostname }}
+index = sysmon
+indexes = sysmon
+source = sysmon
+token = REDACTED

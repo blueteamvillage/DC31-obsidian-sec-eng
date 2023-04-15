@@ -1,0 +1,82 @@
+kind: role
+metadata:
+  name: windows_desktop_users
+spec:
+  allow:
+    kubernetes_resources:
+    - kind: pod
+      name: '*'
+      namespace: '*'
+    windows_desktop_labels:
+      teleport.dev/windows_domain: magnumtempus.financial
+    windows_desktop_logins:
+    - domi.nusvir
+    - amanda.nuensis
+    - celiste.pecunia
+    - karen.metuens
+    - matt.tristique
+    - stephen.lamna
+    - fauci.numus
+    - max.argentum
+    - denarius.repo
+    - steven.decusis
+    - molly.ferio
+    - brad.cudo
+    - estevan.mcnullen
+    - reggie.habeo
+    - kama.suppetia
+    - geri.scelerri
+    - condi.prince
+    - tim.ferio
+    - sandy.jucundi
+    - donny.indoles
+    - reese.juvo
+    - corro.goh
+    - indi.dago
+    - chris.mcquay
+    - connie.mendax
+    - timothy.vanidicus
+    - parvos.ramineni
+    - jason.fallo
+    - richard.natu
+    - ben.cordus
+    - rene.maior
+    - brent.socium
+    - maria.conlega
+    - sedra.egestas
+    - clarie.insigni
+    - pritima.esen
+    - justin.canon
+    - autumn.mi
+    - lex.perrin
+    - henry.riteli
+    - norma.gene
+    - jed.tourney
+    - consuela.blanche
+    - daniel.pellner
+    - dominic.smith
+    - elena.dulcis
+    - pat.risus
+    - dale.phasle
+    - vivi.saccharo
+  deny: {}
+  options:
+    cert_format: standard
+    create_host_user: false
+    desktop_clipboard: true
+    desktop_directory_sharing: true
+    enhanced_recording:
+    - command
+    - network
+    forward_agent: false
+    idp:
+      saml:
+        enabled: true
+    max_session_ttl: 30h0m0s
+    pin_source_ip: false
+    port_forwarding: true
+    record_session:
+      default: best_effort
+      desktop: true
+    ssh_file_copy: true
+version: v5

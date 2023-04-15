@@ -30,7 +30,30 @@
         state: present
   roles:
     - splunk_standalone
+    - juju4.harden_nginx
+    - node_exporter
+  handlers:
+    - name: Restart Splunkd
+      ansible.builtin.service:
+        name: Splunkd
+        state: restarted
   tasks:
-    # - include_vars: 'group_vars/metrics.yml'
     - import_tasks: 'roles/linux/init_linux.yml'
-    # - import_tasks: 'roles/linux/setup_node_exporter.yml'
+    - name: Set multiple Splunk indexes
+      ansible.builtin.template:
+        src: splunk-indexes.conf.j2
+        dest: /opt/splunk/etc/apps/search/local/indexes.conf
+        mode: 0600
+        owner: splunk
+        group: splunk
+      notify:
+        - Restart Splunkd
+    - name: Set multiple Splunk HEC inputs attached to separate index
+      ansible.builtin.template:
+        src: splunk-inputs.conf.j2
+        dest: /opt/splunk/etc/apps/search/local/inputs.conf
+        mode: 0600
+        owner: splunk
+        group: splunk
+      notify:
+        - Restart Splunkd

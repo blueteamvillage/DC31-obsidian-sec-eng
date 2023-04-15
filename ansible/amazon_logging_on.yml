@@ -1,0 +1,25 @@
+---
+
+- name: Logging servers - Turn on
+  hosts: localhost
+  vars:
+    aws_region: us-east-2
+    instance_ids:
+      # cribl
+      - i-066a8274b56cea7ed
+      # security onion
+      - i-0b92af4ea521fc37e
+      # docker server
+      - i-0d53b41f01f817ac0
+      # velociraptor
+      - i-0355c0d71acb15ab0
+  tasks:
+    - name: Start the logging servers
+      amazon.aws.ec2_instance:
+        instance_ids: "{{ item }}"
+        region: '{{ aws_region }}'
+        state: started
+        wait: true
+        # default wait is 600 seconds
+        wait_timeout: 30
+      loop: "{{ instance_ids }}"

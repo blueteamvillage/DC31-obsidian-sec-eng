@@ -1,0 +1,102 @@
+---
+####################################################################
+# Install and configure certbot for security onion
+####################################################################
+- name: Update the package repository and install certbot
+  ansible.builtin.apt:
+    name:
+      - certbot
+    state: latest
+    update_cache: yes
+
+- name: Check whether we have a certificate installed
+  ansible.builtin.command: certbot certificates
+  register: certbot_certificates
+  changed_when: false
+
+# /opt/so/saltstack/default/salt/nginx/etc/nginx.conf template to /opt/so/conf/nginx/nginx.conf
+# `docker inspect so-nginx`
+# /etc/pki/nginx/server.crt -> /etc/pki/managerssl.crt
+# /etc/pki/nginx/server.key -> /etc/pki/managerssl.key
+# https://github.com/Security-Onion-Solutions/securityonion/issues/1766
+#   To be easier in 2.4
+- name: Set up certificate in standalone mode
+  when: certbot_certificates.stdout.find("Found the following certs") == -1
+  block:
+    - name: Stop so-nginx
+      ansible.builtin.command:
+        cmd: so-nginx-stop
+      failed_when: false
+    - name: Move away existing non-certbot certificates files
+      ansible.builtin.command:
+        cmd: "mv {{ item }} {{ item }}.bak"
+      loop:
+        - /etc/pki/managerssl.crt
+        - /etc/pki/managerssl.key
+      failed_when: false
+    # `sudo so-firewall includedhosts analyst`
+    - name: Temporarily open local firewall
+      ansible.builtin.command:
+        cmd: so-allow -a -i 0.0.0.0/0
+      register: soallow
+      changed_when: "'Already exists' not in soallow.stderr"
+      failed_when:
+        - soallow.rc != 0
+        - soallow.rc != 3
+    - name: Clean all iptables rules
+      ansible.builtin.shell: |
+        iptables -F
+        iptables -X
+        iptables -t nat -F
+        iptables -t nat -X
+        iptables -t mangle -F
+        iptables -t mangle -X
+        iptables -P INPUT ACCEPT
+        iptables -P FORWARD ACCEPT
+        iptables -P OUTPUT ACCEPT
+
+    - name: Request a new Let's Encrypt certificate
+      ansible.builtin.command: certbot certonly --standalone --non-interactive --register-unsafely-without-email --agree-tos --preferred-challenges http -d {{ security_onion_fqdn }}
+
+    - name: Copy letsencrypt certificate to expected securityonion path
+      ansible.builtin.copy:
+        src: "/etc/letsencrypt/live/{{ security_onion_fqdn }}/fullchain.pem"
+        dest: /etc/pki/managerssl.crt
+        mode: '0644'
+        remote_src: true
+    - name: Symlink letsencrypt key to expected securityonion path
+      ansible.builtin.copy:
+        src: "/etc/letsencrypt/live/{{ security_onion_fqdn }}/privkey.pem"
+        dest: /etc/pki/managerssl.key
+        mode: '0600'
+        remote_src: true
+
+    - name: Temporarily open local firewall
+      ansible.builtin.command:
+        cmd: so-deny -a -i 0.0.0.0/0
+      when: false
+    - name: Restore firewall
+      ansible.builtin.command:
+        cmd: salt-call state.apply firewall
+      failed_when: false
+    - name: Start so-nginx
+      ansible.builtin.command:
+        cmd: so-nginx-start
+
+    - name: Reboot system
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+
+
+- name: securityonion nginx health check
+  ansible.builtin.uri:
+    url: "https://{{ security_onion_fqdn }}"
+    follow_redirects: true
+    method: GET
+    validate_certs: 'yes'
+    status_code: 200
+  register: so_result
+  until: so_result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds
+  # no_log: True

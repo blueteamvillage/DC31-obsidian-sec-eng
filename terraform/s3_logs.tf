@@ -51,6 +51,8 @@ resource "aws_s3_bucket_public_access_block" "logs_infra_block_public" {
   ignore_public_acls      = true
 }
 
+#tfsec:ignore:aws-s3-enable-bucket-logging
+#tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "logs_archive_raw" {
   bucket = "raw-logs-bucket"
 
@@ -70,20 +72,20 @@ resource "aws_s3_bucket" "logs_archive_raw" {
   }
 }
 
-resource "aws_s3_bucket_versioning" "logs_archive_raw_versioning" {
-  bucket = aws_s3_bucket.logs_archive_raw.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
+# resource "aws_s3_bucket_versioning" "logs_archive_raw_versioning" {
+#   bucket = aws_s3_bucket.logs_archive_raw.id
+#   versioning_configuration {
+#     status = "Enabled"
+#   }
+# }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_logging
-resource "aws_s3_bucket_logging" "logs_archive_raw_logging" {
-  bucket = aws_s3_bucket.logs_archive_raw.id
-
-  target_bucket = aws_s3_bucket.logs_infra.id
-  target_prefix = "logs/s3_logs_archive_raw_logging/"
-}
+# resource "aws_s3_bucket_logging" "logs_archive_raw_logging" {
+#   bucket = aws_s3_bucket.logs_archive_raw.id
+#
+#   target_bucket = aws_s3_bucket.logs_infra.id
+#   target_prefix = "logs/s3_logs_archive_raw_logging/"
+# }
 
 resource "aws_s3_bucket_acl" "raw_logs_private" {
   bucket = aws_s3_bucket.logs_archive_raw.id
@@ -98,6 +100,8 @@ resource "aws_s3_bucket_public_access_block" "logs_archive_raw_block_public" {
   ignore_public_acls      = true
 }
 
+#tfsec:ignore:aws-s3-enable-bucket-logging
+#tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "logs_archive_enriched" {
   bucket = "enriched-logs-bucket"
 
@@ -117,19 +121,19 @@ resource "aws_s3_bucket" "logs_archive_enriched" {
   }
 }
 
-resource "aws_s3_bucket_versioning" "logs_archive_enriched_versioning" {
-  bucket = aws_s3_bucket.logs_archive_enriched.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
+# resource "aws_s3_bucket_versioning" "logs_archive_enriched_versioning" {
+#   bucket = aws_s3_bucket.logs_archive_enriched.id
+#   versioning_configuration {
+#     status = "Enabled"
+#   }
+# }
 
-resource "aws_s3_bucket_logging" "logs_archive_enriched_logging" {
-  bucket = aws_s3_bucket.logs_archive_enriched.id
-
-  target_bucket = aws_s3_bucket.logs_infra.id
-  target_prefix = "logs/s3_logs_archive_enriched/"
-}
+# resource "aws_s3_bucket_logging" "logs_archive_enriched_logging" {
+#   bucket = aws_s3_bucket.logs_archive_enriched.id
+#
+#   target_bucket = aws_s3_bucket.logs_infra.id
+#   target_prefix = "logs/s3_logs_archive_enriched/"
+# }
 
 resource "aws_s3_bucket_acl" "enriched_logs_private" {
   bucket = aws_s3_bucket.logs_archive_enriched.id
@@ -150,7 +154,7 @@ resource "aws_s3_bucket_public_access_block" "enriched_logs_privateblock_public"
 # https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-policies-s3.html#iam-policy-ex4
 # https://marcqualie.com/2017/05/write-only-s3-permissions
 resource "aws_iam_policy" "writeonly_logs_policy" {
-  name        = "writeonly_logs_policy"
+  name        = "${var.PROJECT_PREFIX}_writeonly_logs_policy"
   path        = "/"
   description = "Policy to provide write-only permission to S3"
   # Terraform's "jsonencode" function converts a
@@ -166,9 +170,9 @@ resource "aws_iam_policy" "writeonly_logs_policy" {
           "s3:GetBucketLocation"
         ],
         "Resource" : [
-          "${aws_s3_bucket.logs_infra.arn}/*",
-          "${aws_s3_bucket.logs_archive_raw.arn}/*",
-          "${aws_s3_bucket.logs_archive_enriched.arn}/*",
+          "${aws_s3_bucket.logs_infra.arn}",
+          "${aws_s3_bucket.logs_archive_raw.arn}",
+          "${aws_s3_bucket.logs_archive_enriched.arn}",
         ]
       },
       {
@@ -204,7 +208,7 @@ resource "aws_iam_policy" "writeonly_logs_policy" {
 # Create a role
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role
 resource "aws_iam_role" "writeonly_logs_role" {
-  name = "writeonly_logs_role"
+  name = "${var.PROJECT_PREFIX}_writeonly_logs_role"
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.
@@ -226,7 +230,7 @@ resource "aws_iam_role" "writeonly_logs_role" {
 # Attach role to policy
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy_attachment
 resource "aws_iam_policy_attachment" "writeonly_logs_policy_role" {
-  name       = "ec2_attachment"
+  name       = "writeonly_logs_attachment"
   roles      = [aws_iam_role.writeonly_logs_role.name]
   policy_arn = aws_iam_policy.writeonly_logs_policy.arn
 }

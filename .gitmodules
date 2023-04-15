@@ -19,3 +19,6 @@
 [submodule "ansible/roles/juju4.harden_nginx"]
 	path = ansible/roles/juju4.harden_nginx
 	url = https://github.com/juju4/ansible-harden-nginx.git
+[submodule "ansible/roles/mdsketch.teleport"]
+	path = ansible/roles/mdsketch.teleport
+	url = https://github.com/mdsketch/ansible-teleport.git

@@ -1,0 +1,50 @@
+{{ ansible_managed | comment }}
+# /opt/splunk/etc/apps/search/local/indexes.conf
+
+[osquery]
+coldPath = $SPLUNK_DB/osquery/colddb
+enableDataIntegrityControl = 0
+enableTsidxReduction = 0
+homePath = $SPLUNK_DB/osquery/db
+maxTotalDataSizeMB = 512000
+thawedPath = $SPLUNK_DB/osquery/thaweddb
+
+[syslog]
+coldPath = $SPLUNK_DB/syslog/colddb
+enableDataIntegrityControl = 0
+enableTsidxReduction = 0
+homePath = $SPLUNK_DB/syslog/db
+maxTotalDataSizeMB = 512000
+thawedPath = $SPLUNK_DB/syslog/thaweddb
+
+[sysmonforlinux]
+coldPath = $SPLUNK_DB/sysmonforlinux/colddb
+enableDataIntegrityControl = 0
+enableTsidxReduction = 0
+homePath = $SPLUNK_DB/sysmonforlinux/db
+maxTotalDataSizeMB = 512000
+thawedPath = $SPLUNK_DB/sysmonforlinux/thaweddb
+
+[sysmon]
+coldPath = $SPLUNK_DB/sysmon/colddb
+enableDataIntegrityControl = 0
+enableTsidxReduction = 0
+homePath = $SPLUNK_DB/sysmon/db
+maxTotalDataSizeMB = 512000
+thawedPath = $SPLUNK_DB/sysmon/thaweddb
+
+[linux]
+coldPath = $SPLUNK_DB/linux/colddb
+enableDataIntegrityControl = 0
+enableTsidxReduction = 0
+homePath = $SPLUNK_DB/linux/db
+maxTotalDataSizeMB = 512000
+thawedPath = $SPLUNK_DB/linux/thaweddb
+
+[windows]
+coldPath = $SPLUNK_DB/windows/colddb
+enableDataIntegrityControl = 0
+enableTsidxReduction = 0
+homePath = $SPLUNK_DB/windows/db
+maxTotalDataSizeMB = 512000
+thawedPath = $SPLUNK_DB/windows/thaweddb

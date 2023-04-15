@@ -63,6 +63,7 @@ splunk:
     httpinput: /opt/splunk/etc/apps/splunk_httpinput
     idxc: /opt/splunk/etc/master-apps
     shc: /opt/splunk/etc/shcluster/apps
+  # how to make multiple hec and associate to index?
   hec:
     # seems applied even if enable False...
     enable: True

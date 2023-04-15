@@ -3,5 +3,5 @@
 # or auto retrieve from amazon.aws.ec2_tag_info?
 teleport_ssh_labels:
   - { k: 'hostname', v: "{{ ansible_hostname }}" }
-  - { k: 'Name', v: 'DEFCON_2023_OBSIDIAN_CORP_DOCKER_SERVER' }
-  - { k: 'Project', v: 'DEFCON_2023_OBSIDIAN' }
+  - { k: 'aws/Name', v: 'DEFCON_2023_OBSIDIAN_CORP_DOCKER_SERVER' }
+  - { k: 'aws/Project', v: 'DEFCON_2023_OBSIDIAN' }

@@ -1,0 +1,19 @@
+---
+
+filebeat_inputs:
+  - type: log
+    paths:
+      - "/var/log/*.log"
+  - type: log
+    paths:
+      - "/var/log/syslog"
+  - type: log
+    paths:
+      - "/var/log/osquery/osqueryd.*.log"
+  - type: log
+    paths:
+      - "/var/log/sysmon/sysmon.log"
+  # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-input-container.html
+  - type: container
+    paths:
+      - '/var/log/containers/*.log'

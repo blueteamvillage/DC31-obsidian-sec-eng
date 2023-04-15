@@ -1,0 +1,49 @@
+---
+####################################################################
+# Install/Setup elasticsearch exporter
+####################################################################
+- name: Stat elasticsearch exporter
+  ansible.builtin.stat:
+    path: "/usr/local/bin/elasticsearch_exporter"
+  register: elasticsearch_exporter_install
+
+- name: Download elasticsearch exporter
+  ansible.builtin.get_url:
+    url: "{{ linux_elasticsearch_exporter_dl_url }}"
+    dest: "/tmp/elasticsearch_exporter-{{ linux_elasticsearch_exporter_version }}.linux-amd64.tar.gz"
+
+- name: Extract elasticsearch exporter
+  ansible.builtin.unarchive:
+    src: "/tmp/elasticsearch_exporter-{{ linux_elasticsearch_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp"
+    remote_src: yes
+
+- name: Move elasticsearch exporter binary
+  ansible.builtin.copy:
+    src: "/tmp/elasticsearch_exporter-{{ linux_elasticsearch_exporter_version }}.linux-amd64/elasticsearch_exporter"
+    dest: "/usr/local/bin/elasticsearch_exporter"
+    owner: elasticsearch
+    group: elasticsearch
+    mode: 0755
+    remote_src: yes
+
+- name: Copy elasticsearch exporter service
+  ansible.builtin.template:
+    src: "conf/elasticsearch_exporter/linux_elasticsearch_exporter.service"
+    dest: "/etc/systemd/system/elasticsearch-exporter.service"
+    owner: elasticsearch
+    group: elasticsearch
+    mode: 0644
+
+- name: Start elasticsearch exporter service
+  ansible.builtin.systemd:
+    name: "elasticsearch-exporter"
+    enabled: yes
+    daemon_reload: true
+    state: restarted
+
+- name: Allow elasticsearch exporter TCP in
+  community.general.ufw:
+    rule: allow
+    port: "{{ linux_elasticsearch_exporter_port }}"
+    proto: tcp

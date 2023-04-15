@@ -1,0 +1,110 @@
+---
+# https://github.com/CptOfEvilMinions/ChooseYourSIEMAdventure/blob/main/roles/elastic/setup_elasticsearch.yml
+
+- name: Add Elastic GPG key
+  ansible.builtin.apt_key:
+    url: "{{ elastic_gpg_url }}"
+    state: present
+
+- name: Add Elastic repo
+  ansible.builtin.apt_repository:
+    repo: "{{ elastic_repo_url }}"
+    state: present
+
+- name: Install Elasticsearch
+  ansible.builtin.apt:
+    name: 'elasticsearch={{ elastic_version }}'
+
+# It is best practice to generally dedicate ~ half of your physical memory to Elasticsearch.
+# We can achieve this by setting the minimum and maximum heap space to the same number.
+# https://www.elastic.co/blog/managing-and-troubleshooting-elasticsearch-memory
+- name: "Set the minimum heap space to {{ ((ansible_memtotal_mb / 1000 / 2) | round | int) }}g"
+  ansible.builtin.lineinfile:
+    path: /etc/elasticsearch/jvm.options
+    regexp: '^-Xmx'
+    line: '-Xmx{{ ((ansible_memtotal_mb / 1000 / 2) | round | int)  }}g'
+
+- name: Set the maximum heap space to {{ ((ansible_memtotal_mb/2000) | round | int) }}g"
+  ansible.builtin.lineinfile:
+    path: /etc/elasticsearch/jvm.options
+    regexp: '^-Xms'
+    line: '-Xms{{ ((ansible_memtotal_mb / 1000 / 2) | round | int) }}g'
+
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/security-settings.html
+- name: Enable X-Pack security
+  ansible.builtin.lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    line: 'xpack.security.enabled: true'
+    create: yes
+
+- name: Enable X-Pack security transport SSL
+  ansible.builtin.lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    line: 'xpack.security.transport.ssl.enabled: true'
+    create: yes
+
+- name: Set Elasticsearch to single-node mode
+  ansible.builtin.lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    line: 'discovery.type: single-node'
+    create: yes
+
+- name: Restart Elasticsearch and set it to start on boot
+  ansible.builtin.service:
+    name: 'elasticsearch'
+    state: 'restarted'
+    enabled: yes
+
+- name: set the built_in users passwords
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:9200/_security/user/{{ item.name }}/_password"
+    method: POST
+    body_format: json
+    user: "{{ elastic.name }}"
+    password: "{{ elastic.password }}"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "password" : "{{ item.password }}",
+      }
+  # no_log: True
+  with_items:
+    - "{{ elastic }}"
+    - "{{ elastic_mon_user }}"
+    - "{{ elasitic_apm }}"
+
+- name: create the ananylst user
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:9200/_security/user/{{ item.name }}"
+    method: POST
+    body_format: json
+    user: "{{ elastic.name }}"
+    password: "{{ elastic.password }}"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "full_name" : "{{ item.name }}",
+        "password" : "{{ item.password }}",
+        "roles" : [ "{{ item.role}}" ],
+        "email" :  "{{ item.name }}@{{ external_domain }}"
+      }
+  # no_log: True
+  with_items:
+    - "{{ elastic_analyst }}"
+
+- name: Elasticsearch healthcheck
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:9200/_cluster/health?level=indicies"
+    user: "{{ elastic.name }}"
+    password: "{{ elastic.password }}"
+    follow_redirects: none
+    method: GET
+    remote_src: yes
+    status_code: 200
+  register: _result
+  until: _result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds
+  no_log: True

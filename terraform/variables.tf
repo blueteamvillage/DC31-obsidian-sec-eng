@@ -75,6 +75,7 @@ variable "logging_subnet_map" {
   default = {
     "cribl"                       = "172.16.22.10",
     "splunk"                      = "172.16.22.20",
+    "elastic"                     = "172.16.10.21",
     "securityonion"               = "172.16.22.23",
     "securityonion_bind"          = "172.16.22.24",
     "securityonion_bind_overflow" = "172.16.22.25",
@@ -219,6 +220,15 @@ variable "teleport_base_domain" {
   description = "Define the base domain for teleport to attach DNS records too"
   type        = string
   default     = "blueteamvillage.com"
+}
+
+######################## public domain ########################
+variable "public_domain" {
+  default = "magnumtempusfinancial.com"
+}
+
+variable "public_domain_zone_id" {
+  default = "Z0222419PAP0957YFABU"
 }
 
 ######################## IoT - HMI ########################

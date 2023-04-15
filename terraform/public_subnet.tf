@@ -401,6 +401,32 @@ resource "aws_security_group_rule" "splunk_allow_rest_api" {
   security_group_id = aws_security_group.splunk_server_sg.id
 }
 
+resource "aws_security_group_rule" "cribl2splunkhec_allow" {
+  type        = "ingress"
+  description = "Allow access from Cribl to Splunk HEC"
+  from_port   = 8088
+  to_port     = 8088
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    "${var.logging_subnet_map["cribl"]}/32",
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "cribl2splunk_allow" {
+  type        = "ingress"
+  description = "Allow access from Cribl to Splunk Receiver"
+  from_port   = 9997
+  to_port     = 9997
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    "${var.logging_subnet_map["cribl"]}/32",
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
 resource "aws_security_group_rule" "splunk_allow_prometheus" {
   type              = "ingress"
   description       = "Allow prometheus to pull metrics from node exporter"

@@ -13,6 +13,9 @@ filebeat_inputs:
   - type: log
     paths:
       - "/var/log/sysmon/sysmon.log"
+  # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-input-journald.html
+  - type: journald
+    id: everything
   # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-input-container.html
   - type: container
     paths:

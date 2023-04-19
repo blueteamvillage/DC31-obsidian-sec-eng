@@ -107,27 +107,25 @@ resource "aws_security_group" "corp_mail_server" {
   }
 }
 
-resource "aws_security_group_rule" "corp_mail_allow_ingress_ssh" {
+resource "aws_security_group_rule" "corp_mail_allow_teleport" {
   type        = "ingress"
   description = "Allow inbound SSH"
-  from_port   = 22
-  to_port     = 22
-  protocol    = "tcp"
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32"
   ]
   security_group_id = aws_security_group.corp_mail_server.id
 }
 
-resource "aws_security_group_rule" "corp_mail_allow_web" {
-  type        = "ingress"
-  description = "Allow wiki web access from teleport"
-  from_port   = 8080
-  to_port     = 8080
-  protocol    = "tcp"
-  cidr_blocks = [
-    "${module.teleport.private_ip_addr}/32",
-  ]
+resource "aws_security_group_rule" "corp_mail_allow_corp_subnet" {
+  type              = "ingress"
+  description       = "Allow wiki web access from teleport"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = [var.corp_cidr_block]
   security_group_id = aws_security_group.corp_mail_server.id
 }
 

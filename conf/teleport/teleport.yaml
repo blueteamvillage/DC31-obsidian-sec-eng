@@ -63,34 +63,58 @@ app_service:
         env: "iot"
     - name: plc01
       uri: "http://172.16.60.11:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc01.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     - name: plc02
       uri: "http://172.16.60.12:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc02.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     - name: plc03
       uri: "http://172.16.60.13:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc03.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     - name: plc04
       uri: "http://172.16.60.14:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc04.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     - name: plc05
       uri: "http://172.16.60.15:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc05.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     - name: plc06
       uri: "http://172.16.60.16:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc06.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     - name: plc07
       uri: "http://172.16.60.17:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc07.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     - name: plc08
       uri: "http://172.16.60.18:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc08.teleport.blueteamvillage.com"
       labels:
         env: "iot"
     ######################################## SIEMs ########################################

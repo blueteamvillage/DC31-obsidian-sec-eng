@@ -14,6 +14,13 @@
   handlers:
     - name: Restart so-nginx
       ansible.builtin.command: so-nginx-restart
+    - name: Call salt state.highstate
+      ansible.builtin.command: salt-call state.highstate
+      register: highstate
+      until: highstate is success
+      # this seems to take a while
+      retries: 3
+      delay: 180
   tasks:
     - import_tasks: 'roles/linux/install_security_onion.yml'
     - import_tasks: 'roles/linux/setup_nginx_security_onion.yml'

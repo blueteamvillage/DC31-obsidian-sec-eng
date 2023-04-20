@@ -146,6 +146,18 @@
     backup: yes
   notify:
     - Restart so-nginx
+  # Not needed anymore? TBC
+  when: false
+
+- name: Set SecurityOnion url_base
+  ansible.builtin.lineinfile:
+    path: /opt/so/saltstack/local/pillar/global.sls
+    regexp: "^  url_base: '.*'$"
+    line: "  url_base: 'securityonion.{{ logging_base_ext_domain }}'"
+    mode: '0644'
+    backup: yes
+  notify:
+    - Call salt state.highstate
 
 - name: Debian | Check if a reboot is required
   register: file
@@ -158,13 +170,30 @@
     reboot_timeout: 3600
   when: file.stat.exists is defined and file.stat.exists
 
-- name: Check if IP allowed
+- name: Check if Cribl IP allowed for Elastic
   ansible.builtin.command:
     cmd: grep 172.16.22.10 /opt/so/saltstack/local/salt/firewall/hostgroups.local.yaml
+  become: true
   register: sofw
   changed_when: false
+  failed_when: false
 - name: Allow traffic from cribl
   ansible.builtin.command:
     cmd: so-allow -e -i 172.16.22.10
+  become: true
   when:
     - sofw.rc != 0
+
+- name: Check if Teleport jumphost IP allowed for Elastic
+  ansible.builtin.command:
+    cmd: grep 172.16.10.93 /opt/so/saltstack/local/salt/firewall/hostgroups.local.yaml
+  become: true
+  register: sofw2
+  changed_when: false
+  failed_when: false
+- name: Allow traffic from Teleport jumphost
+  ansible.builtin.command:
+    cmd: so-allow -e -i 172.16.10.93
+  become: true
+  when:
+    - sofw2.rc != 0

@@ -62,9 +62,6 @@ winlogbeat.event_logs:
 output.elasticsearch:
   hosts: ["https://172.16.22.10:9200"]
 
-  # This is required to send logs to Cribl
-  allow_older_versions: true
-
   # Enable SSL
   ssl.enabled: true
 

@@ -80,6 +80,16 @@
     mode: 0755
     backup: yes
 
+# Needed because we require http_tokens for metadata_options
+# and that's the way so-setup detect cloud and that it should
+# not use a bonding interface
+- name: Force cloud setup in so-functions
+  ansible.builtin.replace:
+    dest: /opt/securityonion/setup/so-functions
+    regexp: '^  if \( curl --fail -s -m 5 http:\/\/169.254.169.254\/.*'
+    replace: '  export is_cloud="true"'
+    mode: '0644'
+
 - name: Pause/ready?
   ansible.builtin.pause:
     seconds: 30

@@ -31,12 +31,12 @@ resource "aws_s3_bucket" "logs_infra" {
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning
-resource "aws_s3_bucket_versioning" "logs_infra_versioning" {
-  bucket = aws_s3_bucket.logs_infra.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
+# resource "aws_s3_bucket_versioning" "logs_infra_versioning" {
+#   bucket = aws_s3_bucket.logs_infra.id
+#   versioning_configuration {
+#     status = "Enabled"
+#   }
+# }
 
 resource "aws_s3_bucket_acl" "infra_logs_private" {
   bucket = aws_s3_bucket.logs_infra.id
@@ -163,7 +163,7 @@ resource "aws_iam_policy" "writeonly_logs_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        "Sid" : "BucketPermissions",
+        "Sid" : "CriblWriteBucketPermissions",
         "Effect" : "Allow",
         "Action" : [
           "s3:ListBucket",
@@ -176,7 +176,7 @@ resource "aws_iam_policy" "writeonly_logs_policy" {
         ]
       },
       {
-        "Sid" : "BaseObjectReadPermissions",
+        "Sid" : "CriblWriteBaseObjectReadPermissions",
         "Effect" : "Allow",
         "Action" : [
           "s3:GetObject",
@@ -189,7 +189,7 @@ resource "aws_iam_policy" "writeonly_logs_policy" {
         ]
       },
       {
-        "Sid" : "WriteOnlyPermissions",
+        "Sid" : "CriblWriteOnlyPermissions",
         "Effect" : "Allow",
         "Action" : [
           "s3:PutObject",
@@ -220,7 +220,7 @@ resource "aws_iam_role" "writeonly_logs_role" {
         Effect = "Allow"
         Sid    = ""
         Principal = {
-          Service = "s3.amazonaws.com"
+          Service = "ec2.amazonaws.com"
         }
       },
     ]

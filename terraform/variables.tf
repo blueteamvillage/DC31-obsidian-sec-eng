@@ -121,6 +121,7 @@ variable "corp_subnet_map" {
     "win_client3"  = "172.16.50.132",
     "dockerserver" = "172.16.50.101",
     "win_dc"       = "172.16.50.100"
+    "iot_eng_wkst" = "172.16.50.20"
   }
 }
 
@@ -147,7 +148,6 @@ variable "iot_subnet_map" {
     "iot_hmi_charlie" = "172.16.60.202",
     "iot_hmi_delta"   = "172.16.60.203",
     "jhb01"           = "172.16.60.19"
-    "iot_eng_wkst"    = "172.16.60.20"
   }
 }
 

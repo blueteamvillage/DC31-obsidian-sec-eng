@@ -1,10 +1,21 @@
 ---
 ####################################################################
+# Create user
+####################################################################
+- name: Create IOT admin
+  ansible.windows.win_user:
+    name: "{{ rdp_user }}"
+    password: "{{ rdp_password }}"
+    state: present
+    groups:
+      - Users
+
+####################################################################
 # Add IT domain group to a server's local Remote Desktop Users group
 ####################################################################
 - name: Adding IT domain group to the local Remote Desktop Users group
   win_group_membership:
     name: Remote Desktop Users
     members:
-      - "{{ internal_domain }}\\IT"
+      - "{{ rdp_user }}"
     state: present

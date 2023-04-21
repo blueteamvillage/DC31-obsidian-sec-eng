@@ -414,7 +414,7 @@ resource "aws_security_group_rule" "cribl2splunkhec_allow" {
   security_group_id = aws_security_group.splunk_server_sg.id
 }
 
-resource "aws_security_group_rule" "cribl2splunk_allow" {
+resource "aws_security_group_rule" "cribl2splunkreceiver_allow" {
   type        = "ingress"
   description = "Allow access from Cribl to Splunk Receiver"
   from_port   = 9997

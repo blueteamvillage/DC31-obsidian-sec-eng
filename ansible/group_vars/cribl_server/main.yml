@@ -8,7 +8,8 @@ cribl_fqdn: "cribl.{{ external_domain }}"
 
 cribl_in_elastic_version: 8.7.0
 
-cribl_outputs_template: cribl-outputs.yml
+cribl_inputs_template: conf/cribl/inputs.yml
+cribl_outputs_template: conf/cribl/outputs.yml
 
 cribl_elastic_in_tls: true
 cribl_elastic_in_cert_name: magnumtempusfinancial

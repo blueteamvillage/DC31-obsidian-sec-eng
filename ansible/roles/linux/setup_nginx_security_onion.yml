@@ -87,6 +87,8 @@
       ansible.builtin.reboot:
         reboot_timeout: 300
 
+- name: Flush handlers
+  meta: flush_handlers
 
 - name: securityonion nginx health check
   ansible.builtin.uri:

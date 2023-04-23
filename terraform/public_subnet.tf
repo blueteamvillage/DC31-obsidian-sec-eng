@@ -597,36 +597,28 @@ resource "aws_network_interface" "seconion_tap_interface" {
   }
 }
 
-# AWS has a limit of 10 mirror sources per interface.
-# This interface is created to handle anything greater than 10
-# https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-limits.html
-resource "aws_network_interface" "seconion_tap_interface_overflow" {
-  subnet_id       = aws_subnet.logging.id
-  security_groups = [aws_security_group.seconion_traffic_mirror_sg.id]
-  private_ips     = [var.logging_subnet_map["securityonion_bind_overflow"]]
-
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_SECONION_SERVER_TAP_INTERFACE_OVERFLOW"
-    Project = var.PROJECT_PREFIX
-  }
-
-  # WITHOUT this statement the seconion EC2 will be DESTROYED
-  # AND RE-CREATED
-  attachment {
-    instance     = aws_instance.securityonion_server.id
-    device_index = 2
-  }
-}
 
 resource "aws_instance" "securityonion_server" {
   ami = var.ubuntu-so-ami
-  # instance_type = var.logging_ec2_size
   # Docs prod recommendation - https://docs.securityonion.net/en/2.3/cloud-ami.html
-  instance_type = "t3.xlarge"
-  # no subnet_id/private_ip/vpc_security_group_ids if network_interface is set explicitely
-  # subnet_id               = aws_subnet.logging.id
-  # private_ip              = var.logging_subnet_map["securityonion"]
-  # vpc_security_group_ids  = [aws_security_group.securityonion_server_sg2.id]
+  ################## DO NOT TOUCH ##################
+  ################## DO NOT TOUCH ##################
+  ################## DO NOT TOUCH ##################
+  ######################################################
+  # AWS imposes AWS tap maximums on instances smaller
+  # than this instance size. Anything smaller will generate
+  # the following error:
+  #
+  # Error: creating EC2 Traffic Mirror Session:
+  # TrafficMirrorSourcesPerTargetLimitExceeded:
+  # Sources per interface-target limit reached (11)
+  #
+  #
+  ######################################################
+  instance_type = "m5.24xlarge"
+  ################## DO NOT TOUCH ##################
+  ################## DO NOT TOUCH ##################
+  ################## DO NOT TOUCH ##################
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   disable_api_termination = true
 
@@ -719,16 +711,6 @@ resource "aws_ec2_traffic_mirror_target" "seconion_traffic_mirror_target" {
 
 }
 
-resource "aws_ec2_traffic_mirror_target" "seconion_overflow_traffic_mirror_target" {
-  description          = "${var.PROJECT_PREFIX}_seconion_overflow ENI target"
-  network_interface_id = aws_network_interface.seconion_tap_interface_overflow.id
-
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_seconion_overflow)traffic_mirror_target"
-    Project = var.PROJECT_PREFIX
-  }
-
-}
 
 resource "aws_ec2_traffic_mirror_filter" "seconion_traffic_mirror_filter" {
   description = "${var.PROJECT_PREFIX}_seconion traffic mirror filter - Allow All"
@@ -846,67 +828,25 @@ resource "aws_ec2_traffic_mirror_session" "corp_subnet_tap_traffic_mirror_sessio
 
 ########################################### Create network traffic mirror sessions - IoT ###########################################
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
-data "aws_instances" "iot_plcs_subnet_instances" {
+data "aws_instances" "iot_subnet_instances" {
   filter {
     name   = "subnet-id"
     values = [aws_subnet.iot.id]
-  }
-
-  filter {
-    name   = "tag:IOTtype"
-    values = ["plc"]
   }
 
   instance_state_names = ["running", "stopped"]
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
-data "aws_instance" "iot_plcs_subnet_instance" {
-  for_each    = toset(data.aws_instances.iot_plcs_subnet_instances.ids)
+data "aws_instance" "iot_subnet_instance" {
+  for_each    = toset(data.aws_instances.iot_subnet_instances.ids)
   instance_id = each.key
 }
 
 # Note: security onion server instance must be running to create below
 #	else you will get InvalidTrafficMirrorTarget error
-resource "aws_ec2_traffic_mirror_session" "iot_plcs_subnet_tap_traffic_mirror_sessions" {
-  for_each = data.aws_instance.iot_plcs_subnet_instance
-
-  description              = "${each.value.tags["Name"]} traffic mirror session"
-  network_interface_id     = each.value.network_interface_id
-  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.seconion_traffic_mirror_filter.id
-  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.seconion_overflow_traffic_mirror_target.id
-  session_number           = 1
-  tags = {
-    Name    = "${each.value.tags["Name"]}_traffic_mirror_session"
-    Project = var.PROJECT_PREFIX
-  }
-}
-
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances
-data "aws_instances" "iot_hmis_subnet_instances" {
-  filter {
-    name   = "subnet-id"
-    values = [aws_subnet.iot.id]
-  }
-
-  filter {
-    name   = "tag:IOTtype"
-    values = ["hmi"]
-  }
-
-  instance_state_names = ["running", "stopped"]
-}
-
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip
-data "aws_instance" "iot_hmis_subnet_instance" {
-  for_each    = toset(data.aws_instances.iot_hmis_subnet_instances.ids)
-  instance_id = each.key
-}
-
-# Note: security onion server instance must be running to create below
-#	else you will get InvalidTrafficMirrorTarget error
-resource "aws_ec2_traffic_mirror_session" "iot_hmis_subnet_tap_traffic_mirror_sessions" {
-  for_each = data.aws_instance.iot_hmis_subnet_instance
+resource "aws_ec2_traffic_mirror_session" "iot_subnet_tap_traffic_mirror_sessions" {
+  for_each = data.aws_instance.iot_subnet_instance
 
   description              = "${each.value.tags["Name"]} traffic mirror session"
   network_interface_id     = each.value.network_interface_id

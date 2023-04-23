@@ -13,6 +13,23 @@ If not generated automatically by terraform
 
 If it is the first execution or the one to setup or renew letsencrypt certificate, you must open aws security group from all sources aka 0.0.0.0 temporarily, either from Terraform, either from web portal.
 
+Credentials to have cribl data ingestion (so_elastic user):
+```
+$ sudo cat /opt/so/conf/elasticsearch/curl.config
+```
+
+Add user manually (webuser not included in initial setup)
+```
+$ sudo so-user-add webuser@magnumtempusfinancial.com
+Enter new password:
+Syncing users and roles between SOC and Elastic...
+Elastic state will be re-applied to affected minions. This may take several minutes...
+Successfully added new user to SOC
+Successfully added user to Fleet
+Successfully updated Fleet user password
+
+```
+
 ## Troubleshooting/Known issues
 
 * Don't try ec2 size below recommended xlarge. Install is heavy and using smaller size will results in oom-killer, slowness (40min deployment vs 3h+/incomplete)  and other issues.
@@ -44,6 +61,7 @@ terraform apply -target=aws_instance.securityonion_server -target=aws_ec2_traffi
 * User password reset with `so-user` - https://docs.securityonion.net/en/2.3/passwords.html
 
 * Change base url - https://docs.securityonion.net/en/2.3/url-base.html
+This has been integrated in ansible code "Set SecurityOnion url_base"
 
 ## References
 * [install_security_onion.yml](https://github.com/blueteamvillage/obsidian-sec-eng/blob/main/ansible/roles/linux/install_security_onion.yml)
@@ -53,6 +71,6 @@ terraform apply -target=aws_instance.securityonion_server -target=aws_ec2_traffi
 * [Data Source: aws_instances](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances)
 * [Data Source: aws_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip)
 * [Filter Terraform Data Source by AWS Tag](https://wahlnetwork.com/2020/04/30/filter-terraform-data-source-by-aws-tag-value/)
-* [ Allow user to change web interface cert #1766 ](https://github.com/Security-Onion-Solutions/securityonion/issues/1766)
+* [Allow user to change web interface cert #1766 ](https://github.com/Security-Onion-Solutions/securityonion/issues/1766)
 * []()
 * []()

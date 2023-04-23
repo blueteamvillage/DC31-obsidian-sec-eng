@@ -20,8 +20,8 @@ securityonion_management_nic: "{{ ansible_default_ipv4.interface }}"
 securityonion_bonding_nic: 'ens6'
 
 # Security Onion - pinned version
-# Security Onion 2.3.220-20230224
-securityonion_version: b756b8ea32547a90ad753798009430d38730c946
+# Security Onion 2.3.230-20230417
+securityonion_version: 3891548d6d66ced10779ff9138e946a287fe51b2
 
 # pre load docker images
 securityonion_docker_images_version: 2.3.220
@@ -67,3 +67,9 @@ docker_packages:
 
 # mdsketch.teleport
 teleport_config_template: teleport-securityonion.yaml.j2
+
+# or auto retrieve from amazon.aws.ec2_tag_info?
+teleport_ssh_labels:
+  - { k: 'hostname', v: "{{ ansible_hostname }}" }
+  - { k: 'aws/Name', v: 'DEFCON_2023_OBSIDIAN_securityonion_server' }
+  - { k: 'aws/Project', v: 'DEFCON_2023_OBSIDIAN' }

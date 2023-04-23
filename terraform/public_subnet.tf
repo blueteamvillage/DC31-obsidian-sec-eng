@@ -292,6 +292,8 @@ resource "aws_instance" "cribl_server" {
     http_tokens   = "required"
   }
 
+  iam_instance_profile = aws_iam_instance_profile.writeonly_logs_profile.name
+
   root_block_device {
     volume_size           = 150
     volume_type           = "gp2"

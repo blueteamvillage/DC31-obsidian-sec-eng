@@ -55,16 +55,12 @@ winlogbeat.event_logs:
   - name: Microsoft-Windows-Sysmon/Operational
     ignore_older: 30m
     processors:
-      - script:
-          lang: javascript
-          id: sysmon
-          file: ${path.home}/module/sysmon/config/winlogbeat-sysmon.js
       - add_tags:
           tags: ["sysmon"]
 
 # ============================== Logstash Output ==============================
-output.elastic:
-  hosts: ["172.16.22.10:9200"]
+output.elasticsearch:
+  hosts: ["https://172.16.22.10:9200"]
 
   # Enable SSL
   ssl.enabled: true

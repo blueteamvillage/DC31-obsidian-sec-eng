@@ -9,29 +9,23 @@ resource "aws_security_group" "vuln_log4j_webserver" {
   }
 }
 
-resource "aws_security_group_rule" "log4j_allow_ssh" {
-  type        = "ingress"
-  description = "Allow SSH traffic from teleport"
-  from_port   = 22
-  to_port     = 22
-  protocol    = "tcp"
-  cidr_blocks = [
-    "${module.teleport.private_ip_addr}/32",
-    var.corp_cidr_block
-  ]
+resource "aws_security_group_rule" "log4j_allow_ssh_from_teleport" {
+  type              = "ingress"
+  description       = "Allow SSH traffic from teleport"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
   security_group_id = aws_security_group.vuln_log4j_webserver.id
 }
 
-resource "aws_security_group_rule" "log4j_allow_http_from_corp" {
-  type        = "ingress"
-  description = "Allow HTTP traffic from corp"
-  from_port   = 80
-  to_port     = 80
-  protocol    = "tcp"
-  cidr_blocks = [
-    "${module.teleport.private_ip_addr}/32",
-    var.corp_cidr_block
-  ]
+resource "aws_security_group_rule" "log4j_allow_http_from_teleport" {
+  type              = "ingress"
+  description       = "Allow HTTP traffic from teleport"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
   security_group_id = aws_security_group.vuln_log4j_webserver.id
 }
 
@@ -54,6 +48,16 @@ resource "aws_security_group_rule" "log4j_allow_red_team" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["${aws_eip.red_team_servers_eips[each.key].public_ip}/32"]
+  security_group_id = aws_security_group.vuln_log4j_webserver.id
+}
+
+resource "aws_security_group_rule" "log4j_allow_corp" {
+  type              = "ingress"
+  description       = "Allow corp network"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = [var.corp_cidr_block]
   security_group_id = aws_security_group.vuln_log4j_webserver.id
 }
 

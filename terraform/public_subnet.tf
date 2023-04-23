@@ -169,6 +169,9 @@ resource "aws_eip" "velociraptor_server_eip" {
 }
 
 ############################################ Logging/Cribl Server ############################################
+
+
+
 resource "aws_security_group" "cribl_server_sg2" {
   vpc_id      = module.vpc.vpc_id
   description = "Cribl security group"
@@ -179,14 +182,12 @@ resource "aws_security_group" "cribl_server_sg2" {
 }
 
 resource "aws_security_group_rule" "cribl_allow_ssh" {
-  type        = "ingress"
-  description = "Allow SSH"
-  from_port   = 22
-  to_port     = 22
-  protocol    = "tcp"
-  cidr_blocks = [
-    "${module.teleport.private_ip_addr}/32"
-  ]
+  type              = "ingress"
+  description       = "Allow SSH"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
 
@@ -398,6 +399,32 @@ resource "aws_security_group_rule" "splunk_allow_rest_api" {
     #var.publicCIDRblock,
     #var.managementCIDRblock,
     #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "cribl2splunkhec_allow" {
+  type        = "ingress"
+  description = "Allow access from Cribl to Splunk HEC"
+  from_port   = 8088
+  to_port     = 8088
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    "${var.logging_subnet_map["cribl"]}/32",
+  ]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
+resource "aws_security_group_rule" "cribl2splunkreceiver_allow" {
+  type        = "ingress"
+  description = "Allow access from Cribl to Splunk Receiver"
+  from_port   = 9997
+  to_port     = 9997
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    "${var.logging_subnet_map["cribl"]}/32",
   ]
   security_group_id = aws_security_group.splunk_server_sg.id
 }

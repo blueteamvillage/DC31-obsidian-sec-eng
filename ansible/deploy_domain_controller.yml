@@ -8,6 +8,7 @@
     - import_tasks: 'roles/windows/domain_controller/setup_domain_controller.yml'
     - import_tasks: 'roles/windows/domain_controller/create_dns_zone.yml'
     - import_tasks: 'roles/windows/domain_controller/create_domain_users.yml'
+    - import_tasks: 'roles/windows/domain_controller/vuln_petitpotam.yml'
     - import_tasks: 'roles/windows/setup_rdp_servers.yml'
     - import_tasks: 'roles/windows/setup_sysmon.yml'
     - import_tasks: 'roles/windows/setup_winlogbeat.yml'

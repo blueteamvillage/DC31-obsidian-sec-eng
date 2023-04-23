@@ -36,14 +36,11 @@
 # Install software
 ####################################################################
 - name: Install chocolatey
-  win_chocolatey:
-    name:
-      - chocolatey
-      - chocolatey-core.extension
-    state: present
+  chocolatey.chocolatey.win_chocolatey:
+    name: chocolatey
 
 - name: Install software
-  win_chocolatey:
+  chocolatey.chocolatey.win_chocolatey:
     name: '{{ item }}'
     state: latest
   with_items:

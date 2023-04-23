@@ -116,12 +116,13 @@ variable "corp_cidr_block" {
 variable "corp_subnet_map" {
   type = map(string)
   default = {
-    "win_client1"  = "172.16.50.130",
-    "win_client2"  = "172.16.50.131",
-    "win_client3"  = "172.16.50.132",
+    "iot_eng_wkst" = "172.16.50.20"
     "win_dc"       = "172.16.50.100",
     "dockerserver" = "172.16.50.101",
     "mail"         = "172.16.50.102",
+    "win_client1"  = "172.16.50.130",
+    "win_client2"  = "172.16.50.131",
+    "win_client3"  = "172.16.50.132",
   }
 }
 
@@ -148,7 +149,6 @@ variable "iot_subnet_map" {
     "iot_hmi_charlie" = "172.16.60.202",
     "iot_hmi_delta"   = "172.16.60.203",
     "jhb01"           = "172.16.60.19"
-    "iot_eng_wkst"    = "172.16.60.20"
   }
 }
 

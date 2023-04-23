@@ -218,10 +218,17 @@ resource "aws_iam_role" "writeonly_logs_role" {
       {
         Action = "sts:AssumeRole"
         Effect = "Allow"
-        Sid    = ""
         Principal = {
           Service = "ec2.amazonaws.com"
         }
+      },
+      {
+        "Sid" : "",
+        "Action" : "sts:AssumeRole",
+        "Principal" : {
+          "AWS" : "arn:aws:iam::106453756913:role/${var.PROJECT_PREFIX}_writeonly_logs_role",
+        },
+        "Effect" : "Allow"
       },
     ]
   })

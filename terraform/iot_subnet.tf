@@ -189,24 +189,21 @@ resource "aws_security_group" "iot_jump_box_sg" {
 
   # Allow ICMP, RDP, & WinRM from management subnet, and the corp subnet
   ingress {
-    from_port = 8
-    to_port   = 0
-    protocol  = "icmp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-      "${var.corp_cidr_block}"
-    ]
-  }
-
-  ingress {
     from_port = 0
     to_port   = 0
     protocol  = "-1"
     cidr_blocks = [
-      #teleport internal and external IP.
       "${module.teleport.private_ip_addr}/32",
-      "${var.corp_cidr_block}",
+      "${aws_instance.iot_eng_wkst.private_ip}/32",
+      var.iot_cidr_block,
     ]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {

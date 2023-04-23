@@ -116,12 +116,13 @@ variable "corp_cidr_block" {
 variable "corp_subnet_map" {
   type = map(string)
   default = {
+    "iot_eng_wkst" = "172.16.50.20"
+    "win_dc"       = "172.16.50.100",
+    "dockerserver" = "172.16.50.101",
+    "mail"         = "172.16.50.102",
     "win_client1"  = "172.16.50.130",
     "win_client2"  = "172.16.50.131",
     "win_client3"  = "172.16.50.132",
-    "dockerserver" = "172.16.50.101",
-    "win_dc"       = "172.16.50.100"
-    "iot_eng_wkst" = "172.16.50.20"
   }
 }
 

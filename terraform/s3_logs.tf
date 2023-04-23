@@ -12,7 +12,7 @@ resource "aws_kms_key" "logs_s3_key" {
 
 #tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "logs_infra" {
-  bucket = "infra-logs-bucket"
+  bucket = replace(lower("${var.PROJECT_PREFIX}-infra-logs-bucket"), "_", "-")
 
   server_side_encryption_configuration {
     rule {
@@ -54,7 +54,7 @@ resource "aws_s3_bucket_public_access_block" "logs_infra_block_public" {
 #tfsec:ignore:aws-s3-enable-bucket-logging
 #tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "logs_archive_raw" {
-  bucket = "raw-logs-bucket"
+  bucket = replace(lower("${var.PROJECT_PREFIX}-raw-logs-bucket"), "_", "-")
 
   server_side_encryption_configuration {
     rule {
@@ -103,7 +103,7 @@ resource "aws_s3_bucket_public_access_block" "logs_archive_raw_block_public" {
 #tfsec:ignore:aws-s3-enable-bucket-logging
 #tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "logs_archive_enriched" {
-  bucket = "enriched-logs-bucket"
+  bucket = replace(lower("${var.PROJECT_PREFIX}-enriched-logs-bucket"), "_", "-")
 
   server_side_encryption_configuration {
     rule {

@@ -120,4 +120,47 @@ functions:
       add:
         - name: __index
           value: '"so-beats-2023.04.01"'
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Set sourcetype
+  - id: eval
+    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat'
+    disabled: null
+    conf:
+      add:
+        - name: sourcetype
+          value: "'filebeat'"
+  - id: eval
+    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+      log.file.path == '/var/log/osquery/osqueryd.results.log'
+    disabled: null
+    conf:
+      add:
+        - name: sourcetype
+          value: "'osquery'"
+  - id: eval
+    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+      log.file.path == '/var/log/sysmon/sysmon.log'
+    disabled: null
+    conf:
+      add:
+        - name: sourcetype
+          value: "'sysmonforlinux'"
+  - id: eval
+    filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat'
+    disabled: null
+    conf:
+      add:
+        - name: sourcetype
+          value: "'winlogbeat'"
+  - id: eval
+    filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat' &&
+      winlog.provider_name=='Microsoft-Windows-Sysmon'
+    disabled: null
+    conf:
+      add:
+        - name: sourcetype
+          value: "'sysmon'"
 description: test

@@ -75,7 +75,7 @@ resource "aws_instance" "windows_clients" {
   # https://regex101.com/r/l1MKdn/1
   for_each = {
     for k, v in var.corp_subnet_map : k => v
-    if can(regex("win_client.*", k))
+    if can(regex("wkst01.*", k))
   }
 
   ami           = var.windows-ami

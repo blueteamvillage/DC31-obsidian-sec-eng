@@ -73,12 +73,11 @@ variable "logging_cidr_block" {
 variable "logging_subnet_map" {
   type = map(string)
   default = {
-    "cribl"                       = "172.16.22.10",
-    "splunk"                      = "172.16.22.20",
-    "securityonion"               = "172.16.22.23",
-    "securityonion_bind"          = "172.16.22.24",
-    "securityonion_bind_overflow" = "172.16.22.25",
-    "velociraptor"                = "172.16.22.130",
+    "cribl"              = "172.16.22.10",
+    "splunk"             = "172.16.22.20",
+    "securityonion"      = "172.16.22.23",
+    "securityonion_bind" = "172.16.22.24",
+    "velociraptor"       = "172.16.22.130",
   }
 }
 

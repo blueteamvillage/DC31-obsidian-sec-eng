@@ -13,4 +13,6 @@
       - 'vscode'
       - 'wireshark'
       - 'sysinternals'
+      - 'thunderbird'
+      - 'openoffice'
     state: latest

@@ -38,11 +38,6 @@ resource "aws_s3_bucket" "logs_infra" {
 #   }
 # }
 
-resource "aws_s3_bucket_acl" "infra_logs_private" {
-  bucket = aws_s3_bucket.logs_infra.id
-  acl    = "private"
-}
-
 resource "aws_s3_bucket_public_access_block" "logs_infra_block_public" {
   bucket                  = aws_s3_bucket.logs_infra.id
   block_public_acls       = true
@@ -87,11 +82,6 @@ resource "aws_s3_bucket" "logs_archive_raw" {
 #   target_prefix = "logs/s3_logs_archive_raw_logging/"
 # }
 
-resource "aws_s3_bucket_acl" "raw_logs_private" {
-  bucket = aws_s3_bucket.logs_archive_raw.id
-  acl    = "private"
-}
-
 resource "aws_s3_bucket_public_access_block" "logs_archive_raw_block_public" {
   bucket                  = aws_s3_bucket.logs_archive_raw.id
   block_public_acls       = true
@@ -134,11 +124,6 @@ resource "aws_s3_bucket" "logs_archive_enriched" {
 #   target_bucket = aws_s3_bucket.logs_infra.id
 #   target_prefix = "logs/s3_logs_archive_enriched/"
 # }
-
-resource "aws_s3_bucket_acl" "enriched_logs_private" {
-  bucket = aws_s3_bucket.logs_archive_enriched.id
-  acl    = "private"
-}
 
 resource "aws_s3_bucket_public_access_block" "enriched_logs_privateblock_public" {
   bucket                  = aws_s3_bucket.logs_archive_enriched.id

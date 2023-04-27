@@ -139,6 +139,16 @@ resource "aws_security_group_rule" "iot_eng_wkst_allow_corp" {
   security_group_id = aws_security_group.iot_eng_wkst_sg.id
 }
 
+resource "aws_security_group_rule" "iot_eng_wkst_allow_prod" {
+  type              = "ingress"
+  description       = "Allow prod traffic"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = [var.prod_cidr_block]
+  security_group_id = aws_security_group.iot_eng_wkst_sg.id
+}
+
 resource "aws_security_group_rule" "iot_eng_wkst_egress" {
   type              = "egress"
   description       = "Allow egress"

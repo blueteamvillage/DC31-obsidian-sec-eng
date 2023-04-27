@@ -640,18 +640,6 @@ resource "aws_instance" "securityonion_server" {
     encrypted             = true
   }
 
-  ################## DO NOT TOUCH ##################
-  ############# IGNORE instance type ###############
-  lifecycle {
-    ignore_changes = [
-      instance_type,
-      cpu_core_count,
-      ebs_optimized,
-    ]
-  }
-  ############# IGNORE instance type ###############
-  ################## DO NOT TOUCH ##################
-
   tags = {
     Name    = "${var.PROJECT_PREFIX}_securityonion_server"
     Project = var.PROJECT_PREFIX

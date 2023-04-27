@@ -14,7 +14,7 @@ teleport:
     region: "us-east-2"
     # Name of the DynamoDB table. If it does not exist, Teleport will create it.
     table_name: DEFCON_2023_OBSIDIAN-teleport-pcq49
-    audit_events_uri:  ['dynamodb://DEFCON_2023_OBSIDIAN-teleport-pcq49-events', 'file:///var/lib/teleport/audit/events', 'stdout://']
+    audit_events_uri: ['dynamodb://DEFCON_2023_OBSIDIAN-teleport-pcq49-events', 'file:///var/lib/teleport/audit/events', 'stdout://']
     audit_sessions_uri: "s3://defcon-2023-obsidian-teleport-kxl6y/records"
     audit_retention_period: 90d
 auth_service:
@@ -25,9 +25,9 @@ auth_service:
 ssh_service:
   enabled: "yes"
   commands:
-  - name: hostname
-    command: [hostname]
-    period: 1m0s
+    - name: hostname
+      command: [hostname]
+      period: 1m0s
 proxy_service:
   enabled: "yes"
   web_listen_addr: 0.0.0.0:443
@@ -162,8 +162,8 @@ windows_desktop_service:
   listen_addr: 0.0.0.0:3028
   public_addr: "teleport.blueteamvillage.com:3028"
   ldap:
-    addr:     '172.16.50.100:636'
-    domain:   'magnumtempus.financial'
+    addr: '172.16.50.100:636'
+    domain: 'magnumtempus.financial'
     username: 'MAGNUMTEMPUS\svc-teleport'
     sid: 'S-1-5-21-2369732838-3797832421-459094119-1103'
     server_name: 'dc.magnumtempus.financial'

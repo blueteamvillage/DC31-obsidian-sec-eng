@@ -1,5 +1,7 @@
 ---
 - hosts: 'win_jumpbox'
+  roles:
+    - win_node_exporter
   tasks:
     - include_vars: 'group_vars/iot.yml'
     - import_tasks: 'roles/windows/init_windows.yml'

@@ -36,11 +36,18 @@ outputs:
     failedRequestLoggingMode: none
     safeHeaders: []
     auth:
-      disabled: true
+      disabled: false
       authType: manual
+      username: so_elastic
+      password: "REDACTED"
     elasticVersion: auto
-    onBackpressure: block
+    onBackpressure: drop
     useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
     type: elastic
     index: cribl_data
     url: https://172.16.22.23:9200/_bulk
@@ -68,35 +75,110 @@ outputs:
       - cribl_pipe
     streamtags: []
     rules:
-      - final: true
-        filter: __inputId=='elastic:in_elastic'
+      - final: false
+        filter: false && __inputId=='elastic:in_elastic'
         output: remotesplunk
         description: Splunk
-      - final: true
-        filter: __inputId=='elastic:in_elastic'
+      - final: false
+        filter: false && __inputId=='elastic:in_elastic'
         output: remotesecurityonion
         description: SecurityOnion
-      - final: true
-        filter: __inputId=='elastic:in_elastic'
+      - final: false
+        filter: false && __inputId=='elastic:in_elastic'
         output: localdebug
         description: Debug
       - final: false
-        output: splunk-tcp-sysmonforlinux
-        description: Splunk TCP input for sysmonforlinux
-        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-          log.file.path == '/var/log/sysmon/sysmon.log'
-      - final: false
-        output: splunk-tcp-osquery
-        description: Splunk TCP input for osquery linux
         filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
           log.file.path == '/var/log/osquery/osqueryd.results.log'
+        output: splunk-hec-osquery
+        description: Splunk HEC for osquery linux
       - final: false
         filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
           log.file.path == '/var/log/sysmon/sysmon.log'
-        output: splunk-tcp-sysmonforlinux-syslog
-        description: Splunk TCP input for sysmonforlinux (syslog)
+        output: splunk-hec-sysmonforlinux
+        description: Splunk HEC for sysmon linux
+      - final: false
+        output: splunk-hec-linux
+        description: Splunk HEC for linux
+        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+          log.file.path != '/var/log/sysmon/sysmon.log' && log.file.path !=
+          '/var/log/osquery/osqueryd.results.log'
+      - final: false
+        filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat' &&
+          winlog.provider_name == 'Microsoft-Windows-Sysmon'
+        output: splunk-hec-sysmon
+        description: Splunk HEC for sysmon win
+      - final: false
+        filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat'
+        output: splunk-hec-windows
+        description: Splunk HEC for windows
+      - final: false
+        filter: __inputId=='elastic:in_elastic' && (agent.type == 'filebeat' ||
+          agent.type == 'winlogbeat')
+        output: remote-so-beats
+        description: SecurityOnion so-beats index
+      - final: false
+        filter: __inputId=='elastic:in_elastic'
+        output: rawlogs
+        description: S3 Archive for raw logs (raw format)
+      - final: false
+        filter: __inputId=='elastic:in_elastic'
+        output: rawlogs-cribljson
+        description: S3 Archive for raw logs (cribl json format)
     type: router
   rawlogs:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    awsAuthenticationMethod: auto
+    signatureVersion: v4
+    reuseConnections: true
+    rejectUnauthorized: true
+    enableAssumeRole: true
+    stagePath: $CRIBL_HOME/state/outputs/staging
+    addIdToStagePath: true
+    removeEmptyDirs: false
+    objectACL: private
+    partitionExpr: "`${C.Time.strftime(_time ? _time : Date.now() / 1000,
+      '%Y/%m/%d')}/${index ? index : 'no_index'}/${host ? host :
+      'no_host'}/${sourcetype ? sourcetype : 'no_sourcetype'}`"
+    format: raw
+    baseFileName: "`DEFCON_2023_OBSIDIAN`"
+    fileNameSuffix: '`.${C.env["CRIBL_WORKER_ID"]}.${__format}${__compression ===
+      "gzip" ? ".gz" : ""}`'
+    maxFileSizeMB: 32
+    maxFileOpenTimeSec: 300
+    maxFileIdleTimeSec: 30
+    maxOpenFiles: 100
+    onBackpressure: block
+    compress: gzip
+    type: s3
+    bucket: defcon-2023-obsidian-raw-logs-bucket
+    region: us-east-2
+    destPath: rawlogs
+    assumeRoleArn: arn:aws:iam::106453756913:role/DEFCON_2023_OBSIDIAN_writeonly_logs_role
+    serverSideEncryption: aws:kms
+    kmsKeyId: 69c0aa50-df95-484f-89dc-9190a85d1f8b
+  splunk-tcp-osquery:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    port: 9525
+    nestedFields: none
+    throttleRatePerSec: "0"
+    connectionTimeout: 10000
+    writeTimeout: 60000
+    tls:
+      disabled: true
+    enableMultiMetrics: false
+    enableACK: true
+    maxS2Sversion: v3
+    onBackpressure: block
+    authType: manual
+    authToken: ""
+    type: splunk
+    host: 172.16.22.20
+  rawlogs-cribljson:
     systemFields:
       - cribl_pipe
     streamtags: []
@@ -123,64 +205,181 @@ outputs:
     onBackpressure: block
     compress: gzip
     type: s3
-    bucket: raw-logs-bucket
+    bucket: defcon-2023-obsidian-raw-logs-bucket
+    destPath: rawlogs-json
     region: us-east-2
-    destPath: rawlogs
-  splunk-tcp-sysmonforlinux:
+    assumeRoleArn: arn:aws:iam::106453756913:role/DEFCON_2023_OBSIDIAN_writeonly_logs_role
+    serverSideEncryption: aws:kms
+    kmsKeyId: 69c0aa50-df95-484f-89dc-9190a85d1f8b
+  remote-so-beats:
     systemFields:
       - cribl_pipe
     streamtags: []
-    port: 9516
-    nestedFields: none
-    throttleRatePerSec: "0"
-    connectionTimeout: 10000
-    writeTimeout: 60000
-    tls:
-      disabled: true
-    enableMultiMetrics: false
-    enableACK: true
-    maxS2Sversion: v3
-    onBackpressure: block
-    authType: manual
-    authToken: ""
-    type: splunk
-    host: 172.16.22.20
-  splunk-tcp-osquery:
-    systemFields:
-      - cribl_pipe
-    streamtags: []
-    port: 9515
-    nestedFields: none
-    throttleRatePerSec: "0"
-    connectionTimeout: 10000
-    writeTimeout: 60000
-    tls:
-      disabled: true
-    enableMultiMetrics: false
-    enableACK: true
-    maxS2Sversion: v3
-    onBackpressure: block
-    authType: manual
-    authToken: ""
-    type: splunk
-    host: 172.16.22.20
-  splunk-tcp-sysmonforlinux-syslog:
-    systemFields:
-      - cribl_pipe
-    streamtags: []
-    protocol: tcp
-    facility: 1
-    severity: 5
-    appName: sysmonforlinux
-    messageFormat: rfc3164
-    timestampFormat: syslog
-    throttleRatePerSec: "0"
     loadBalanced: false
-    connectionTimeout: 10000
-    writeTimeout: 60000
-    tls:
-      disabled: true
-    onBackpressure: block
-    type: syslog
-    host: 172.16.22.20
-    port: 9516
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    auth:
+      disabled: false
+      authType: manual
+      username: so_elastic
+      password: "REDACTED"
+    elasticVersion: auto
+    onBackpressure: queue
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: elastic
+    url: https://172.16.22.23:9200/_bulk
+    index: so-beats-2023.04
+  splunk-hec-osquery:
+    systemFields:
+      - cribl_pipe
+    streamtags:
+      - osquery
+    loadBalanced: false
+    nextQueue: indexQueue
+    tcpRouting: nowhere
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    enableMultiMetrics: false
+    authType: manual
+    onBackpressure: queue
+    url: https://172.16.22.20:8088/services/collector/event
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: splunk_hec
+    token: "REDACTED"
+  splunk-hec-linux:
+    systemFields:
+      - cribl_pipe
+    streamtags:
+      - linux
+    loadBalanced: false
+    nextQueue: indexQueue
+    tcpRouting: nowhere
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    enableMultiMetrics: false
+    authType: manual
+    onBackpressure: queue
+    url: https://172.16.22.20:8088/services/collector/event
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: splunk_hec
+    token: "REDACTED"
+  splunk-hec-sysmonforlinux:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    loadBalanced: false
+    nextQueue: indexQueue
+    tcpRouting: nowhere
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    enableMultiMetrics: false
+    authType: manual
+    onBackpressure: queue
+    url: https://172.16.22.20:8088/services/collector/event
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: splunk_hec
+    token: "REDACTED"
+  splunk-hec-windows:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    loadBalanced: false
+    nextQueue: indexQueue
+    tcpRouting: nowhere
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    enableMultiMetrics: false
+    authType: manual
+    onBackpressure: queue
+    url: https://172.16.22.20:8088/services/collector/event
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: splunk_hec
+    token: "REDACTED"
+  splunk-hec-sysmon:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
+    loadBalanced: false
+    nextQueue: indexQueue
+    tcpRouting: nowhere
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    enableMultiMetrics: false
+    authType: manual
+    onBackpressure: queue
+    url: https://172.16.22.20:8088/services/collector/event
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: splunk_hec
+    token: "REDACTED"

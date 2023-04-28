@@ -69,14 +69,3 @@
     protocol: tcp
     state: present
     enabled: yes
-
-- name: Win Node Exporter health check + Firewall
-  ansible.builtin.uri:
-    url: "http://{{ ansible_default_ipv4.address }}:{{ node_exporter_port }}/metrics"
-    follow_redirects: none
-    method: GET
-    validate_certs: 'no'
-  register: _result
-  until: _result.status == 200
-  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
-  delay: 5  # Every 5 seconds

@@ -1,5 +1,4 @@
 ---
-
 - name: Setup cribl server
   hosts: mail_server
   become: yes

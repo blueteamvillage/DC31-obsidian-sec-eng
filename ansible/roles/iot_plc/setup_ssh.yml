@@ -1,0 +1,17 @@
+- name: Create SNSadmin user
+  ansible.builtin.user:
+    name: SNSadmin
+    # echo "SNSadmin" | mkpasswd
+    password: $y$j9T$CG77ltX3Z0UquCpvn3ZDv.$.VXgVj7YIkR2gE21c.qqrurBU7.HlRdlRJRVafYClTA
+
+- name: Enable password auth on SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: PasswordAuthentication yes
+
+- name: Restart SSH
+  service:
+    name: sshd
+    state: restarted
+    enabled: true

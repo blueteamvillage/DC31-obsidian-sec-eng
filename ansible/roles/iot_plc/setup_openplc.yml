@@ -1,0 +1,9 @@
+# https://github.com/blueteamvillage/DC31-obsidian-sec-eng/issues/104
+- name: Make openplc listen on default interface
+  ansible.builtin.replace:
+    dest: /opt/OpenPLC_v3/webserver/webserver.py
+    regexp: "^            app.run(debug=False, host='.*', threaded=True, port=8080)"
+    # https://medium.com/opsops/ansible-default-ipv4-is-not-what-you-think-edb8ab154b10
+    replace: "            app.run(debug=False, host='{{ ansible_default_ipv4.address | default(ansible_all_ipv4_addresses[0]) }}', threaded=True, port=8080)"
+    mode: 0644
+    backup: true

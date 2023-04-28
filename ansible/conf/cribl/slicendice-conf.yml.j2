@@ -11,7 +11,7 @@ asyncFuncTimeout: 1000
 functions:
   - id: dynamic_sampling
     filter: "true"
-    disabled: null
+    disabled: true
     conf:
       mode: log
       keyExpr: "`${host}`"
@@ -20,7 +20,7 @@ functions:
       maxSampleRate: 100
   - id: regex_extract
     filter: sourcetype=='access_combined'
-    disabled: null
+    disabled: true
     conf:
       source: _raw
       iterations: 100
@@ -29,7 +29,7 @@ functions:
     description: Extract status from access logs
   - id: sampling
     filter: sourcetype=='access_combined'
-    disabled: null
+    disabled: true
     conf:
       rules:
         - filter: __status == 200
@@ -42,7 +42,7 @@ functions:
       comment: Example masking password=xyz
   - id: mask
     filter: "true"
-    disabled: null
+    disabled: true
     conf:
       rules:
         - matchRegex: /password=(.*?)/
@@ -119,7 +119,8 @@ functions:
     conf:
       add:
         - name: __index
-          value: '"so-beats-2023.04.01"'
+          value: "`so-beats-${C.Time.strftime(_time ? _time : Date.now() / 1000,
+            '%Y.%m.%d')}`"
   - id: comment
     filter: "true"
     disabled: null

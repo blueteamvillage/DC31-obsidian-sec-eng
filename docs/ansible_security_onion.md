@@ -63,6 +63,67 @@ terraform apply -target=aws_instance.securityonion_server -target=aws_ec2_traffi
 * Change base url - https://docs.securityonion.net/en/2.3/url-base.html
 This has been integrated in ansible code "Set SecurityOnion url_base"
 
+* Stenographer/Sensoroni: It generates "pcap view" on-demand by calling REST api with same fqdn than all security-onion which wrongly ends to teleport. Workaround is included in ansible role. See below for troubleshooting and manual fix.
+
+```shell
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# tail /opt/so/log/sensoroni/sensoroni.log
+timestamp=2023-04-27T00:08:30.439088318Z level=warn message="Failed to poll for pending jobs" error="invalid character '<' looking for beginning of value"
+timestamp=2023-04-27T00:08:31.443774769Z level=info message="HTTP request finished" contentLength=777 method=POST status="200 OK" statusCode=200 url=https://securityonion.teleport.blueteamvillage.com/sensoroniagents/api/node
+timestamp=2023-04-27T00:08:31.443852581Z level=warn message="Failed to poll for pending jobs" error="invalid character '<' looking for beginning of value"
+timestamp=2023-04-27T00:08:32.448882057Z level=info message="HTTP request finished" contentLength=777 method=POST status="200 OK" statusCode=200 url=https://securityonion.teleport.blueteamvillage.com/sensoroniagents/api/node
+timestamp=2023-04-27T00:08:32.449051989Z level=warn message="Failed to poll for pending jobs" error="invalid character '<' looking for beginning of value"
+
+
+root@securityonion:/opt/so/saltstack/local/salt/soc/files/soc# cd /opt/so/saltstack/local/salt/sensoroni/files/
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# ls
+analyzers  sensoroni.json
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# vim sensoroni.json
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# docker stop so-sensoroni
+so-sensoroni
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# docker rm so-sensoroni
+so-sensoroni
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# salt-call state.apply sensoroni
+local:
+    Data failed to compile:
+----------
+    The function "state.highstate" is running as PID 108978 and was started at 2023, Apr 27 00:43:33.298741 with jid 20230427004333298741
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# salt-call salt-util.kill_all_jobs
+'salt-util.kill_all_jobs' is not available.
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# salt-call state.apply sensoroni queue=True
+
+[...]
+
+root@securityonion:/opt/so/saltstack/local/salt/sensoroni/files# tail /opt/so/log/sensoroni/sensoroni.log
+timestamp=2023-04-27T00:48:56.202908504Z level=info message="HTTP request finished" contentLength=10 method=POST status="405 Method Not Allowed" statusCode=405 url=http://172.16.22.23:9822/sensoroniagents/api/node
+timestamp=2023-04-27T00:48:56.203035283Z level=warn message="Failed to poll for pending jobs" error="Request did not complete successfully (405): 405 Method Not Allowed"
+timestamp=2023-04-27T00:48:57.203586868Z level=info message="HTTP request finished" contentLength=10 method=POST status="405 Method Not Allowed" statusCode=405 url=http://172.16.22.23:9822/sensoroniagents/api/node
+timestamp=2023-04-27T00:48:57.203648628Z level=warn message="Failed to poll for pending jobs" error="Request did not complete successfully (405): 405 Method Not Allowed"
+timestamp=2023-04-27T00:48:58.204556357Z level=info message="HTTP request finished" contentLength=10 method=POST status="405 Method Not Allowed" statusCode=405 url=http://172.16.22.23:9822/sensoroniagents/api/node
+timestamp=2023-04-27T00:48:58.204653405Z level=warn message="Failed to poll for pending jobs" error="Request did not complete successfully (405): 405 Method Not Allowed"
+timestamp=2023-04-27T00:48:59.205711482Z level=info message="HTTP request finished" contentLength=10 method=POST status="405 Method Not Allowed" statusCode=405 url=http://172.16.22.23:9822/sensoroniagents/api/node
+timestamp=2023-04-27T00:48:59.205776237Z level=warn message="Failed to poll for pending jobs" error="Request did not complete successfully (405): 405 Method Not Allowed"
+timestamp=2023-04-27T00:49:00.206390816Z level=info message="HTTP request finished" contentLength=10 method=POST status="405 Method Not Allowed" statusCode=405 url=http://172.16.22.23:9822/sensoroniagents/api/node
+timestamp=2023-04-27T00:49:00.20647293Z level=warn message="Failed to poll for pending jobs" error="Request did not complete successfully (405): 405 Method Not Allow"
+
+ubuntu@securityonion:~$ sudo grep -C2 serverUrl /opt/so/saltstack/default/salt/sensoroni/files/sensoroni.json
+    "model": "{{ MODEL }}",
+    "pollIntervalMs": {{ CHECKININTERVALMS if CHECKININTERVALMS else 10000 }},
+    "serverUrl": "https://{{ URLBASE }}/sensoroniagents",
+    "verifyCert": false,
+    "modules": {
+ubuntu@securityonion:~$ sudo grep -C2 serverUrl /opt/so/saltstack/local/salt/sensoroni/files/sensoroni.json
+    "model": "{{ MODEL }}",
+    "pollIntervalMs": {{ CHECKININTERVALMS if CHECKININTERVALMS else 10000 }},
+    "serverUrl": "http://172.16.22.23:9822",
+    "verifyCert": false,
+    "modules": {
+
+ubuntu@securityonion:~$ tail /opt/so/log/sensoroni/sensoroni.log
+timestamp=2023-04-27T01:13:32.160270618Z level=info message="HTTP request finished" contentLength=-1 method=POST status="200 OK" statusCode=200 url=http://172.16.22.23:9822/api/node
+timestamp=2023-04-27T01:13:33.161706002Z level=info message="HTTP request finished" contentLength=-1 method=POST status="200 OK" statusCode=200 url=http://172.16.22.23:9822/api/node
+timestamp=2023-04-27T01:13:34.163181558Z level=info message="HTTP request finished" contentLength=-1 method=POST status="200 OK" statusCode=200 url=http://172.16.22.23:9822/api/node
+```
+
 ## References
 * [install_security_onion.yml](https://github.com/blueteamvillage/obsidian-sec-eng/blob/main/ansible/roles/linux/install_security_onion.yml)
 * [conf/security_onion](https://github.com/blueteamvillage/obsidian-sec-eng/tree/main/ansible/conf/security_onion)

@@ -15,6 +15,8 @@ If not generated automatically by terraform
 
 * This mostly ensure a classical network view compare to stenographer included in securityonion
 
+* Ensure to also open firewall ports on securityonion following https://docs.securityonion.net/en/2.3/firewall.html. Target chain is INPUT and port 8005.
+
 ## References
 * https://github.com/juju4/ansible-arkime
 * https://arkime.com/

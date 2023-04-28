@@ -213,13 +213,16 @@ resource "aws_security_group" "iot_jump_box_sg" {
 }
 
 resource "aws_instance" "iot_jump_box" {
-  ami                    = var.windows-ami
-  instance_type          = var.windows_boxes_ec2_size
-  subnet_id              = aws_subnet.iot.id
-  vpc_security_group_ids = [aws_security_group.iot_jump_box_sg.id]
-  key_name               = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip             = var.iot_subnet_map["jhb01"]
-  user_data              = data.template_file.password_change.rendered
+  ami           = var.windows-ami
+  instance_type = var.windows_boxes_ec2_size
+  subnet_id     = aws_subnet.iot.id
+  vpc_security_group_ids = [
+    aws_security_group.iot_jump_box_sg.id,
+    aws_security_group.node_exporter_clients.id,
+  ]
+  key_name   = "${var.PROJECT_PREFIX}-ssh-key"
+  private_ip = var.iot_subnet_map["jhb01"]
+  user_data  = data.template_file.password_change.rendered
 
   root_block_device {
     volume_size           = 50
@@ -231,41 +234,5 @@ resource "aws_instance" "iot_jump_box" {
     Name        = "${var.PROJECT_PREFIX}_IOT_JUMPHOST_SERVER"
     Project     = var.PROJECT_PREFIX
     Environment = "IOT"
-  }
-}
-
-
-
-
-resource "aws_instance" "iot_hmi_test_server" {
-  ami           = var.iot_hmi_ami
-  instance_type = "t3.small"
-  subnet_id     = aws_subnet.iot.id
-  vpc_security_group_ids = [
-    aws_security_group.iot_hmi_servers.id,
-    aws_security_group.node_exporter_clients.id,
-  ]
-  key_name   = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip = "172.16.60.183"
-  user_data  = data.template_file.password_change.rendered
-
-  metadata_options {
-    http_endpoint          = "enabled"
-    http_tokens            = "required"
-    instance_metadata_tags = "enabled"
-  }
-
-  root_block_device {
-    volume_size           = 40
-    volume_type           = "gp2"
-    delete_on_termination = true
-    encrypted             = true
-  }
-
-  tags = {
-    Name        = "${var.PROJECT_PREFIX}_iot_hmi_test_server_server"
-    Project     = var.PROJECT_PREFIX
-    Environment = "iot"
-    IOTtype     = "hmi"
   }
 }

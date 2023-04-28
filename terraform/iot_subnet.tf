@@ -189,24 +189,21 @@ resource "aws_security_group" "iot_jump_box_sg" {
 
   # Allow ICMP, RDP, & WinRM from management subnet, and the corp subnet
   ingress {
-    from_port = 8
-    to_port   = 0
-    protocol  = "icmp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-      "${var.corp_cidr_block}"
-    ]
-  }
-
-  ingress {
     from_port = 0
     to_port   = 0
     protocol  = "-1"
     cidr_blocks = [
-      #teleport internal and external IP.
       "${module.teleport.private_ip_addr}/32",
-      "${var.corp_cidr_block}",
+      "${aws_instance.iot_eng_wkst.private_ip}/32",
+      var.iot_cidr_block,
     ]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -237,86 +234,38 @@ resource "aws_instance" "iot_jump_box" {
   }
 }
 
-############################################ IOT ENG Workstation ############################################
-resource "aws_security_group" "iot_eng_wkst_sg" {
-  vpc_id = module.vpc.vpc_id
-
-  # Allow ICMP, RDP, & WinRM from management subnet, and the corp subnet
-  ingress {
-    from_port = 8
-    to_port   = 0
-    protocol  = "icmp"
-    cidr_blocks = [
-      "${module.teleport.private_ip_addr}/32",
-      "${var.corp_cidr_block}"
-    ]
-  }
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    cidr_blocks = [
-      #teleport internal and external IP.
-      "${module.teleport.private_ip_addr}/32",
-    ]
-  }
 
 
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    cidr_blocks = [
-      #teleport internal and external IP.
-      "${aws_instance.windows_domain_controller.private_ip}/32",
-    ]
-  }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name    = "${var.PROJECT_PREFIX}_iot_eng_wkst_SG"
-    Project = var.PROJECT_PREFIX
-  }
-}
-
-resource "aws_instance" "iot_eng_wkst" {
-  ami           = var.windows-ami
-  instance_type = var.windows_boxes_ec2_size
+resource "aws_instance" "iot_hmi_test_server" {
+  ami           = var.iot_hmi_ami
+  instance_type = "t3.small"
   subnet_id     = aws_subnet.iot.id
   vpc_security_group_ids = [
-    aws_security_group.iot_eng_wkst_sg.id,
+    aws_security_group.iot_hmi_servers.id,
     aws_security_group.node_exporter_clients.id,
   ]
   key_name   = "${var.PROJECT_PREFIX}-ssh-key"
-  private_ip = var.iot_subnet_map["iot_eng_wkst"]
+  private_ip = "172.16.60.183"
   user_data  = data.template_file.password_change.rendered
 
+  metadata_options {
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
+    instance_metadata_tags = "enabled"
+  }
+
   root_block_device {
-    volume_size           = 50
+    volume_size           = 40
     volume_type           = "gp2"
     delete_on_termination = true
+    encrypted             = true
   }
-
-  ################## DO NOT TOUCH ##################
-  ############# IGNORE instance type ###############
-  lifecycle {
-    ignore_changes = [
-      instance_state,
-    ]
-  }
-  ############# IGNORE instance type ###############
-  ################## DO NOT TOUCH ##################
 
   tags = {
-    Name        = "${var.PROJECT_PREFIX}_iot_eng_wkst"
+    Name        = "${var.PROJECT_PREFIX}_iot_hmi_test_server_server"
     Project     = var.PROJECT_PREFIX
-    Environment = "IOT"
+    Environment = "iot"
+    IOTtype     = "hmi"
   }
 }

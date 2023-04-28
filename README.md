@@ -4,7 +4,7 @@
 <TODO>
 
 ## Network diagram
-<TODO>
+![network_diagram](.img/network_diagram.png)
 
 ## pre-commit
 1. To install Git hook run `pre-commit install`

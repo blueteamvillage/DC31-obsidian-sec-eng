@@ -24,7 +24,7 @@
     name: "{{ item.firstname | lower }}.{{ item.surname | lower }}"
     firstname: "{{ item.firstname }}"
     surname: "{{ item.surname }}"
-    displayName: "{{ item.firstname }} {{ item.surname }}"
+    display_name: "{{ item.firstname }} {{ item.surname }}"
     email: "{{ item.firstname | lower }}.{{ item.surname | lower }}@{{ external_domain }}"
     company: "{{ company_name }}"
     password: "{{ item.password }}"
@@ -37,4 +37,4 @@
     attributes:
       title: "{{ item.title }}"
       department: "{{ item.department }}"
-    loop: "{{ user_list.list }}"
+  loop: "{{ user_list.list }}"

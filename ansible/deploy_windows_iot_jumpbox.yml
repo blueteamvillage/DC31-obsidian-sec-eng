@@ -1,11 +1,12 @@
 ---
-- hosts: 'win_jumpbox'
+- hosts: "win_jumpbox"
   roles:
     - win_node_exporter
   tasks:
-    - include_vars: 'group_vars/iot.yml'
-    - import_tasks: 'roles/windows/init_windows.yml'
-    - import_tasks: 'roles/windows/setup_iot_jumpbox.yml'
-    - import_tasks: 'roles/windows/setup_rdp_servers.yml'
-    - import_tasks: 'roles/windows/setup_sysmon.yml'
-    - import_tasks: 'roles/windows/setup_winlogbeat.yml'
+    - include_vars: "group_vars/iot.yml"
+    - import_tasks: "roles/windows/init_windows.yml"
+    - import_tasks: "roles/windows/setup_iot_jumpbox.yml"
+    - import_tasks: "roles/windows/setup_rdp_servers.yml"
+    - import_tasks: "roles/windows/setup_sysmon.yml"
+    - import_tasks: "roles/windows/setup_winlogbeat.yml"
+    - import_tasks: "roles/windows/jumpbox/setup_users_as_admins.yml"

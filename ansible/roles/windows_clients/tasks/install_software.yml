@@ -11,8 +11,26 @@
     name:
       - 'googlechrome'
       - 'vscode'
-      - 'wireshark'
       - 'sysinternals'
       - 'thunderbird'
       - 'openoffice'
     state: latest
+
+####################################################################
+# Manual install
+####################################################################
+# - name: Copy files
+#   win_get_url:
+#     url: 'http://172.16.10.93:9000/{{ item }}'
+#     dest: '%USERPROFILE%\AppData\Local\Temp\{{ item }}'
+#   with_items:
+#     - "LibreOffice.msi"
+
+# vscode: vscode.exe /VERYSILENT /NORESTART /MERGETASKS=!runcode
+# chrome: .\chrome.exe /silent /install
+# thunderbird: .\thunderbird.exe -ms
+# LibreOffice: MsiExec.exe /i LibreOffice.msi RebootYesNo=No /qn
+# - name: Install
+#   ansible.windows.win_shell: MsiExec.exe /i LibreOffice.msi RebootYesNo=No /qn
+#   args:
+#     chdir: 'C:\Users\Administrator\AppData\Local\Temp'

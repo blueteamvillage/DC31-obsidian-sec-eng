@@ -1,6 +1,5 @@
 ---
 # tasks file for ansible/roles/windows_clients
-
 - name: Add Windows client to domain
   ansible.builtin.import_tasks: add_client_to_domain.yml
 - name: Install choclately and tools

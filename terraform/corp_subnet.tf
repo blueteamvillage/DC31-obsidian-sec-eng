@@ -261,9 +261,9 @@ resource "aws_instance" "corp_mail_server" {
   private_ip             = var.corp_subnet_map["mail"]
 
   metadata_options {
+    instance_metadata_tags = "enabled"
     http_endpoint          = "enabled"
     http_tokens            = "required"
-    instance_metadata_tags = "enabled"
   }
 
   root_block_device {

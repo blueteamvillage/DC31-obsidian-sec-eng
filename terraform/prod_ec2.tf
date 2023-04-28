@@ -78,9 +78,11 @@ resource "aws_instance" "vuln_log4j_webserver" {
   vpc_security_group_ids = [aws_security_group.vuln_log4j_webserver.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = var.prod_subnet_map["webserver"]
+
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
   }
 
   root_block_device {

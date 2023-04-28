@@ -57,9 +57,9 @@ resource "aws_instance" "iot_plc_servers" {
   private_ip = each.value
 
   metadata_options {
+    instance_metadata_tags = "enabled"
     http_endpoint          = "enabled"
     http_tokens            = "required"
-    instance_metadata_tags = "enabled"
   }
 
   root_block_device {
@@ -164,9 +164,9 @@ resource "aws_instance" "iot_hmi_servers" {
   user_data               = data.template_file.password_change.rendered
 
   metadata_options {
+    instance_metadata_tags = "enabled"
     http_endpoint          = "enabled"
     http_tokens            = "required"
-    instance_metadata_tags = "enabled"
   }
 
   root_block_device {

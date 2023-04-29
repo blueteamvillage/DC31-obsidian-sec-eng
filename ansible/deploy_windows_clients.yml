@@ -1,9 +1,9 @@
 ---
 - hosts: 'win_clients'
   roles:
-    # - win_node_exporter
-    # - windows_clients
+    - win_node_exporter
+    - windows_clients
     - prymalinstynct.velociraptor
-  # tasks:
-  #   - import_tasks: 'roles/windows/setup_sysmon.yml'
-  #   - import_tasks: 'roles/windows/setup_winlogbeat.yml'
+  tasks:
+    - import_tasks: 'roles/windows/setup_sysmon.yml'
+    - import_tasks: 'roles/windows/setup_winlogbeat.yml'

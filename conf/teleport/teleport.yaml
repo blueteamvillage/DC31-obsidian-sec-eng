@@ -87,6 +87,14 @@ app_service:
       rewrite:
         headers:
           - "Host: securityonion.teleport.blueteamvillage.com"
+    - name: "arkime"
+      uri: "http://172.16.22.23:8005"
+      insecure_skip_verify: true
+      labels:
+        env: logging
+      rewrite:
+        headers:
+          - "Host: arkime.teleport.blueteamvillage.com"
     ######################################## Intra ########################################
     - name: "grafana"
       uri: "https://172.16.21.10:443"

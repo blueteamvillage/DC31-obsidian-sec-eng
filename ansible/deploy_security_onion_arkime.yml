@@ -1,0 +1,10 @@
+---
+
+- name: Install Arkime on Security Onion
+  hosts: security_onion
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - geerlingguy.elasticsearch
+    - juju4.arkime

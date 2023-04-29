@@ -73,3 +73,33 @@ teleport_ssh_labels:
   - { k: 'hostname', v: "{{ ansible_hostname }}" }
   - { k: 'aws/Name', v: 'DEFCON_2023_OBSIDIAN_securityonion_server' }
   - { k: 'aws/Project', v: 'DEFCON_2023_OBSIDIAN' }
+
+# juju4.arkime
+# 4.3.0-1 has a librdkafka dependency bug on 22.04, pending release of 4.3.1-1
+arkime_version: 4.2.0-1
+arkime_admin_user: arkime_admin
+arkime_admin_pass: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-arkime-admin-pass', region=aws_region) }}"
+arkime_users:
+  - { name: arkime_analyst,
+      comment: "Analyst",
+      pass: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-arkime-analyst-pass', region=aws_region) }}"
+  }
+arkime_elastic_host: localhost
+arkime_elastic_port: 9400
+arkime_capture_if: 'ens6'
+arkime_passwordsecret: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-arkime-secret', region=aws_region) }}"
+# if got geoip Maxmind config
+arkime_geoip_conf_file: 'GeoIP.conf'
+# geerlingguy.elasticsearch (for arkime)
+elasticsearch_version: '8.x'
+elasticsearch_package: elasticsearch
+elasticsearch_network_host:
+  - 127.0.0.1
+elasticsearch_http_port: 9400
+elasticsearch_extra_options: |
+  discovery.type: single-node
+  xpack.security.enabled: false
+  xpack.security.transport.ssl.enabled: false
+  xpack.security.http.ssl.enabled: false
+elasticsearch_cert_ca_pass: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-arkime-es-cert-pass', region=aws_region) }}"
+elasticsearch_cert_pass: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-arkime-es-cert-pass', region=aws_region) }}"

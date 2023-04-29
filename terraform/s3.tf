@@ -39,3 +39,36 @@ resource "aws_s3_bucket_object" "project_folders" {
   key    = "${each.value}/"
   source = "/dev/null"
 }
+
+####################################### insider threat bucket #######################################
+resource "aws_s3_bucket_policy" "insider_threat" {
+  bucket = aws_s3_bucket.insider_threat.id
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Principal" : "*",
+        "Action" : ["s3:Get*", "s3:List*"],
+        "Resource" : [
+          "${aws_s3_bucket.insider_threat.arn}/*"
+        ],
+        "Effect" : "Allow",
+        "Condition" : {
+          "IpAddress" : {
+            "aws:SourceIp" : "${module.vpc.nat_public_ips[0]}/32"
+          }
+        }
+      }
+    ]
+  })
+}
+
+
+resource "aws_s3_bucket" "insider_threat" {
+  bucket = "ot-protocol-support"
+
+  tags = {
+    Name    = "ot-protocol-support"
+    Project = var.PROJECT_PREFIX
+  }
+}

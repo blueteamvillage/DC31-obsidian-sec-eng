@@ -31,6 +31,7 @@ resource "aws_security_group_rule" "velociraptor_allow_http" {
     # velociraptor needs to call itself
     "${aws_eip.velociraptor_server_eip.public_ip}/32",
     "${module.teleport.private_ip_addr}/32",
+    "${aws_eip.vuln_log4j_webserver.public_ip}/32",
     var.corp_cidr_block,
     var.public_cidr_block,
     var.private_cidr_block,
@@ -58,6 +59,7 @@ resource "aws_security_group_rule" "velociraptor_allow_https" {
     # velociraptor needs to call itself
     "${aws_eip.velociraptor_server_eip.public_ip}/32",
     "${module.teleport.private_ip_addr}/32",
+    "${aws_eip.vuln_log4j_webserver.public_ip}/32",
     var.corp_cidr_block,
     var.public_cidr_block,
     var.private_cidr_block,
@@ -129,9 +131,11 @@ resource "aws_instance" "velociraptor_server" {
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = var.logging_subnet_map["velociraptor"]
   disable_api_termination = true
+
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
   }
 
   root_block_device {
@@ -287,9 +291,11 @@ resource "aws_instance" "cribl_server" {
   key_name                = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip              = var.logging_subnet_map["cribl"]
   disable_api_termination = true
+
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
   }
 
   iam_instance_profile = aws_iam_instance_profile.writeonly_logs_profile.name
@@ -535,6 +541,17 @@ resource "aws_security_group" "securityonion_server_sg2" {
       # else line should be commented
       # "0.0.0.0/0"
 
+    ]
+  }
+
+  # HTTP port arkime
+  ingress {
+    description = "Allow HTTPS from jumphost/teleport"
+    from_port   = 8005
+    to_port     = 8005
+    protocol    = "tcp"
+    cidr_blocks = [
+      "${module.teleport.private_ip_addr}/32",
     ]
   }
 

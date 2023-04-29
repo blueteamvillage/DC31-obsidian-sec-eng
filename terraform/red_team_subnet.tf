@@ -77,9 +77,9 @@ resource "aws_instance" "red_team_servers" {
   disable_api_termination = true
 
   metadata_options {
+    instance_metadata_tags = "enabled"
     http_endpoint          = "enabled"
     http_tokens            = "required"
-    instance_metadata_tags = "enabled"
   }
 
   root_block_device {

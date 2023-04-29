@@ -94,7 +94,7 @@ arkime_geoip_conf_file: 'GeoIP.conf'
 elasticsearch_version: '8.x'
 elasticsearch_package: elasticsearch
 elasticsearch_network_host:
-  - localhost
+  - 127.0.0.1
 elasticsearch_http_port: 9400
 elasticsearch_extra_options: |
   discovery.type: single-node

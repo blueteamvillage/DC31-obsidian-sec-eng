@@ -184,6 +184,15 @@ functions:
         - name: sourcetype
           value: "'sysmonforlinux'"
   - id: eval
+    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+      (log.file.path == '/var/log/nginx/access.log' || log.file.path ==
+      '/var/log/nginx/error.log')
+    disabled: null
+    conf:
+      add:
+        - name: sourcetype
+          value: "'nginx'"
+  - id: eval
     filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat'
     disabled: null
     conf:

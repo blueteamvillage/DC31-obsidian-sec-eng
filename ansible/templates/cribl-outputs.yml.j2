@@ -126,6 +126,12 @@ outputs:
         filter: __inputId=='elastic:in_elastic'
         output: rawlogs-cribljson
         description: S3 Archive for raw logs (cribl json format)
+      - final: true
+        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+          (log.file.path == '/var/log/nginx/access.log' || log.file.path ==
+          '/var/log/nginx/error.log')
+        output: splunk-hec-nginx
+        description: Splunk HEC for nginx
     type: router
   rawlogs:
     systemFields:
@@ -360,6 +366,35 @@ outputs:
     systemFields:
       - cribl_pipe
     streamtags: []
+    loadBalanced: false
+    nextQueue: indexQueue
+    tcpRouting: nowhere
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    enableMultiMetrics: false
+    authType: manual
+    onBackpressure: queue
+    url: https://172.16.22.20:8088/services/collector/event
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: splunk_hec
+    token: "REDACTED"
+  splunk-hec-nginx:
+    systemFields:
+      - cribl_pipe
+    streamtags:
+      - nginx
     loadBalanced: false
     nextQueue: indexQueue
     tcpRouting: nowhere

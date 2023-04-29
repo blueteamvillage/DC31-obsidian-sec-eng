@@ -127,9 +127,7 @@ outputs:
         output: rawlogs-cribljson
         description: S3 Archive for raw logs (cribl json format)
       - final: true
-        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-          (log.file.path == '/var/log/nginx/access.log' || log.file.path ==
-          '/var/log/nginx/error.log')
+        filter: __inputId=='elastic:in_elastic' && sourcetype == 'nginx'
         output: splunk-hec-nginx
         description: Splunk HEC for nginx
     type: router

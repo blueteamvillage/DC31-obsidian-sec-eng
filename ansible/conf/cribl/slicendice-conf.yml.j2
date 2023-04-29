@@ -186,6 +186,7 @@ functions:
   - id: eval
     filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
       (log.file.path == '/var/log/nginx/access.log' || log.file.path ==
+      '/var/log/nginx/access_json.log' || log.file.path ==
       '/var/log/nginx/error.log')
     disabled: null
     conf:

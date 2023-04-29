@@ -8,3 +8,10 @@
     - juju4.sysmon
     - node_exporter
     - prymalinstynct.velociraptor
+    - geerlingguy.filebeat
+  tasks:
+    # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-installation-configuration.html
+    # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-nginx.html
+    - name: Configure nginx module for filebeat
+      ansible.builtin.command:
+        cmd: filebeat modules enable nginx

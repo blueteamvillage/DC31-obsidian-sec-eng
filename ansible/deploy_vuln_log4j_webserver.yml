@@ -9,9 +9,24 @@
     - node_exporter
     - prymalinstynct.velociraptor
     - geerlingguy.filebeat
+  handlers:
+    - name: Restart filebeat
+      ansible.builtin.service:
+        name: filebeat
+        state: restarted
   tasks:
     # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-installation-configuration.html
     # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-nginx.html
+    # better to use a template. keeping this if other things done by command
     - name: Configure nginx module for filebeat
       ansible.builtin.command:
         cmd: filebeat modules enable nginx
+      args:
+        creates: /etc/filebeat/modules.d/nginx.yml
+    - name: Configure nginx module for filebeat (2)
+      ansible.builtin.template:
+        src: filebeat-nginx.yml.j2
+        dest: /etc/filebeat/modules.d/nginx.yml
+        mode: '0644'
+      notify:
+        - Restart filebeat

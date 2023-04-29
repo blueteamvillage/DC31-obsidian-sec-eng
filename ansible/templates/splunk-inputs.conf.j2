@@ -59,3 +59,12 @@ index = sysmon
 indexes = sysmon
 source = sysmon
 token = REDACTED
+
+[http://splunk_hec_token_nginx]
+description = nginx web server
+disabled = 0
+host = {{ ansible_hostname }}
+index = nginx
+indexes = nginx
+source = nginx
+token = REDACTED

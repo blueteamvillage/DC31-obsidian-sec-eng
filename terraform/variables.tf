@@ -119,6 +119,7 @@ variable "corp_subnet_map" {
     "win_dc"       = "172.16.50.100",
     "dockerserver" = "172.16.50.101",
     "mail"         = "172.16.50.102",
+    "hmail"        = "172.16.50.103",
     "win_client1"  = "172.16.50.130",
     "win_client2"  = "172.16.50.131",
     "win_client3"  = "172.16.50.132",

@@ -293,7 +293,7 @@ resource "aws_security_group" "corp_hmail_server" {
 
 resource "aws_security_group_rule" "corp_hmail_allow_teleport" {
   type        = "ingress"
-  description = "Allow inbound SSH"
+  description = "Allow all traffic from teleport"
   from_port   = 0
   to_port     = 0
   protocol    = "-1"
@@ -305,7 +305,7 @@ resource "aws_security_group_rule" "corp_hmail_allow_teleport" {
 
 resource "aws_security_group_rule" "corp_hmail_allow_corp_subnet" {
   type              = "ingress"
-  description       = "Allow wiki web access from teleport"
+  description       = "Allow all traffic from corp subnet"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"

@@ -1,5 +1,5 @@
 ---
-- name: Setup cribl server
+- name: Setup linux mail server server
   hosts: mail_server
   become: yes
   become_user: root

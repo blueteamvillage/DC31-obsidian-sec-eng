@@ -90,7 +90,16 @@ functions:
     description: sysmonforlinux-xmlunroll
   - id: eval
     filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      log.file.path == '/var/log/sysmon/sysmon.log'
+      journald.process.name == 'sysmon'
+    disabled: null
+    conf:
+      add:
+        - name: sysmonxml
+          value: message
+  - id: eval
+    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
+      'sysmon')
     disabled: null
     conf:
       keep: []
@@ -100,7 +109,7 @@ functions:
         - name: parsed
           value: C.Text.parseXml(sysmonxml)
   - id: flatten
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
+    filter: false && __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
       log.file.path == '/var/log/sysmon/sysmon.log'
     disabled: null
     conf:
@@ -112,7 +121,8 @@ functions:
     description: sysmonforlinux-flatten
   - id: code
     filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      log.file.path == '/var/log/sysmon/sysmon.log'
+      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
+      'sysmon')
     disabled: null
     conf:
       maxNumOfIterations: 5000
@@ -124,7 +134,8 @@ functions:
     description: Transform sysmon EventData.Data into dictionary
   - id: eval
     filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      log.file.path == '/var/log/sysmon/sysmon.log'
+      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
+      'sysmon')
     disabled: null
     conf:
       add: []
@@ -165,7 +176,8 @@ functions:
           value: "'osquery'"
   - id: eval
     filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      log.file.path == '/var/log/sysmon/sysmon.log'
+      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
+      'sysmon')
     disabled: null
     conf:
       add:

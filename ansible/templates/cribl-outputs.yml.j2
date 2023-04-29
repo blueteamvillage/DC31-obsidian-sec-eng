@@ -94,7 +94,8 @@ outputs:
         description: Splunk HEC for osquery linux
       - final: false
         filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-          log.file.path == '/var/log/sysmon/sysmon.log'
+          (log.file.path == '/var/log/sysmon/sysmon.log' ||
+          journald.process.name == 'sysmon')
         output: splunk-hec-sysmonforlinux
         description: Splunk HEC for sysmon linux
       - final: false

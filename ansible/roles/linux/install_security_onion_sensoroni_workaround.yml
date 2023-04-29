@@ -1,0 +1,33 @@
+---
+# Stenographer/Sensoroni workaround to teleport
+
+- name: Check if local sensorini config
+  ansible.builtin.stat:
+    path: /opt/so/saltstack/local/salt/sensoroni/files/sensoroni.json
+  register: sensoroni
+
+- name: Create local sensorini config
+  ansible.builtin.copy:
+    src: /opt/so/saltstack/default/salt/sensoroni/files/sensoroni.json
+    dest: /opt/so/saltstack/local/salt/sensoroni/files/sensoroni.json
+    mode: '0644'
+    remote_src: true
+  when: not sensoroni.stat.exists
+
+- name: Ensure sensorini config bypass teleport
+  ansible.builtin.replace:
+    dest: /opt/so/saltstack/local/salt/sensoroni/files/sensoroni.json
+    regexp: "\"serverUrl\": \"https://{{ URLBASE }}/sensoroniagents\","
+    replace: "\"serverUrl\": \"http://172.16.22.23:9822\","
+    mode: '0644'
+  register: cfg
+
+- name: Restart sensoroni
+  when: cfg.changed
+  block:
+    - name: Docker stop so-sensoroni
+      ansible.builtin.command: docker stop so-sensoroni
+    - name: Docker rm so-sensoroni
+      ansible.builtin.command: docker rm so-sensoroni
+    - name: Apply salt state for sensoroni
+      ansible.builtin.command: salt-call state.apply sensoroni

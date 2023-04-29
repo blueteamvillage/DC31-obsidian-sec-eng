@@ -3,6 +3,7 @@
   hosts: win_domain_controller
   roles:
     - win_node_exporter
+    - prymalinstynct.velociraptor
   tasks:
     - import_tasks: 'roles/windows/init_windows.yml'
     - import_tasks: 'roles/windows/domain_controller/setup_domain_controller.yml'

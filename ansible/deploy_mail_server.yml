@@ -1,0 +1,9 @@
+---
+- name: Setup linux mail server server
+  hosts: mail_server
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - node_exporter
+    - prymalinstynct.velociraptor

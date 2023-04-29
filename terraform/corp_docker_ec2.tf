@@ -64,9 +64,11 @@ resource "aws_instance" "corp_docker_server" {
   vpc_security_group_ids = [aws_security_group.corp_docker_server.id]
   key_name               = "${var.PROJECT_PREFIX}-ssh-key"
   private_ip             = var.corp_subnet_map["dockerserver"]
+
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
   }
 
   root_block_device {

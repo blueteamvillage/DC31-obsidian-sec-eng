@@ -3,6 +3,7 @@
   roles:
     - win_node_exporter
     - windows_clients
+    - prymalinstynct.velociraptor
   tasks:
     - import_tasks: 'roles/windows/setup_sysmon.yml'
     - import_tasks: 'roles/windows/setup_winlogbeat.yml'

@@ -1,0 +1,13 @@
+---
+####################################################################
+# Set users as local admin
+####################################################################
+- name: Add users to domain admins
+  ansible.windows.win_user:
+    name: "{{ item }}"
+    groups:
+      - administrators
+  with_items:
+    - kate.harony
+    - brad.cudo
+    - seth.morgan

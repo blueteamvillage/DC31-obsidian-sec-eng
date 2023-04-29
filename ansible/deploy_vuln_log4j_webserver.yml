@@ -18,11 +18,13 @@
     # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-installation-configuration.html
     # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-nginx.html
     # better to use a template. keeping this if other things done by command
+    # module setup not working, switching to usual file log collection
     - name: Configure nginx module for filebeat
       ansible.builtin.command:
         cmd: filebeat modules enable nginx
       args:
         creates: /etc/filebeat/modules.d/nginx.yml
+      when: false
     - name: Configure nginx module for filebeat (2)
       ansible.builtin.template:
         src: filebeat-nginx.yml.j2
@@ -30,3 +32,4 @@
         mode: '0644'
       notify:
         - Restart filebeat
+      when: false

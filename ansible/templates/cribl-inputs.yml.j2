@@ -1,0 +1,113 @@
+inputs:
+  in_elastic:
+    disabled: false
+    sendToRoutes: true
+    pqEnabled: true
+    streamtags: []
+    host: 0.0.0.0
+    tls:
+      disabled: false
+      requestCert: false
+      certificateName: magnumtempusfinancial-cert
+      certPath: $CRIBL_HOME/local/cribl/auth/certs/magnumtempusfinancial-cert.crt
+      privKeyPath: $CRIBL_HOME/local/cribl/auth/certs/magnumtempusfinancial-cert.key
+    maxActiveReq: 1024
+    enableProxyHeader: false
+    captureHeaders: false
+    activityLogSampleRate: 100
+    requestTimeout: 0
+    keepAliveTimeout: 5
+    elasticAPI: /
+    authType: none
+    apiVersion: custom
+    extraHttpHeaders:
+      - name: X-elastic-product
+        value: Elasticsearch
+    proxyMode:
+      enabled: false
+    pq:
+      mode: smart
+      maxBufferSize: 1000
+      commitFrequency: 42
+      maxFileSize: 500 MB
+      path: $CRIBL_HOME/state/queues
+      compress: gzip
+      maxSize: 50 GB
+    customAPIVersion: |-
+      {
+          "name": "AzU84iL",
+          "cluster_name": "cribl",
+          "cluster_uuid": "Js6_Z2VKS3KbfRSxPmPbaw",
+          "version": {
+              "number": "8.7.0",
+              "build_type": "tar",
+              "build_hash": "bca0c8d",
+              "build_date": "2019-10-16T06:19:49.319352Z",
+              "build_snapshot": false,
+              "lucene_version": "9.7.2",
+              "minimum_wire_compatibility_version": "7.17.0",
+              "minimum_index_compatibility_version": "7.0.0"
+          },
+          "tagline": "You Know, for Search"
+      }
+    type: elastic
+    port: 9200
+    splunkHecAPI: ""
+  CriblLogs:
+    type: cribl
+    disabled: false
+  testdisp:
+    disabled: false
+    sendToRoutes: false
+    pqEnabled: false
+    streamtags: []
+    host: 0.0.0.0
+    tls:
+      disabled: true
+    maxActiveReq: 256
+    enableProxyHeader: false
+    captureHeaders: false
+    activityLogSampleRate: 100
+    requestTimeout: 0
+    staleChannelFlushMs: 10000
+    allowedPaths:
+      - "*"
+    allowedMethods:
+      - "*"
+    type: http_raw
+    port: 10081
+    authTokens: []
+    connections:
+      - output: default
+    splunkHecAPI: ""
+  locallogs:
+    disabled: false
+    sendToRoutes: true
+    pqEnabled: false
+    streamtags: []
+    mode: auto
+    interval: 10
+    filenames:
+      - "!*.journal"
+      - "*/log/*"
+      - "*log"
+    tailOnly: false
+    idleTimeout: 300
+    checkFileModTime: false
+    staleChannelFlushMs: 10000
+    type: file
+  localsyslog:
+    disabled: false
+    sendToRoutes: true
+    pqEnabled: false
+    streamtags: []
+    mode: manual
+    interval: 10
+    filenames:
+      - syslog
+    tailOnly: false
+    idleTimeout: 300
+    checkFileModTime: false
+    staleChannelFlushMs: 10000
+    type: file
+    path: /var/log

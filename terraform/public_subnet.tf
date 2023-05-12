@@ -447,7 +447,7 @@ resource "aws_security_group_rule" "splunk_allow_prometheus" {
 }
 
 
-resource "aws_security_group_rule" "splunk_allow_inbound" {
+resource "aws_security_group_rule" "splunk_allow_outbound" {
   type              = "egress"
   description       = "Allow outbound"
   from_port         = 0
@@ -555,6 +555,16 @@ resource "aws_security_group_rule" "jupyter_allow_prometheus" {
   to_port           = 9100
   protocol          = "tcp"
   cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_security_group_rule" "jupyter_allow_outbound" {
+  type              = "egress"
+  description       = "Allow outbound"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.jupyter_server_sg.id
 }
 

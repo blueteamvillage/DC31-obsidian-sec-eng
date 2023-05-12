@@ -1,0 +1,35 @@
+---
+
+- name: Setup Jupyterhub over k3s server
+  hosts: jupyterhub_server
+  become: yes
+  become_user: root
+  pre_tasks:
+    - import_tasks: 'roles/linux/init_linux.yml'
+    - name: Set IP forwarding for k3s
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_file: /etc/sysctl.d/20-k3s-ip-forward.conf
+        reload: true
+    - name: Ensure k3s modules dependencies are loaded.
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k3s.conf
+        mode: '0644'
+        content:
+          br_netfilter
+          overlay
+          aufs
+          ip_vs
+          nf_nat
+          xt_conntrack
+  roles:
+    - geerlingguy.docker
+    - geerlingguy.filebeat
+    - juju4.osquery
+    - juju4.sysmon
+    - node_exporter
+    - mdsketch.teleport
+    - juju4.falco
+    - cyverse_ansible.ansible_k3s
+    - cyverse_ansible.ansible_jupyterhub_docker

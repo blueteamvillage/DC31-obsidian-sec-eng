@@ -30,6 +30,6 @@
     - juju4.sysmon
     - node_exporter
     - mdsketch.teleport
-    - juju4.falco
     - cyverse_ansible.ansible_k3s
+    - juju4.falco
     - cyverse_ansible.ansible_jupyterhub_docker

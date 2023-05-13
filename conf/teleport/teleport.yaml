@@ -95,6 +95,13 @@ app_service:
       rewrite:
         headers:
           - "Host: arkime.teleport.blueteamvillage.com"
+    - name: "jupyterhub"
+      uri: "http://172.16.22.150:8000"
+      labels:
+        env: logging
+      rewrite:
+        headers:
+          - "Host: jupyterhub.teleport.blueteamvillage.com"
     ######################################## Intra ########################################
     - name: "grafana"
       uri: "https://172.16.21.10:443"

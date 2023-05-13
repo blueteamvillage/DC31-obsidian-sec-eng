@@ -96,3 +96,13 @@
         name: jupyterhub
         enabled: yes
         state: 'started'
+    - name: Copy msticpyconfig.yaml
+      ansible.builtin.template:
+        src: msticpyconfig.yaml.j2
+        dest: /home/ubuntu/msticpyconfig.yaml
+        mode: '0644'
+    - name: Copy msticpy_test.ipynb
+      ansible.builtin.copy:
+        src: msticpy_test.ipynb
+        dest: /home/ubuntu/msticpy_test.ipynb
+        mode: '0644'

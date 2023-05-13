@@ -45,9 +45,9 @@
     - juju4.sysmon
     - node_exporter
     - mdsketch.teleport
-    - cyverse_ansible.ansible_k3s
-    - cyverse_ansible.ansible_jupyterhub_docker
-    - juju4.falco
+    # - cyverse_ansible.ansible_k3s
+    # - cyverse_ansible.ansible_jupyterhub_docker
+    # - juju4.falco
     # - juju4.harden_nginx
   handlers:
     - name: Reload systemd
@@ -71,6 +71,8 @@
       ansible.builtin.pip:
         name:
           - jupyterhub
+          - oauthenticator
+          - git+https://github.com/KamalGalrani/jupyterhub-nativespawner.git
           - jupyterlab
           - notebook
           # https://msticpy.readthedocs.io/en/latest/getting_started/Installing.html
@@ -80,7 +82,16 @@
       community.general.npm:
         name: configurable-http-proxy
         global: true
-    # TODO: systemd unit service for jupyterhub, nginx reverse-proxy
+    - name: Ensure users directory exists
+      ansible.builtin.file:
+        dest: /opt/jupyterhub/users
+        mode: '0755'
+        state: directory
+    - name: Configure jupyterhub_config.py
+      ansible.builtin.template:
+        src: jupyterhub_config.py.j2
+        dest: /etc/jupyterhub_config.py
+        mode: '0600'
     - name: Install jupyterhub systemd configuration
       ansible.builtin.template:
         src: jupyterhub-systemd.service.j2
@@ -100,7 +111,7 @@
       ansible.builtin.template:
         src: msticpyconfig.yaml.j2
         dest: /home/ubuntu/msticpyconfig.yaml
-        mode: '0644'
+        mode: '0600'
     - name: Copy msticpy_test.ipynb
       ansible.builtin.copy:
         src: msticpy_test.ipynb

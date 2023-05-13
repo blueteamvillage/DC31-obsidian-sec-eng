@@ -73,6 +73,7 @@
           - jupyterhub
           - oauthenticator
           - git+https://github.com/KamalGalrani/jupyterhub-nativespawner.git
+          - jupyterhub-systemdspawner
           - jupyterlab
           - notebook
           # https://msticpy.readthedocs.io/en/latest/getting_started/Installing.html
@@ -82,16 +83,23 @@
       community.general.npm:
         name: configurable-http-proxy
         global: true
+    - name: Ensure etc directory exists
+      ansible.builtin.file:
+        dest: /etc/jupyterhub
+        mode: '0700'
+        state: directory
+    - name: Configure jupyterhub_config.py
+      ansible.builtin.template:
+        src: jupyterhub_config.py.j2
+        dest: /etc/jupyterhub/jupyterhub_config.py
+        mode: '0600'
+      notify:
+        - Restart jupyterhub
     - name: Ensure users directory exists
       ansible.builtin.file:
         dest: /opt/jupyterhub/users
         mode: '0755'
         state: directory
-    - name: Configure jupyterhub_config.py
-      ansible.builtin.template:
-        src: jupyterhub_config.py.j2
-        dest: /etc/jupyterhub_config.py
-        mode: '0600'
     - name: Install jupyterhub systemd configuration
       ansible.builtin.template:
         src: jupyterhub-systemd.service.j2

@@ -1,0 +1,22 @@
+{{ ansible_managed | comment }}
+# https://jupyterhub.readthedocs.io/en/1.2.0/installation-guide-hard.html
+# https://github.com/jupyterhub/the-littlest-jupyterhub/blob/HEAD/tljh/systemd-units/jupyterhub.service
+[Unit]
+Description=JupyterHub
+After=syslog.target network.target
+
+[Service]
+User=root
+Restart=always
+# Protect bits that are normally shared across the system
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+# Environment="PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/opt/jupyterhub/bin"
+# ExecStart=/usr/local/bin/jupyterhub -f /opt/jupyterhub/etc/jupyterhub/jupyterhub_config.py
+ExecStart=/usr/local/bin/jupyterhub
+
+[Install]
+# Start service when system boots
+WantedBy=multi-user.target

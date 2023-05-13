@@ -6,12 +6,27 @@
   become_user: root
   pre_tasks:
     - import_tasks: 'roles/linux/init_linux.yml'
-    - name: Set IP forwarding for k3s
+    # https://docs.k3s.io/security/hardening-guide#set-kernel-parameters
+    - name: Set sysctl for k3s
       ansible.posix.sysctl:
-        name: net.ipv4.ip_forward
-        value: '1'
-        sysctl_file: /etc/sysctl.d/20-k3s-ip-forward.conf
+        name: "{{ item.n }}"
+        value: "{{ item.v }}"
+        sysctl_file: /etc/sysctl.d/20-k3s.conf
         reload: true
+      loop:
+        - n: net.ipv4.ip_forward
+          v: '1'
+        - n: vm.panic_on_oom
+          v: '0'
+        - n: vm.overcommit_memory
+          v: '1'
+        - n: kernel.panic
+          v: '10'
+        # kubelet.go:1466] "Failed to start ContainerManager" err="invalid kernel flag: kernel/panic_on_oops, expected value: 1, actual value: 0"
+        - n: kernel.panic_on_oops
+          v: '1'
+        - n: kernel.keys.root_maxbytes
+          v: '25000000'
     - name: Ensure k3s modules dependencies are loaded.
       ansible.builtin.copy:
         dest: /etc/modules-load.d/k3s.conf
@@ -31,5 +46,53 @@
     - node_exporter
     - mdsketch.teleport
     - cyverse_ansible.ansible_k3s
-    - juju4.falco
     - cyverse_ansible.ansible_jupyterhub_docker
+    - juju4.falco
+    # - juju4.harden_nginx
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
+    - name: Restart jupyterhub
+      ansible.builtin.service:
+        name: jupyterhub
+        state: restarted
+  tasks:
+    # Backup plan: direct install as the docker one on k3s is still failing
+    # https://jupyterhub.readthedocs.io/en/stable/tutorial/quickstart.html
+    - name: Install jupyterhub package dependencies
+      ansible.builtin.package:
+        name:
+          - nodejs
+          - npm
+          - python3-pip
+        state: present
+    - name: Install jupyterhub pip dependencies
+      ansible.builtin.pip:
+        name:
+          - jupyterhub
+          - jupyterlab
+          - notebook
+          # https://msticpy.readthedocs.io/en/latest/getting_started/Installing.html
+          - 'msticpy[azure,splunk,ml,dev]'
+        state: present
+    - name: Install configurable-http-proxy node.js package globally.
+      community.general.npm:
+        name: configurable-http-proxy
+        global: true
+    # TODO: systemd unit service for jupyterhub, nginx reverse-proxy
+    - name: Install jupyterhub systemd configuration
+      ansible.builtin.template:
+        src: jupyterhub-systemd.service.j2
+        dest: /lib/systemd/system/jupyterhub.service
+        mode: '0644'
+        backup: yes
+      register: systemd
+      notify:
+        - Reload systemd
+        - Restart jupyterhub
+    - name: Enable and start jupyterhub systemd service
+      ansible.builtin.service:
+        name: jupyterhub
+        enabled: yes
+        state: 'started'

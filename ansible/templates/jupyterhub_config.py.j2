@@ -181,16 +181,18 @@ c = get_config()  #noqa
 # https://oauthenticator.readthedocs.io/en/latest/tutorials/general-setup.html
 # https://oauthenticator.readthedocs.io/en/latest/reference/api/gen/oauthenticator.github.html
 # https://github.com/jupyterhub/oauthenticator/issues/193
-from oauthenticator.github import GitHubOAuthenticator
-c.JupyterHub.authenticator_class = GitHubOAuthenticator
-c.GitHubOAuthenticator.oauth_callback_url = 'https://{{ jupyterhub_fqdn }}/hub/oauth_callback'
-c.GitHubOAuthenticator.client_id = 'e66d0d2e682ccf98ff7f'
-c.GitHubOAuthenticator.client_secret = '{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-ir-jupyter-notebooks', region=aws_region) }}'
+#from oauthenticator.github import GitHubOAuthenticator
+#c.JupyterHub.authenticator_class = GitHubOAuthenticator
+#c.GitHubOAuthenticator.oauth_callback_url = 'https://jupyterhub.{{ teleport_base_domain }}/hub/oauth_callback'
+#c.GitHubOAuthenticator.client_id = 'e66d0d2e682ccf98ff7f'
+#c.GitHubOAuthenticator.client_secret = '{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-ir-jupyter-notebooks', region=aws_region) }}'
 
 # We don't want to create a system user each time
-c.JupyterHub.spawner_class = 'nativespawner.NativeSpawner'
+# c.JupyterHub.spawner_class = 'nativespawner.NativeSpawner'
 # user notebooks are stored in separate directories within this directory
 c.Spawner.storage = '/opt/jupyterhub/users'
+#c.JupyterHub.spawner_class = 'systemdspawner.SystemdSpawner'
+#c.SystemdSpawner.dynamic_users = True
 
 ## The base URL of the entire application.
 #
@@ -1545,3 +1547,21 @@ c.Spawner.storage = '/opt/jupyterhub/users'
 ## The number of threads to allocate for encryption
 #  Default: 2
 # c.CryptKeeper.n_threads = 2
+
+# https://github.com/jupyterhub/jupyterhub/wiki/Debug-Jupyterhub
+# Set the log level by value or name.
+c.JupyterHub.log_level = 'DEBUG'
+
+# Enable debug-logging of the single-user server
+c.Spawner.debug = True
+
+# Enable debug-logging of the single-user server
+c.LocalProcessSpawner.debug = True
+
+c.JupyterHub.cleanup_proxy = True
+c.JupyterHub.config_file = '/etc/jupyterhub/jupyterhub_config.py'
+c.JupyterHub.cookie_secret_file = '/etc/jupyterhub/jupyterhub_cookie_secret'
+# c.JupyterHub.data_files_path = '/opt/jupyterhub/hub'
+# c.Spawner.notebook_dir = '/notebooks'
+c.JupyterHub.extra_log_file = '/var/log/jupyter.log'
+c.JupyterHub.pid_file = '/run/jupyterhub.pid'

@@ -548,6 +548,21 @@ resource "aws_security_group_rule" "jupyter_allow_https" {
   security_group_id = aws_security_group.jupyter_server_sg.id
 }
 
+resource "aws_security_group_rule" "jupyter_allow_http8000" {
+  type        = "ingress"
+  description = "Allow HTTP tcp/8000 - direct jupyterhub"
+  from_port   = 8000
+  to_port     = 8000
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
 resource "aws_security_group_rule" "jupyter_allow_prometheus" {
   type              = "ingress"
   description       = "Allow prometheus to pull metrics from node exporter"

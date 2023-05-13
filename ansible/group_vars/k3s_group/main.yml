@@ -3,7 +3,7 @@ falco_k8s_helm: true
 
 # k3s jupyterhub
 # NOK - 'TypeError: 'NoneType' object is not iterable'
-JH_AUTH_CLASS: none
+# JH_AUTH_CLASS: none
 
 # Same - 'TypeError: 'NoneType' object is not iterable'
 # JH_AUTH_CLASS: dummy
@@ -13,8 +13,7 @@ JH_AUTH_CLASS: none
 # JH_AUTH_CLASS: default
 
 # Github
-# JH_AUTH_CLASS: github
-# JH_OAUTH2_CLIENT_ID: "a236b1590a0c4abdc0a6"
-# JH_OAUTH2_CLIENT_SECRET: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-teleport-github-ouath-secret') }}"
-# JH_OAUTH2_CALLBACK_URL:
-# github_redirect_url: "https://{{ teleport_fqdn }}/v1/webapi/github/callback"
+JH_AUTH_CLASS: github
+JH_OAUTH2_CLIENT_ID: "e66d0d2e682ccf98ff7f"
+JH_OAUTH2_CLIENT_SECRET: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-ir-jupyter-notebooks', region=aws_region) }}"
+JH_OAUTH2_CALLBACK_URL: "https://{{ jupyterhub_fqdn }}/hub/oauth_callback"

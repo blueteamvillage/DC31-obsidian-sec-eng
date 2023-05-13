@@ -6,16 +6,17 @@ teleport_ssh_labels:
   - { k: 'aws/Project', v: 'DEFCON_2023_OBSIDIAN' }
 
 
-jupyterhub_fqdn: jupyterhub.teleport.blueteamvillage.com
+# jupyterhub_fqdn: jupyterhub.teleport.blueteamvillage.com
+jupyterhub_fqdn: jupyterhub.magnumtempusfinancial.com
 # juju4.harden_nginx
 hardenwebserver_disable_http: true
-# hardenwebserver_cert: certbot
+hardenwebserver_cert: certbot
 certbot_args: "--register-unsafely-without-email --agree-tos --domains {{ jupyterhub_fqdn }}"
 hardenwebserver_https_template: conf/jupyterhub/jupyterhub-nginx.conf.j2
 # hardenwebserver_header_csp: "default-src 'self'; script-src 'self' 'unsafe-inline' 'report-sample'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; font-src 'self' data:;base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; report-uri /csp/report.php;"
 hardenwebserver_header_csp: "upgrade-insecure-requests; report-uri /csp/report.php;"
-# hardenwebserver_ssl_cert: "/etc/letsencrypt/live/{{ jupyterhub_fqdn }}/fullchain.pem"
-# hardenwebserver_ssl_key: "/etc/letsencrypt/live/{{ jupyterhub_fqdn }}/privkey.pem"
+hardenwebserver_ssl_cert: "/etc/letsencrypt/live/{{ jupyterhub_fqdn }}/fullchain.pem"
+hardenwebserver_ssl_key: "/etc/letsencrypt/live/{{ jupyterhub_fqdn }}/privkey.pem"
 hardenwebserver_systemd_dir_acl:
   - { p: /etc/letsencrypt/archive, perm: rx, m: '0711' }
   - { p: /etc/letsencrypt/live, perm: rx, m: '0711' }

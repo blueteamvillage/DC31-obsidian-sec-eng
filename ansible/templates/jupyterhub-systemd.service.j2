@@ -1,4 +1,10 @@
 {{ ansible_managed | comment }}
+#
+# /lib/systemd/system/jupyterhub.service
+#
+#
+# Overall exposure level: ? -> 5.3
+#
 # https://jupyterhub.readthedocs.io/en/1.2.0/installation-guide-hard.html
 # https://github.com/jupyterhub/the-littlest-jupyterhub/blob/HEAD/tljh/systemd-units/jupyterhub.service
 [Unit]
@@ -15,7 +21,36 @@ ProtectKernelTunables=yes
 ProtectKernelModules=yes
 # Environment="PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/opt/jupyterhub/bin"
 # ExecStart=/usr/local/bin/jupyterhub -f /opt/jupyterhub/etc/jupyterhub/jupyterhub_config.py
-ExecStart=/usr/local/bin/jupyterhub
+# ExecStart=/usr/local/bin/jupyterhub
+ExecStart=/usr/local/bin/jupyterhub -f /etc/jupyterhub_config.py
+
+# More Hardening
+# This is not blocking terminal access but will prevent sudo elevation, including local system users creation
+NoNewPrivileges=yes
+# ProtectHome=yes
+# ProtectSystem=strict
+ProtectSystem=yes
+RestrictRealtime=true
+RestrictNamespaces=yes
+RestrictSUIDSGID=yes
+# FIXME! Prevent service systemd unit start
+# MemoryDenyWriteExecute=yes
+# FIXME! Address family not supported by protocol (src/ip_resolver.cpp:542)
+#RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+#RestrictAddressFamilies=~AF_NETLINK AF_PACKET
+IPAccounting=yes
+# This will prevent any new pip module install or public TI enrichment
+IPAddressAllow=localhost link-local multicast 10.0.0.0/8 192.168.0.0/16
+
+SystemCallFilter=@system-service
+# FIXME! Prevent server launch from web UI
+#SystemCallFilter=~@debug @mount @cpu-emulation @obsolete @privileged @resources
+SystemCallArchitectures=native
+# When system call is disallowed, return error code instead of killing process
+SystemCallErrorNumber=EPERM
+
+CPUQuota=80%
+MemoryLimit=4G
 
 [Install]
 # Start service when system boots

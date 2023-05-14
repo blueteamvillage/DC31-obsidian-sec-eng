@@ -187,6 +187,12 @@ c = get_config()  #noqa
 #c.GitHubOAuthenticator.client_id = 'e66d0d2e682ccf98ff7f'
 #c.GitHubOAuthenticator.client_secret = '{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-ir-jupyter-notebooks', region=aws_region) }}'
 
+# c.GitHubOAuthenticator.allowed_organizations = ["blueteamvillage"]
+# c.GitHubOAuthenticator.admin_users = ["blueteamvillage:dc31-obsidian-sec-eng"]
+
+# mixed option
+#c.JupyterHub.authenticator_class = LocalGitHubOAuthenticator
+
 # We don't want to create a system user each time
 # c.JupyterHub.spawner_class = 'nativespawner.NativeSpawner'
 # user notebooks are stored in separate directories within this directory

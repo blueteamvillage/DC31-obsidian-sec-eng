@@ -76,6 +76,7 @@
           - jupyterhub-systemdspawner
           - jupyterlab
           - notebook
+          - ipywidgets
           # https://msticpy.readthedocs.io/en/latest/getting_started/Installing.html
           - 'msticpy[azure,splunk,ml,dev]'
         state: present

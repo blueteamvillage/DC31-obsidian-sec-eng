@@ -9,6 +9,12 @@ streamtags: []
 groups: {}
 asyncFuncTimeout: 1000
 functions:
+  - id: drop
+    filter: "true"
+    disabled: null
+    conf: {}
+    description: Post-KC rule to drop traffic except velociraptor
+    final: true
   - id: dynamic_sampling
     filter: "true"
     disabled: true
@@ -57,8 +63,9 @@ functions:
     conf:
       comment: Osquery processing
   - id: json_unroll
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      log.file.path == '/var/log/osquery/osqueryd.results.log'
+    filter: (__inputId=='elastic:in_elastic' || __inputId=='elastic:in_elastic9201')
+      && agent.type == 'filebeat' && log.file.path ==
+      '/var/log/osquery/osqueryd.results.log'
     disabled: null
     conf:
       path: message
@@ -69,8 +76,9 @@ functions:
     conf:
       comment: Sysmonforlinux processing
   - id: regex_extract
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      log.file.path == '/var/log/sysmon/sysmon.log'
+    filter: (__inputId=='elastic:in_elastic' || __inputId=='elastic:in_elastic9201')
+      && agent.type == 'filebeat' && log.file.path ==
+      '/var/log/sysmon/sysmon.log'
     disabled: null
     conf:
       source: message
@@ -89,17 +97,17 @@ functions:
       inherit: /^Event.EventData/
     description: sysmonforlinux-xmlunroll
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      journald.process.name == 'sysmon'
+    filter: (__inputId=='elastic:in_elastic' || __inputId=='elastic:in_elastic9201')
+      && agent.type == 'filebeat' && journald.process.name == 'sysmon'
     disabled: null
     conf:
       add:
         - name: sysmonxml
           value: message
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
-      'sysmon')
+    filter: (__inputId=='elastic:in_elastic' || __inputId=='elastic:in_elastic9201')
+      && agent.type == 'filebeat' && (log.file.path ==
+      '/var/log/sysmon/sysmon.log' || journald.process.name == 'sysmon')
     disabled: null
     conf:
       keep: []
@@ -120,9 +128,9 @@ functions:
       delimiter: _
     description: sysmonforlinux-flatten
   - id: code
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
-      'sysmon')
+    filter: (__inputId=='elastic:in_elastic' || __inputId=='elastic:in_elastic9201')
+      && agent.type == 'filebeat' && (log.file.path ==
+      '/var/log/sysmon/sysmon.log' || journald.process.name == 'sysmon')
     disabled: null
     conf:
       maxNumOfIterations: 5000
@@ -133,9 +141,9 @@ functions:
         }
     description: Transform sysmon EventData.Data into dictionary
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
-      'sysmon')
+    filter: (__inputId=='elastic:in_elastic' || __inputId=='elastic:in_elastic9201')
+      && agent.type == 'filebeat' && (log.file.path ==
+      '/var/log/sysmon/sysmon.log' || journald.process.name == 'sysmon')
     disabled: null
     conf:
       add: []
@@ -152,40 +160,40 @@ functions:
     conf:
       add:
         - name: __index
-          value: "`so-beats-${C.Time.strftime(_time ? _time : Date.now() / 1000,
-            '%Y.%m.%d')}`"
+          value: "`so-beats-2023.04.01`"
+    description: "NOK? `so-beats-${C.Time.strftime(_time ? _time : Date.now() /
+      1000, '%Y.%m.%d')}`"
   - id: comment
     filter: "true"
     disabled: null
     conf:
       comment: Set sourcetype
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat'
+    filter: agent.type == 'filebeat'
     disabled: null
     conf:
       add:
         - name: sourcetype
           value: "'filebeat'"
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      log.file.path == '/var/log/osquery/osqueryd.results.log'
+    filter: agent.type == 'filebeat' && log.file.path ==
+      '/var/log/osquery/osqueryd.results.log'
     disabled: null
     conf:
       add:
         - name: sourcetype
           value: "'osquery'"
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      (log.file.path == '/var/log/sysmon/sysmon.log' || journald.process.name ==
-      'sysmon')
+    filter: agent.type == 'filebeat' && (log.file.path ==
+      '/var/log/sysmon/sysmon.log' || journald.process.name == 'sysmon')
     disabled: null
     conf:
       add:
         - name: sourcetype
           value: "'sysmonforlinux'"
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-      (log.file.path == '/var/log/nginx/access.log' || log.file.path ==
+    filter: agent.type == 'filebeat' && (log.file.path ==
+      '/var/log/nginx/access.log' || log.file.path ==
       '/var/log/nginx/access_json.log' || log.file.path ==
       '/var/log/nginx/error.log')
     disabled: null
@@ -194,14 +202,14 @@ functions:
         - name: sourcetype
           value: "'nginx'"
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat'
+    filter: agent.type == 'winlogbeat'
     disabled: null
     conf:
       add:
         - name: sourcetype
           value: "'winlogbeat'"
   - id: eval
-    filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat' &&
+    filter: agent.type == 'winlogbeat' &&
       winlog.provider_name=='Microsoft-Windows-Sysmon'
     disabled: null
     conf:

@@ -228,9 +228,9 @@ resource "aws_security_group_rule" "cribl_allow_ping" {
 
 resource "aws_security_group_rule" "cribl_allow_9200" {
   type        = "ingress"
-  description = "Allow elasticsearch tcp/9200"
+  description = "Allow elasticsearch tcp/9200-9210"
   from_port   = 9200
-  to_port     = 9200
+  to_port     = 9210
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32",

@@ -1,0 +1,216 @@
+---
+
+- name: Check have data - Logging
+  hosts: localhost
+  # connection: local
+  vars:
+    # timeperiod? 15min, 24h...
+    es_timeperiod: -15m
+    splunk_timeperiod: -15m
+    check_elasticsearch_enable: false
+    elasticsearch_ansible_delegate_host:
+    elasticsearch_host: localhost
+    elasticsearch_port: 9200
+    # wildcard supported
+    elasticsearch_indexes_list:
+      - 'indexname-\*'
+    check_soelasticsearch_enable: true
+    soelasticsearch_ansible_delegate_host: security_onion
+    # wildcard supported (search)
+    soelasticsearch_indexes_list:
+      - so-elasticsearch-2023.01.01
+    check_splunk_enable: true
+    splunk_ansible_delegate_host: splunk
+    # wildcard supported?
+    splunk_indexes_list:
+      - main
+      - linux
+      - osquery
+      - sysmon
+      - sysmonforlinux
+      - windows
+      - nginx
+    check_arkime_enable: true
+    arkime_ansible_delegate_host: security_onion
+    arkime_elasticsearch_host: localhost
+    arkime_elasticsearch_port: 9400
+    check_manualpcap_enable: true
+    manualpcap_ansible_delegate_host: security_onion
+    manualpcap_dir: /home/ubuntu/manual_pcaps
+    check_s3_enable: false
+    s3_bucket: bucket
+    # wildcard supported?
+    s3_object_list:
+      - /my/desired/key.txt
+    aws_region: us-east-2
+  tasks:
+    - name: Elasticsearch
+      when: check_elasticsearch_enable | bool
+      block:
+        - name: List Elasticsearch indices
+          ansible.builtin.uri:
+            url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/_cat/indices"
+            return_content: true
+          delegate_to: "{{ elasticsearch_ansible_delegate_host }}"
+          changed_when: false
+        # https://www.elastic.co/guide/en/elasticsearch/reference/master/search-your-data.html#track-total-hits
+        # https://stackoverflow.com/questions/70214779/elasticsearch-query-range-last-15min
+        - name: List Elasticsearch data for timeperiod
+          ansible.builtin.uri:
+            url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/{{ item }}/_search"
+            method: GET
+            body: |
+              {
+                "track_total_hits": true,
+                "query": {
+                  "filter": [
+                    {
+                      "range": {
+                        "time": {
+                          "gte": "now{{ es_timeperiod }}",
+                          "lte": "now"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            status_code: 201
+            body_format: json
+            return_content: true
+          loop: "{{ elasticsearch_indexes_list }}"
+          delegate_to: "{{ elasticsearch_ansible_delegate_host }}"
+          changed_when: false
+        - name: Get Elasticsearch last record
+          ansible.builtin.uri:
+            url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/{{ item }}/_search"
+            method: POST
+            body: |
+              {
+                "query": {
+                  "match_all": {}
+                },
+                "size": 1,
+                "sort": [
+                  {
+                    "timestamp": {
+                      "order": "desc"
+                    }
+                  }
+                ]
+              }
+            status_code: 201
+            body_format: json
+            return_content: true
+          loop: "{{ elasticsearch_indexes_list }}"
+          delegate_to: "{{ elasticsearch_ansible_delegate_host }}"
+          changed_when: false
+    # https://docs.securityonion.net/en/2.3/so-elasticsearch-query.html#examples
+    - name: SecurityOnion
+      when: check_soelasticsearch_enable | bool
+      block:
+        - name: SecurityOnion ElasticSearch indices
+          ansible.builtin.command:
+            cmd: "so-elasticsearch-indices-list"
+          become: yes
+          delegate_to: "{{ soelasticsearch_ansible_delegate_host }}"
+          changed_when: false
+        - name: SecurityOnion ElasticSearch indices last record
+          ansible.builtin.command:
+            cmd: |
+              so-elasticsearch-query '{{ item }}/_search' -d '{"query": {"match_all": {}},"size": 1,"sort": [{"timestamp": {"order": "desc"}}]}' -XPOST
+          become: yes
+          loop: "{{ soelasticsearch_indexes_list }}"
+          delegate_to: "{{ soelasticsearch_ansible_delegate_host }}"
+          changed_when: false
+    - name: Splunk
+      when: check_splunk_enable | bool
+      block:
+        # https://docs.splunk.com/Documentation/Splunk/9.0.4/Troubleshooting/CommandlinetoolsforusewithSupport
+        # https://docs.splunk.com/Documentation/Splunk/9.0.4/InheritedDeployment/Systemhealth
+        - name: Check Splunk kvstore-status
+          ansible.builtin.command:
+            cmd: splunk show kvstore-status
+          become: yes
+          delegate_to: "{{ splunk_ansible_delegate_host }}"
+          changed_when: false
+        - name: List Splunk indexes (from indexes.conf)
+          ansible.builtin.command:
+            cmd: splunk btool indexes list --debug
+          become: yes
+          delegate_to: "{{ splunk_ansible_delegate_host }}"
+          changed_when: false
+        # https://docs.splunk.com/Documentation/Splunk/9.0.4/SearchReference/AboutCLIsearches
+        - name: Dbinspect _internal index
+          ansible.builtin.command:
+            cmd: splunk search "| dbinspect index=_internal span=1d"
+          become: yes
+          delegate_to: "{{ splunk_ansible_delegate_host }}"
+          changed_when: false
+        - name: Stats count per index
+          ansible.builtin.command:
+            cmd: splunk search "index={{ item }} earliest={{ splunk_timeperiod }} latest=now | stats count by index,agent.name,agent.type -maxout 50 -output json -wrap 0"
+          become: yes
+          loop: "{{ splunk_indexes_list }}"
+          delegate_to: "{{ splunk_ansible_delegate_host }}"
+          changed_when: false
+        - name: Last record per index
+          ansible.builtin.command:
+            cmd: splunk search "index={{ item }} earliest={{ splunk_timeperiod }} latest=now -maxout 1"
+          become: yes
+          loop: "{{ splunk_indexes_list }}"
+          delegate_to: "{{ splunk_ansible_delegate_host }}"
+          changed_when: false
+    # https://arkime.com/faq#arkime-is-not-working
+    - name: Arkime
+      when: check_arkime_enable | bool
+      block:
+        - name: Check elastic health
+          ansible.builtin.uri:
+            url: http://{{ arkime_elasticsearch_host }}:{{ arkime_elasticsearch_port }}/_cat/health
+            return_content: yes
+          delegate_to: "{{ arkime_ansible_delegate_host }}"
+          changed_when: false
+        - name: Arkime ElasticSearch data info
+          ansible.builtin.command:
+            cmd: "/opt/arkime/db/db.pl http://{{ arkime_elasticsearch_host }}:{{ arkime_elasticsearch_port }} info"
+          delegate_to: "{{ arkime_ansible_delegate_host }}"
+          changed_when: false
+        - name: Arkime Raw data folder
+          ansible.builtin.command:
+            cmd: "ls /opt/arkime/raw"
+          become: yes
+          delegate_to: "{{ arkime_ansible_delegate_host }}"
+          changed_when: false
+        - name: Check for Arkime errors or warnings
+          ansible.builtin.shell:
+            cmd: "grep -ie 'error|warn' /opt/arkime/logs/*.log"
+          become: yes
+          delegate_to: "{{ arkime_ansible_delegate_host }}"
+          changed_when: false
+    - name: Manual pcap collection
+      when: check_manualpcap_enable | bool
+      block:
+        - name: Check manual pcap folder exists
+          ansible.builtin.stat:
+            path: "{{ clear_manualpcap_dir }}"
+          register: manualpcap
+        - name: List Manual Pcap data
+          ansible.builtin.command:
+            cmd: "ls {{ manualpcap_dir }}"
+          become: yes
+          delegate_to: "{{ manualpcap_ansible_delegate_host }}"
+          changed_when: false
+          when: manualpcap.stat.exists
+    - name: S3 buckets
+      when: check_s3_enable | bool
+      block:
+        - name: Retrieve a list of objects in S3 bucket
+          amazon.aws.s3_object_info:
+            bucket_name: "{{ clear_s3_bucket }}"
+          register: s3_info1
+          when: false
+        - name: Debug | S3 info before
+          ansible.builtin.debug:
+            var: s3_info1
+            verbosity: 1

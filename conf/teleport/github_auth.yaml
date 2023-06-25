@@ -34,4 +34,11 @@ spec:
     - jumpbox
     - red_team
     team: dc31-red-team
+  - organization: blueteamvillage
+    roles:
+    - jumpbox
+    - mail_team
+    - workshop_contributors
+    - windows_desktop_users
+    team: dc31-mail-team
 version: v3

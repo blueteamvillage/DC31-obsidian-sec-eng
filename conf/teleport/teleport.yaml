@@ -1,4 +1,3 @@
----
 version: v3
 teleport:
   nodename: ip-172-16-10-93
@@ -40,6 +39,11 @@ proxy_service:
 app_service:
   enabled: "yes"
   apps:
+    ######################################## Corp ########################################
+    - name: wiki
+      uri: "http://172.16.50.101:8080"
+      labels:
+        env: "wiki"
     ######################################## IoT ########################################
     - name: hmi-alpha-scadabr
       uri: "http://172.16.60.200:8080/ScadaBR/login.htm"
@@ -57,10 +61,69 @@ app_service:
       uri: "http://172.16.60.203:8080/ScadaBR/login.htm"
       labels:
         env: "iot"
+    - name: plc01
+      uri: "http://172.16.60.11:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc01.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
+    - name: plc02
+      uri: "http://172.16.60.12:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc02.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
+    - name: plc03
+      uri: "http://172.16.60.13:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc03.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
+    - name: plc04
+      uri: "http://172.16.60.14:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc04.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
+    - name: plc05
+      uri: "http://172.16.60.15:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc05.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
+    - name: plc06
+      uri: "http://172.16.60.16:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc06.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
+    - name: plc07
+      uri: "http://172.16.60.17:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc07.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
+    - name: plc08
+      uri: "http://172.16.60.18:8080/login"
+      rewrite:
+        headers:
+          - "Host: plc08.teleport.blueteamvillage.com"
+      labels:
+        env: "iot"
     ######################################## SIEMs ########################################
     - name: "splunk"
-      uri: "https://172.16.22.20:443"
-      insecure_skip_verify: true
+      uri: "http://172.16.22.20:8000/en-US"
+      #insecure_skip_verify: true
+      rewrite:
+        headers:
+          - "Host: splunk.teleport.blueteamvillage.com"
       labels:
         env: logging
     - name: "velociraptor"
@@ -76,9 +139,6 @@ app_service:
       insecure_skip_verify: true
       labels:
         env: logging
-    # https://docs.securityonion.net/en/2.3/url-base.html
-    # 1. Set `url_base` in `/opt/so/saltstack/local/pillar/global.sls` to `securityonion.teleport.blueteamvillage.com`
-    # 2. `sudo salt-call state.highstate`
     - name: "securityonion"
       uri: "https://172.16.22.23:443"
       insecure_skip_verify: true
@@ -95,6 +155,13 @@ app_service:
       rewrite:
         headers:
           - "Host: arkime.teleport.blueteamvillage.com"
+    - name: "jupyterhub"
+      uri: "http://172.16.22.150:8000"
+      labels:
+        env: logging
+      rewrite:
+        headers:
+          - "Host: jupyterhub.teleport.blueteamvillage.com"
     ######################################## Intra ########################################
     - name: "grafana"
       uri: "https://172.16.21.10:443"

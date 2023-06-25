@@ -40,6 +40,7 @@ filebeat_inputs:
 filebeat_output_elasticsearch_enabled: true
 filebeat_output_elasticsearch_hosts:
   - "https://172.16.22.10:9200"
+  - "https://172.16.22.10:9201"
 filebeat_output_logstash_enabled: false
 filebeat_output_elasticsearch_ssl_enabled: true
 filebeat_output_elasticsearch_ssl_verification: 'none'

@@ -1,0 +1,35 @@
+---
+# https://docs.ansible.com/ansible/latest/collections/amazon/aws/ec2_snapshot_module.html
+# https://docs.ansible.com/ansible/latest/collections/amazon/aws/s3_object_module.html
+# https://docs.ansible.com/ansible/latest/collections/community/aws/s3_sync_module.html
+# TODO: transfer to s3
+# https://repost.aws/knowledge-center/ebs-copy-snapshot-data-s3-create-volume
+# https://github.com/thenickdude/snap-to-s3
+# https://libcloudforensics.readthedocs.io/en/latest/usermanual/index.html#aws
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/copy-snapshot.html
+
+- name: AWS Infrastructure snapshots
+  hosts: localhost
+  # connection: local
+  vars:
+    aws_region: us-east-2
+  tasks:
+    - name: Gather information about all EC2 instances
+      amazon.aws.ec2_instance_info:
+        region: "{{ aws_region }}"
+        filters:
+          "tag:Project": DEFCON_2023_OBSIDIAN
+          #  instance-state-name: [ "running"]
+      register: ec2_info
+    - name: Debug | EC2 instances info
+      ansible.builtin.debug:
+        var: ec2_info
+        verbosity: 1
+    - name: Gather information about all S3 buckets
+      community.aws.s3_bucket_info:
+      register: s3_info
+    - name: Create ec2 snapshots
+      amazon.aws.ec2_snapshot:
+        instance_id: "{{ item }}"
+        description: "snapshot of {{ item }} taken {{ ansible_date_time.iso8601 }}"
+      loop: "{{ ec2_info | community.general.json_query('instances[*].instance_id') }}"

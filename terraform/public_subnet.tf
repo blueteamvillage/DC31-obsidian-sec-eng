@@ -228,9 +228,9 @@ resource "aws_security_group_rule" "cribl_allow_ping" {
 
 resource "aws_security_group_rule" "cribl_allow_9200" {
   type        = "ingress"
-  description = "Allow elasticsearch tcp/9200"
+  description = "Allow elasticsearch tcp/9200-9210"
   from_port   = 9200
-  to_port     = 9200
+  to_port     = 9210
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32",
@@ -402,6 +402,7 @@ resource "aws_security_group_rule" "splunk_allow_rest_api" {
   protocol    = "tcp"
   cidr_blocks = [
     "${module.teleport.private_ip_addr}/32",
+    "${var.logging_subnet_map["jupyterhub"]}/32",
     #var.publicCIDRblock,
     #var.managementCIDRblock,
     #"0.0.0.0/0"
@@ -446,7 +447,7 @@ resource "aws_security_group_rule" "splunk_allow_prometheus" {
 }
 
 
-resource "aws_security_group_rule" "splunk_allow_inbound" {
+resource "aws_security_group_rule" "splunk_allow_outbound" {
   type              = "egress"
   description       = "Allow outbound"
   from_port         = 0
@@ -483,6 +484,131 @@ resource "aws_eip" "splunk_server_eip" {
   vpc      = true
   tags = {
     Name    = "${var.PROJECT_PREFIX}_splunk_server_eip"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+############################################ jupyterhub ############################################
+resource "aws_security_group" "jupyter_server_sg" {
+  vpc_id      = module.vpc.vpc_id
+  description = "jupyter server security group"
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_JUPYTERHUB_SERVER_SG"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_security_group_rule" "jupyter_allow_icmp_from_jumpbox" {
+  type              = "ingress"
+  description       = "Allow ICMP from Teleport"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_security_group_rule" "jupyter_allow_ssh_from_jumpbox" {
+  type              = "ingress"
+  description       = "Allow SSH from Teleport"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32"]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_security_group_rule" "jupyter_allow_http" {
+  type        = "ingress"
+  description = "Allow HTTP to NGINX"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_security_group_rule" "jupyter_allow_https" {
+  type        = "ingress"
+  description = "Allow HTTPs to NGINX"
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_security_group_rule" "jupyter_allow_http8000" {
+  type        = "ingress"
+  description = "Allow HTTP tcp/8000 - direct jupyterhub"
+  from_port   = 8000
+  to_port     = 8000
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    #var.publicCIDRblock,
+    #var.managementCIDRblock,
+    #"0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_security_group_rule" "jupyter_allow_prometheus" {
+  type              = "ingress"
+  description       = "Allow prometheus to pull metrics from node exporter"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_security_group_rule" "jupyter_allow_outbound" {
+  type              = "egress"
+  description       = "Allow outbound"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.jupyter_server_sg.id
+}
+
+resource "aws_instance" "jupyter_server" {
+  ami                     = var.ubunut-ami
+  instance_type           = "t3.medium"
+  subnet_id               = aws_subnet.logging.id
+  vpc_security_group_ids  = [aws_security_group.jupyter_server_sg.id]
+  key_name                = "${var.PROJECT_PREFIX}-ssh-key"
+  private_ip              = var.logging_subnet_map["jupyterhub"]
+  disable_api_termination = true
+
+  root_block_device {
+    volume_size           = 100
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_jupyter_server"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_eip" "jupyter_server_eip" {
+  instance = aws_instance.jupyter_server.id
+  vpc      = true
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_jupyter_server_eip"
     Project = var.PROJECT_PREFIX
   }
 }

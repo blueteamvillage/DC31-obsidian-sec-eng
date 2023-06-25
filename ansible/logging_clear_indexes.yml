@@ -1,0 +1,157 @@
+---
+# USE CAREFULLY AS DELETING DATA! NOT TESTED!
+
+- name: Clear indexes/data - Logging
+  hosts: localhost
+  # connection: local
+  vars:
+    # master toggle else failing playbook
+    clear_enable: false
+    clear_elasticsearch_enable: false
+    elasticsearch_ansible_delegate_host:
+    elasticsearch_host: localhost
+    elasticsearch_port: 9200
+    # wildcard supported
+    elasticsearch_indexes_list:
+      - 'indexname-\*'
+    clear_soelasticsearch_enable: true
+    soelasticsearch_ansible_delegate_host: security_onion
+    # wildcard NOT supported (delete)
+    soelasticsearch_indexes_list:
+      - so-elasticsearch-2023.01.01
+      - so-ids-2023.01.01
+      - so-kratos-2023.01.01
+      - so-zeek-2023.01.01
+      - so-zeek_dns-2023.01.01
+    clear_splunk_enable: true
+    splunk_ansible_delegate_host: splunk
+    # wildcard supported?
+    splunk_indexes_list:
+      - main
+      - linux
+      - osquery
+      - sysmon
+      - sysmonforlinux
+      - windows
+      - nginx
+    clear_arkime_enable: true
+    arkime_ansible_delegate_host: security_onion
+    arkime_elasticsearch_host: localhost
+    arkime_elasticsearch_port: 9400
+    clear_manualpcap_enable: true
+    manualpcap_ansible_delegate_host: security_onion
+    manualpcap_dir: /home/ubuntu/manual_pcaps
+    clear_s3_enable: false
+    s3_bucket: bucket
+    # wildcard supported?
+    s3_object_list:
+      - /my/desired/key.txt
+    aws_region: us-east-2
+  pre_tasks:
+    - name: Ready to execute clear indexes?
+      fail:
+        msg: "Playbook have not been enabled. Ensure to carefully review before"
+      when:
+        - not clear_enable | bool
+  tasks:
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-delete-index.html
+    # https://discuss.elastic.co/t/delete-all-data-from-index-without-deleting-index/87661/8
+    - name: Elasticsearch
+      when: clear_elasticsearch_enable | bool
+      block:
+        - name: Clear Elasticsearch indexes
+          ansible.builtin.uri:
+            url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/{{ item }}"
+            methode: DELETE
+            return_content: true
+          loop: "{{ elasticsearch_indexes_list }}"
+          delegate_to: "{{ elasticsearch_ansible_delegate_host }}"
+    # https://docs.securityonion.net/en/2.3/so-elasticsearch-query.html#examples (not supporting wildcards)
+    - name: SecurityOnion
+      when: clear_soelasticsearch_enable | bool
+      block:
+        - name: Clear SecurityOnion ElasticSearch indexes
+          ansible.builtin.command:
+            cmd: "so-elasticsearch-query '{{ item }}' -XDELETE"
+          become: yes
+          loop: "{{ soelasticsearch_indexes_list }}"
+          delegate_to: "{{ soelasticsearch_ansible_delegate_host }}"
+    # https://docs.splunk.com/Documentation/Splunk/9.0.4/Indexer/RemovedatafromSplunk
+    # https://docs.splunk.com/Documentation/Splunk/latest/Indexer/Howindexingworks
+    - name: Splunk
+      when: clear_splunk_enable | bool
+      block:
+        - name: Clear Splunk indexes
+          ansible.builtin.command:
+            cmd: "splunk clean eventdata -index '{{ item }}'"
+          become: yes
+          loop: "{{ splunk_indexes_list }}"
+          delegate_to: "{{ splunk_ansible_delegate_host }}"
+    # https://arkime.com/faq#how-do-i-reset-arkime
+    - name: Arkime
+      when: clear_arkime_enable | bool
+      block:
+        - name: Clear Arkime ElasticSearch data
+          ansible.builtin.command:
+            cmd: "/opt/arkime/db/db.pl http://{{ arkime_elasticsearch_host }}:{{ arkime_elasticsearch_port }} wipe"
+          become: yes
+          delegate_to: "{{ arkime_ansible_delegate_host }}"
+        - name: Clear Arkime Raw data
+          ansible.builtin.file:
+            path: /opt/arkime/raw/
+            mode: '0755'
+            owner: root
+            group: root
+            state: "{{ item }}"
+          become: yes
+          loop:
+            - absent
+            - directory
+          delegate_to: "{{ arkime_ansible_delegate_host }}"
+    - name: Manual pcap collection
+      when: clear_manualpcap_enable | bool
+      block:
+        - name: Check manual pcap folder exists
+          ansible.builtin.stat:
+            path: "{{ manualpcap_dir }}"
+          register: manualpcap
+        - name: Clear Manual Pcap data
+          ansible.builtin.file:
+            path: "{{ manualpcap_dir }}"
+            mode: '0755'
+            owner: tcpdump
+            group: root
+            state: "{{ item }}"
+          become: yes
+          loop:
+            - absent
+            - directory
+          delegate_to: "{{ manualpcap_ansible_delegate_host }}"
+          when: manualpcap.stat.exists
+    - name: S3 buckets
+      when: clear_s3_enable | bool
+      block:
+        - name: Retrieve a list of objects in S3 bucket
+          amazon.aws.s3_object_info:
+            bucket_name: "{{ s3_bucket }}"
+          register: s3_info1
+          when: false
+        - name: Debug | S3 info before
+          ansible.builtin.debug:
+            var: s3_info1
+            verbosity: 1
+        - name: Delete an object from a bucket
+          amazon.aws.s3_object:
+            bucket: "{{ s3_bucket }}"
+            object: "{{ item }}"
+            mode: delobj
+          loop: "{{ s3_object_list }}"
+        - name: Retrieve a list of objects in S3 bucket
+          amazon.aws.s3_object_info:
+            bucket_name: "{{ s3_bucket }}"
+          register: s3_info2
+          when: false
+        - name: Debug | S3 info after
+          ansible.builtin.debug:
+            var: s3_info2
+            verbosity: 1

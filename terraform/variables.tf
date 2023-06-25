@@ -78,6 +78,7 @@ variable "logging_subnet_map" {
     "securityonion"      = "172.16.22.23",
     "securityonion_bind" = "172.16.22.24",
     "velociraptor"       = "172.16.22.130",
+    "jupyterhub"         = "172.16.22.150",
   }
 }
 

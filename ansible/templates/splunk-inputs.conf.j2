@@ -68,3 +68,12 @@ index = nginx
 indexes = nginx
 source = nginx
 token = REDACTED
+
+[http://splunk_hec_token_velociraptor]
+description = velociraptor web server
+disabled = 0
+host = {{ ansible_hostname }}
+index = velociraptor
+indexes = velociraptor
+source = velociraptor
+token = REDACTED

@@ -22,10 +22,10 @@
       when: false
   roles:
     - davidmarkallison.openplc
-    - juju4.sysmon
     - geerlingguy.filebeat
     - juju4.osquery
     - node_exporter
+    - juju4.sysmon
     - prymalinstynct.velociraptor
   tasks:
     - import_tasks: "roles/iot_plc/setup_openplc.yml"

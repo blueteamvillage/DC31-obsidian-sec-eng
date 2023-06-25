@@ -88,46 +88,39 @@ outputs:
         output: localdebug
         description: Debug
       - final: false
-        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-          log.file.path == '/var/log/osquery/osqueryd.results.log'
+        filter: sourcetype == 'osquery'
         output: splunk-hec-osquery
         description: Splunk HEC for osquery linux
       - final: false
-        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-          (log.file.path == '/var/log/sysmon/sysmon.log' ||
-          journald.process.name == 'sysmon')
+        filter: sourcetype == 'sysmonforlinux'
         output: splunk-hec-sysmonforlinux
         description: Splunk HEC for sysmon linux
       - final: false
         output: splunk-hec-linux
         description: Splunk HEC for linux
-        filter: __inputId=='elastic:in_elastic' && agent.type == 'filebeat' &&
-          log.file.path != '/var/log/sysmon/sysmon.log' && log.file.path !=
-          '/var/log/osquery/osqueryd.results.log'
+        filter: sourcetype == 'filebeat'
       - final: false
-        filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat' &&
-          winlog.provider_name == 'Microsoft-Windows-Sysmon'
+        filter: sourcetype == 'sysmon'
         output: splunk-hec-sysmon
         description: Splunk HEC for sysmon win
       - final: false
-        filter: __inputId=='elastic:in_elastic' && agent.type == 'winlogbeat'
+        filter: sourcetype == 'winlogbeat'
         output: splunk-hec-windows
         description: Splunk HEC for windows
       - final: false
-        filter: __inputId=='elastic:in_elastic' && (agent.type == 'filebeat' ||
-          agent.type == 'winlogbeat')
+        filter: (agent.type == 'filebeat' || agent.type == 'winlogbeat')
         output: remote-so-beats
         description: SecurityOnion so-beats index
       - final: false
-        filter: __inputId=='elastic:in_elastic'
+        filter: "true"
         output: rawlogs
         description: S3 Archive for raw logs (raw format)
       - final: false
-        filter: __inputId=='elastic:in_elastic'
+        filter: "true"
         output: rawlogs-cribljson
         description: S3 Archive for raw logs (cribl json format)
       - final: true
-        filter: __inputId=='elastic:in_elastic' && sourcetype == 'nginx'
+        filter: sourcetype == 'nginx'
         output: splunk-hec-nginx
         description: Splunk HEC for nginx
     type: router
@@ -393,6 +386,34 @@ outputs:
       - cribl_pipe
     streamtags:
       - nginx
+    loadBalanced: false
+    nextQueue: indexQueue
+    tcpRouting: nowhere
+    concurrency: 5
+    maxPayloadSizeKB: 4096
+    maxPayloadEvents: 0
+    compress: false
+    rejectUnauthorized: false
+    timeoutSec: 30
+    flushPeriodSec: 1
+    failedRequestLoggingMode: none
+    safeHeaders: []
+    enableMultiMetrics: false
+    authType: manual
+    onBackpressure: queue
+    url: https://172.16.22.20:8088/services/collector/event
+    useRoundRobinDns: false
+    pqMaxFileSize: 1 MB
+    pqPath: $CRIBL_HOME/state/queues
+    pqCompress: none
+    pqOnBackpressure: block
+    pqControls: {}
+    type: splunk_hec
+    token: "REDACTED"
+  splunk-hec-velociraptor:
+    systemFields:
+      - cribl_pipe
+    streamtags: []
     loadBalanced: false
     nextQueue: indexQueue
     tcpRouting: nowhere

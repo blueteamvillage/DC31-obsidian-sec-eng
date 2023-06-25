@@ -43,3 +43,12 @@ resource "aws_route53_record" "velociraptor" {
   ttl             = 300
   records         = [aws_eip.velociraptor_server_eip.public_ip]
 }
+
+resource "aws_route53_record" "jupyterhub" {
+  allow_overwrite = true
+  zone_id         = data.aws_route53_zone.project_route53_zone.zone_id
+  name            = "jupyterhub.${var.project_base_domain}"
+  type            = "A"
+  ttl             = 300
+  records         = [aws_eip.jupyter_server_eip.public_ip]
+}

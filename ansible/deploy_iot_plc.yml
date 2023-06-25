@@ -4,22 +4,29 @@
   hosts: iot_plc
   become: yes
   become_user: root
-  # pre_tasks:
-  #   - import_tasks: 'roles/linux/init_linux.yml'
-  #   - name: Remove sysmon
-  #     ansible.builtin.package:
-  #       name:
-  #         - sysmonforlinux
-  #         - sysinternalsebpf
-  #       state: absent
-  #     when: false
+  pre_tasks:
+    - import_tasks: 'roles/linux/init_linux.yml'
+    # optional step to force full sysmon reinstall
+    - name: Remove sysmon
+      ansible.builtin.package:
+        name:
+          - sysmonforlinux
+          - sysinternalsebpf
+        state: absent
+      when: false
+    # optional step to force reinstall of sysmon systemd unit and files in /opt
+    - name: Remove /etc/systemd/system/sysmon.service
+      ansible.builtin.file:
+        name: /etc/systemd/system/sysmon.service
+        state: absent
+      when: false
   roles:
-    # - davidmarkallison.openplc
-    - juju4.sysmon
+    - davidmarkallison.openplc
     - geerlingguy.filebeat
-    # - juju4.osquery
-    # - node_exporter
-    #- prymalinstynct.velociraptor
-  # tasks:
-  #   - import_tasks: "roles/iot_plc/setup_openplc.yml"
-  #   - import_tasks: "roles/iot_plc/setup_ssh.yml"
+    - juju4.osquery
+    - node_exporter
+    - juju4.sysmon
+    - prymalinstynct.velociraptor
+  tasks:
+    - import_tasks: "roles/iot_plc/setup_openplc.yml"
+    - import_tasks: "roles/iot_plc/setup_ssh.yml"

@@ -1,0 +1,10 @@
+kind: role
+version: v5
+metadata:
+  name: aws-console-access
+spec:
+  allow:
+    app_labels:
+      '*': '*'
+    aws_role_arns:
+      - arn:aws:iam::106453756913:role/DEFCON_2023_OBSIDIAN_teleport_workshop_contribs

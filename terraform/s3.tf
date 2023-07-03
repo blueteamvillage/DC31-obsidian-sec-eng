@@ -72,3 +72,14 @@ resource "aws_s3_bucket" "insider_threat" {
     Project = var.PROJECT_PREFIX
   }
 }
+
+
+####################################### Velociraptor S3 bucket #######################################
+resource "aws_s3_bucket" "raptor_uploader" {
+  bucket = "${lower(replace(var.PROJECT_PREFIX, "_", "-"))}-raptor-${random_string.bucket_suffix.result}"
+
+  tags = {
+    Name    = "${lower(replace(var.PROJECT_PREFIX, "_", "-"))}-raptor-bucket"
+    Project = var.PROJECT_PREFIX
+  }
+}

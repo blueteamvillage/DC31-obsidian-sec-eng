@@ -1,0 +1,7 @@
+---
+- name: Install/Setup Graylog server
+  hosts: graylog
+  become: yes
+  become_user: root
+  roles:
+    - node_exporter

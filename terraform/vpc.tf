@@ -1,6 +1,6 @@
 ############################################# Create VPC ############################################
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
   version = "4.0.1"
 
   name = "${var.PROJECT_PREFIX}_VPC"

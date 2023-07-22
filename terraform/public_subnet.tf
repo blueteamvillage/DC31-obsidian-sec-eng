@@ -1038,22 +1038,22 @@ resource "aws_security_group_rule" "graylog_allow_https" {
 }
 
 resource "aws_security_group_rule" "graylog_allow_teleport" {
-  type        = "ingress"
-  description = "Allow ICMP from jumpbox"
+  type              = "ingress"
+  description       = "Allow ICMP from jumpbox"
   from_port         = 0
   to_port           = 0
   protocol          = -1
-  cidr_blocks = ["${module.teleport.private_ip_addr}/32",]
+  cidr_blocks       = ["${module.teleport.private_ip_addr}/32", ]
   security_group_id = aws_security_group.graylog_server_sg.id
 }
 
 resource "aws_security_group_rule" "graylog_allow_prometheus" {
-  type        = "ingress"
-  description = "Allow Prometheus to access node exporter"
-  from_port   = 9100
-  to_port     = 9100
-  protocol    = "tcp"
-  cidr_blocks = ["${aws_instance.metrics.private_ip}/32"]
+  type              = "ingress"
+  description       = "Allow Prometheus to access node exporter"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
   security_group_id = aws_security_group.graylog_server_sg.id
 }
 

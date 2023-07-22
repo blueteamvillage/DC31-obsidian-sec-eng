@@ -1,0 +1,33 @@
+kind: role
+metadata:
+  name: graylog_team
+spec:
+  allow:
+    app_labels:
+      'env': 'intra'
+    logins:
+    - ubuntu
+    node_labels:
+      aws/Name: DEFCON_2023_OBSIDIAN_graylog_server
+  deny: {}
+  options:
+    cert_format: standard
+    create_desktop_user: false
+    create_host_user: false
+    desktop_clipboard: true
+    desktop_directory_sharing: true
+    enhanced_recording:
+    - command
+    - network
+    forward_agent: false
+    idp:
+      saml:
+        enabled: true
+    max_session_ttl: 30h0m0s
+    pin_source_ip: false
+    port_forwarding: true
+    record_session:
+      default: best_effort
+      desktop: true
+    ssh_file_copy: true
+version: v5

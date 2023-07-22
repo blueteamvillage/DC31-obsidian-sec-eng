@@ -41,4 +41,9 @@ spec:
     - workshop_contributors
     - windows_desktop_users
     team: dc31-mail-team
+  - organization: blueteamvillage
+    roles:
+    - jumpbox
+    - graylog_team
+    team: dc31-graylog-team
 version: v3

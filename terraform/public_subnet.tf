@@ -989,3 +989,130 @@ resource "aws_ec2_traffic_mirror_session" "iot_subnet_tap_traffic_mirror_session
     Project = var.PROJECT_PREFIX
   }
 }
+
+
+############################################ graylog Server ############################################
+resource "aws_security_group" "graylog_server_sg" {
+  vpc_id      = module.vpc.vpc_id
+  description = "graylog security group"
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_graylog_server_sg"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+
+resource "aws_security_group_rule" "graylog_allow_http" {
+  type        = "ingress"
+  description = "Allow HTTP from jumpbox, corp + dmz subnets, web server, and corp subnet NAT gateway for graylog networking"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${aws_eip.graylog_server_eip.public_ip}/32",
+    "${module.teleport.private_ip_addr}/32",
+    # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+    # else line should be commented
+    # `terraform apply -target=aws_security_group_rule.graylog_allow_https -target=aws_security_group_rule.graylog_allow_http`
+    # https://certbot.eff.org/faq#what-ip-addresses-will-the-let-s-encrypt-servers-use-to-validate-my-web-server
+    # "0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.graylog_server_sg.id
+}
+
+resource "aws_security_group_rule" "graylog_allow_https" {
+  type        = "ingress"
+  description = "Allow HTTPS from jumpbox, corp + dmz subnets, web server, and corp subnet NAT gateway for graylog networking"
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  cidr_blocks = [
+    # graylog needs to call itself
+    "${aws_eip.graylog_server_eip.public_ip}/32",
+    "${module.teleport.private_ip_addr}/32",
+    # during initial setup and cert renewal, need to temporarily open to get public certificate with certbot
+    # else line should be commented
+    # "0.0.0.0/0"
+  ]
+  security_group_id = aws_security_group.graylog_server_sg.id
+}
+
+resource "aws_security_group_rule" "graylog_allow_teleport" {
+  type        = "ingress"
+  description = "Allow ICMP from jumpbox"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks = ["${module.teleport.private_ip_addr}/32",]
+  security_group_id = aws_security_group.graylog_server_sg.id
+}
+
+resource "aws_security_group_rule" "graylog_allow_prometheus" {
+  type        = "ingress"
+  description = "Allow Prometheus to access node exporter"
+  from_port   = 9100
+  to_port     = 9100
+  protocol    = "tcp"
+  cidr_blocks = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.graylog_server_sg.id
+}
+
+#tfsec:ignore:aws-ec2-no-public-egress-sgr
+resource "aws_security_group_rule" "graylog_allow_egress" {
+  type              = "egress"
+  description       = "Allow all outbound traffic"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.graylog_server_sg.id
+}
+
+resource "aws_instance" "graylog_server" {
+  ami                     = var.ubunut-ami
+  instance_type           = "t3.large"
+  subnet_id               = aws_subnet.logging.id
+  vpc_security_group_ids  = [aws_security_group.graylog_server_sg.id]
+  key_name                = "${var.PROJECT_PREFIX}-ssh-key"
+  private_ip              = var.logging_subnet_map["graylog"]
+  disable_api_termination = true
+
+  metadata_options {
+    instance_metadata_tags = "enabled"
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
+  }
+
+  root_block_device {
+    volume_size           = 100
+    volume_type           = "gp2"
+    delete_on_termination = true
+    encrypted             = true
+  }
+
+  ################## DO NOT TOUCH ##################
+  ############# IGNORE instance type ###############
+  lifecycle {
+    ignore_changes = [
+      instance_type,
+      cpu_core_count,
+      ebs_optimized,
+    ]
+  }
+  ############# IGNORE instance type ###############
+  ################## DO NOT TOUCH ##################
+
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_graylog_server"
+    Project = var.PROJECT_PREFIX
+  }
+}
+
+resource "aws_eip" "graylog_server_eip" {
+  instance = aws_instance.graylog_server.id
+  vpc      = true
+  tags = {
+    Name    = "${var.PROJECT_PREFIX}_graylog_server_eip"
+    Project = var.PROJECT_PREFIX
+  }
+}

@@ -447,6 +447,16 @@ resource "aws_security_group_rule" "splunk_allow_prometheus" {
 }
 
 
+resource "aws_security_group_rule" "splunk_allow_nginx_prometheus" {
+  type              = "ingress"
+  description       = "Allow prometheus to pull metrics from node exporter"
+  from_port         = 9113
+  to_port           = 9113
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.splunk_server_sg.id
+}
+
 resource "aws_security_group_rule" "splunk_allow_outbound" {
   type              = "egress"
   description       = "Allow outbound"

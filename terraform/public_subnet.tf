@@ -1057,6 +1057,16 @@ resource "aws_security_group_rule" "graylog_allow_prometheus" {
   security_group_id = aws_security_group.graylog_server_sg.id
 }
 
+resource "aws_security_group_rule" "graylog_allow_prometheus_traefik" {
+  type              = "ingress"
+  description       = "Allow Prometheus to access traefik metrics"
+  from_port         = 8080
+  to_port           = 8080
+  protocol          = "tcp"
+  cidr_blocks       = ["${aws_instance.metrics.private_ip}/32"]
+  security_group_id = aws_security_group.graylog_server_sg.id
+}
+
 #tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group_rule" "graylog_allow_egress" {
   type              = "egress"

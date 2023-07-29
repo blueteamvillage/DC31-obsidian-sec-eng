@@ -1,0 +1,116 @@
+---
+####################################################################
+# Setup NGINX metrics
+####################################################################
+- name: Copy NGINX config
+  ansible.builtin.template:
+    src: "templates/metrics.conf.j2"
+    dest: "/etc/nginx/conf.d/metrics.conf"
+    owner: "root"
+    group: "root"
+    mode: 0600
+
+- name: Restart NGINX
+  ansible.builtin.service:
+    name: "nginx"
+    enabled: yes
+    state: restarted
+
+####################################################################
+# Healthcheck NGINX nginx exporter
+####################################################################
+- name: nginx exporter health check
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ nginx_metrics_port }}/metrics"
+    follow_redirects: none
+    method: GET
+    status_code: 200
+  register: nginx_exporter_result
+  until: nginx_exporter_result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds
+
+####################################################################
+# Install/Setup NGINX nginx exporter
+####################################################################
+- name: Create nginx exporter Group
+  ansible.builtin.group:
+    name: nginx_exporter
+    state: present
+
+- name: Create nginx exporter User
+  ansible.builtin.user:
+    name: nginx_exporter
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: Stat nginx exporter
+  ansible.builtin.stat:
+    path: "/usr/local/bin/nginx-prometheus-exporter"
+  register: nginx_exporter_install
+
+- name: Download nginx exporter
+  ansible.builtin.get_url:
+    url: "{{ nginx_exporter_dl_url }}"
+    dest: "/tmp/nginx-prometheus-exporter_{{ nginx_exporter_version }}_linux_amd64.tar.gz"
+    mode: 0644
+  when: not nginx_exporter_install.stat.exists
+
+- name: Extract nginx exporter
+  ansible.builtin.unarchive:
+    src: "/tmp/nginx-prometheus-exporter_{{ nginx_exporter_version }}_linux_amd64.tar.gz"
+    dest: "/tmp"
+    remote_src: yes
+  when: not nginx_exporter_install.stat.exists
+
+- name: Move nginx exporter binary
+  ansible.builtin.copy:
+    src: "/tmp/nginx-prometheus-exporter"
+    dest: "/usr/local/bin/nginx-prometheus-exporter"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+    remote_src: yes
+  when: not nginx_exporter_install.stat.exists
+
+- name: Copy nginx exporter socket config
+  ansible.builtin.template:
+    src: "templates/nginx_exporter.socket.j2"
+    dest: "/etc/systemd/system/nginx_exporter.socket"
+    owner: "root"
+    group: "root"
+    mode: 0600
+
+- name: Copy nginx exporter service
+  ansible.builtin.template:
+    src: "templates/nginx_exporter.service.j2"
+    dest: "/etc/systemd/system/nginx-prometheus-exporter.service"
+    owner: "root"
+    group: "root"
+    mode: 0600
+
+- name: Start nginx exporter service
+  ansible.builtin.service:
+    name: "nginx-prometheus-exporter"
+    enabled: yes
+    state: restarted
+
+- name: Allow nginx exporter (9113/TCP)
+  community.general.ufw:
+    rule: allow
+    port: "{{ nginx_exporter_port }}"
+    proto: tcp
+
+####################################################################
+# Healthcheck nginx exporter
+####################################################################
+- name: nginx exporter health check
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ nginx_exporter_port }}/metrics"
+    follow_redirects: none
+    method: GET
+    status_code: 200
+  register: nginx_exporter_result
+  until: nginx_exporter_result.status == 200
+  retries: 720  # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5  # Every 5 seconds

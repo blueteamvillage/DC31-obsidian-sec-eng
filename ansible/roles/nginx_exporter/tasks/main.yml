@@ -1,0 +1,4 @@
+---
+# tasks file for ansible/roles/nginx_exporter
+- name: Install/Setup NGINX Node exporter
+  ansible.builtin.import_tasks: setup_exporter.yml

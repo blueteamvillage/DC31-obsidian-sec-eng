@@ -32,6 +32,7 @@
     - splunk_standalone
     - juju4.harden_nginx
     - node_exporter
+    - nginx_exporter
   handlers:
     - name: Restart Splunkd
       ansible.builtin.service:

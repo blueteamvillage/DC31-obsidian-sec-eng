@@ -33,6 +33,7 @@ spec:
     roles:
     - jumpbox
     - red_team
+    - aws-console-access
     team: dc31-red-team
   - organization: blueteamvillage
     roles:

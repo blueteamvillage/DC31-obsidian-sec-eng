@@ -3,6 +3,7 @@
 This Ansible playbook sets up Grafana and Prometheus to consume metrics from EC2 instances.
 
 ## Init Ansible playbook
+1. `ansible-galaxy collection install community.crypto`
 1. `vim ansible/roles/metrics_server/vars/main.yml` and set:
     1. `grafana_version` - define grafana version to use
     1. `prometheus_version` - define promtheus version to use
@@ -114,6 +115,6 @@ scrape_configs:
 * [Resource: aws_iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role)
 * [Data Source: aws_iam_policy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document)
 * [Prometheus Service Discovery on AWS EC2](https://codewizardly.com/prometheus-on-aws-ec2-part3/)
-* []()
+* [community/crypto](https://galaxy.ansible.com/community/crypto)
 * []()
 * []()

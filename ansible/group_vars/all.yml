@@ -46,5 +46,5 @@ filebeat_output_elasticsearch_ssl_enabled: true
 filebeat_output_elasticsearch_ssl_verification: 'none'
 
 # From terraform
-teleport_base_domain: "blueteamvillage.com"
-logging_base_ext_domain: "teleport.{{ teleport_base_domain }}"
+btv_base_domain: "blueteamvillage.com"
+logging_base_ext_domain: "teleport.{{ btv_base_domain }}"

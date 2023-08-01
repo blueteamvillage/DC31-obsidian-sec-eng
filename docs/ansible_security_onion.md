@@ -5,6 +5,7 @@ Setup based on DC30 code
 
 ## Init Ansible playbook
 If not generated automatically by terraform
+1. `ansible-galaxy install geerlingguy.elasticsearch`
 1. `cd ansible/`
 1. `vim ansible/hosts.ini` and set `[security_onion]` to the IP address of the server
 
@@ -133,5 +134,5 @@ timestamp=2023-04-27T01:13:34.163181558Z level=info message="HTTP request finish
 * [Data Source: aws_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance#private_ip)
 * [Filter Terraform Data Source by AWS Tag](https://wahlnetwork.com/2020/04/30/filter-terraform-data-source-by-aws-tag-value/)
 * [Allow user to change web interface cert #1766 ](https://github.com/Security-Onion-Solutions/securityonion/issues/1766)
-* []()
+* [geerlingguy/elasticsearch](https://galaxy.ansible.com/geerlingguy/elasticsearch)
 * []()

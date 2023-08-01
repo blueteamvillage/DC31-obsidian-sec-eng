@@ -1,0 +1,6 @@
+server {
+    listen 127.0.0.1:{{ nginx_metrics_port }};
+    location /metrics {
+        stub_status on;
+    }
+}

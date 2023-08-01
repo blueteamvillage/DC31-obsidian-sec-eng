@@ -118,6 +118,15 @@ app_service:
       labels:
         env: "iot"
     ######################################## SIEMs ########################################
+    - name: "graylog"
+      uri: "http://172.16.22.170:80"
+      insecure_skip_verify: true
+      rewrite:
+        headers:
+          - "Host: graylog.blueteamvillage.com"
+      labels:
+        env: logging
+        sponsor: graylog
     - name: "splunk"
       uri: "http://172.16.22.20:8000/en-US"
       #insecure_skip_verify: true

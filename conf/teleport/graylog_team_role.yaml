@@ -4,7 +4,8 @@ metadata:
 spec:
   allow:
     app_labels:
-      'env': 'intra'
+      env: intra
+      sponsor: graylog
     logins:
     - ubuntu
     node_labels:

@@ -49,8 +49,8 @@ module "teleport" {
   public_key_name = aws_key_pair.deployer.key_name
 
   #### Route53 ####
-  route53_zone_id = var.teleport_route53_zone_id
-  route53_domain  = var.teleport_base_domain
+  route53_zone_id = var.btv_route53_zone_id
+  route53_domain  = var.btv_base_domain
 
   #### VPC ####
   vpc_id             = module.vpc.vpc_id

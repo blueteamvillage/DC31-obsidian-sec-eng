@@ -16,4 +16,4 @@ falco_k8s_helm: true
 JH_AUTH_CLASS: github
 JH_OAUTH2_CLIENT_ID: "e66d0d2e682ccf98ff7f"
 JH_OAUTH2_CLIENT_SECRET: "{{ lookup('amazon.aws.aws_secret', 'DEFCON_2023_OBSIDIAN-ir-jupyter-notebooks', region=aws_region) }}"
-JH_OAUTH2_CALLBACK_URL: "https://jupyterhub.{{ teleport_base_domain }}/hub/oauth_callback"
+JH_OAUTH2_CALLBACK_URL: "https://jupyterhub.{{ btv_base_domain }}/hub/oauth_callback"

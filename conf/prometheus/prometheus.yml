@@ -45,12 +45,24 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
-
   - job_name: nginx_service_discovery
     ec2_sd_configs:
       - region: "us-east-2"
         role_arn: "arn:aws:iam::106453756913:role/DEFCON_2023_OBSIDIAN_prometheus_service_discovery"
         port: 9113
+        filters:
+          - name: tag:Project
+            values:
+              - DEFCON_2023_OBSIDIAN
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+
+  - job_name: traefik_service_discovery
+    ec2_sd_configs:
+      - region: "us-east-2"
+        role_arn: "arn:aws:iam::106453756913:role/DEFCON_2023_OBSIDIAN_prometheus_service_discovery"
+        port: 8080
         filters:
           - name: tag:Project
             values:

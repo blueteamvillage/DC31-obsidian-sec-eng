@@ -40,7 +40,14 @@ data "aws_iam_policy_document" "teleport_workshop_contribs_s3" {
   }
   statement {
     actions   = ["s3:ListBucket"]
-    resources = ["${aws_s3_bucket.project_bucket.arn}"]
+    resources = [
+      aws_s3_bucket.project_bucket.arn,
+      aws_s3_bucket.raptor_uploader.arn,
+      aws_s3_bucket.insider_threat.arn,
+      aws_s3_bucket.logs_infra.arn,
+      aws_s3_bucket.logs_archive_raw.arn,
+      aws_s3_bucket.logs_archive_enriched.arn,
+    ]
   }
   statement {
     actions = [
@@ -50,7 +57,14 @@ data "aws_iam_policy_document" "teleport_workshop_contribs_s3" {
       "s3:DeleteObject",
       "s3:GetObject",
     ]
-    resources = ["${aws_s3_bucket.project_bucket.arn}/*"]
+    resources = [
+      "${aws_s3_bucket.project_bucket.arn}/*",
+      "${aws_s3_bucket.raptor_uploader.arn}/*",
+      "${aws_s3_bucket.insider_threat.arn}/*",
+      "${aws_s3_bucket.logs_infra.arn}/*",
+      "${aws_s3_bucket.logs_archive_raw.arn}/*",
+      "${aws_s3_bucket.logs_archive_enriched.arn}/*",
+    ]
   }
 }
 

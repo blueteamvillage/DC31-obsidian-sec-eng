@@ -205,6 +205,26 @@ resource "aws_security_group_rule" "cribl_allow_teleport" {
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
 
+# aws_security_group_rule.cribl_allow_9200 will be created
+resource "aws_security_group_rule" "cribl_allow_9200" {
+  type        = "ingress"
+  description = "Allow elasticsearch tcp/9200-9210"
+  from_port   = 9200
+  to_port     = 9210
+  protocol    = "tcp"
+  cidr_blocks = [
+    "${module.teleport.private_ip_addr}/32",
+    var.corp_cidr_block,
+    var.public_cidr_block,
+    var.private_cidr_block,
+    var.intranet_cidr_block,
+    var.logging_cidr_block,
+    var.prod_cidr_block,
+    var.iot_cidr_block,
+    var.red_team_cidr_block,
+  ]
+  security_group_id = aws_security_group.cribl_server_sg2.id
+}
 
 resource "aws_security_group_rule" "cribl_allow_ping" {
   type        = "ingress"
@@ -226,7 +246,7 @@ resource "aws_security_group_rule" "cribl_allow_ping" {
   security_group_id = aws_security_group.cribl_server_sg2.id
 }
 
-resource "aws_security_group_rule" "cribl_allow_9200" {
+resource "aws_security_group_rule" "btv_base_domain" {
   type        = "ingress"
   description = "Allow elasticsearch tcp/9200-9210"
   from_port   = 9200

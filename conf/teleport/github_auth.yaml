@@ -47,4 +47,10 @@ spec:
     - jumpbox
     - graylog_team
     team: dc31-graylog-team
+  - organization: blueteamvillage
+    roles:
+    - ctf_team
+    - jumpbox
+    - aws-console-access
+    team: dc31-ctf-team
 version: v3

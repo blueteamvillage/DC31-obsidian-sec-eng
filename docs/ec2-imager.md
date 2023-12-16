@@ -5,7 +5,18 @@ At a high level, you tag all snapshots
 
 1. `cd ../scripts/ec2-imager.tf`
 1. Open `ec2-imager.tf` and modify:
-    1. The filter `data.aws_ebs_snapshot_ids` to a relevant tag
+    1. Set the filters `data.aws_ebs_snapshot_ids` to a relevant tags
+    ```shell
+    data "aws_ebs_snapshot_ids" "project_snapshot_ids" {
+    filter {
+        name   = "tag:Project"
+        values = ["DEFCON_2023_OBSIDIAN"]
+    }
+    filter {
+        name   = "storage-tier"
+        values = ["standard"]
+    }
+    ```
     1. `locals.s3_bucket` to the bucket you want to write too
     1. `aws_instance.key_name` to a key you own in AWS
 1. `terraform apply`

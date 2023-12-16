@@ -6,6 +6,8 @@ IFS=$'\n'
 apt update -y
 apt install awscli pbzip2 jq linux-aws amazon-ec2-utils pv -y
 
+
+
 ############################################################################################################
 # Mount all disks
 ############################################################################################################
@@ -23,8 +25,11 @@ do
     image_name=$(aws ec2 describe-volumes --filters Name=attachment.instance-id,Values=$(curl -s http://169.254.169.254/latest/meta-data/instance-id) --region us-east-2 | jq --arg jq_volume_id $volume_id '.Volumes[] | select(.VolumeId==$jq_volume_id) | .Tags[] | select(.Key=="Description").Value' -r | tr ' ' '-')
     tags=$(aws ec2 describe-volumes --filters Name=attachment.instance-id,Values=$(curl -s http://169.254.169.254/latest/meta-data/instance-id) --region us-east-2 | jq --arg jq_volume_id $volume_id '.Volumes[] | select(.VolumeId==$jq_volume_id).Tags' -r | sed -E 's/(^ *)"([^"]*)":/\1\2:/' | sed -e 's#Key: #Key=#g' | sed -e 's#Value: #Value=#g')
 
-    aws s3 cp ${device_name}.image.bz2 s3://defcon-2023-obsidian-zkx4p/foreneics/disk_images/${image_name}.image.bz2
-    aws s3api put-object-tagging --bucket defcon-2023-obsidian-zkx4p --tagging "TagSet=${tags}" --key foreneics/disk_images/${image_name}.image.bz2
+    aws s3 cp ${device_name}.image.bz2 s3://defcon-2022-obsidian-bq2am/forensics/disk_images/${image_name}.image.bz2
+    # Best effort try to apply tags to new image.
+    # However, some tags and not properly formatted
+    # and will create issues.
+    aws s3api put-object-tagging --bucket defcon-2022-obsidian-bq2am --tagging "TagSet=${tags}" --key forensics/disk_images/${image_name}.image.bz2 || true
     echo "[+] - $(date) - Upload complete"
 
     # Delete image

@@ -17,7 +17,11 @@ terraform {
 data "aws_ebs_snapshot_ids" "project_snapshot_ids" {
   filter {
     name   = "tag:Project"
-    values = ["DEFCON_2023_OBSIDIAN"]
+    values = ["DEFCON_2022_OBSIDIAN"]
+  }
+  filter {
+    name   = "storage-tier"
+    values = ["standard"]
   }
   # filter {
   #   name   = "tag:ec2-imager"
@@ -31,7 +35,7 @@ locals {
   # and "/dev/sda1" is taken by root
   max_mounts         = 31
   ec2_instance_count = ceil(length(toset(data.aws_ebs_snapshot_ids.project_snapshot_ids.ids)) / local.max_mounts)
-  s3_bucket          = "defcon-2023-obsidian-zkx4p"
+  s3_bucket          = "defcon-2022-obsidian-bq2am"
 }
 
 
@@ -171,11 +175,12 @@ resource "aws_ebs_volume" "snapshot_to_volume" {
   availability_zone = "us-east-2b"
   encrypted         = false
   type              = "gp3" # Faster SSD
-  iops              = 10000
+  # AWS requires a certain IOPs to disk size ratio.
+  iops = each.value.volume_size > 8 ? 10000 : 4000
 
   tags = {
     Name             = each.value.description
-    Project          = "DEFCON_2023_OBSIDIAN"
+    Project          = "DEFCON_2022_OBSIDIAN"
     Tool             = "ec2-imager"
     Description      = each.value.description
     OriginalVolumeId = each.value.volume_id
